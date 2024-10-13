@@ -63,3 +63,14 @@ unix {
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-lib.so.1.0) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-lib.so.1.0.0) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
 }
+
+win32 {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+}
+win64 {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+}
+
+#message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))
