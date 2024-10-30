@@ -177,6 +177,31 @@ QVector<std::tuple<T...>> qzip(QVector<T> ... v)
     return res;
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+template <typename ...T>
+QList<std::tuple<T...>> qzip(QList<T> ... v)
+{
+    QList<std::tuple<T...>>  res;
+    size_t size = std::min({v.size() ... });
+    if (size != 0) {
+        for (size_t i = 0; i < size; i++) {
+            res.push_back(std::make_tuple(*(v.begin()+i) ... ));
+        }
+    }
+    return res;
+}
+#endif
+
+template <typename T>
+QSet<T> QListToQSet(const QList<T>& qlist) {
+    return QSet<T> (qlist.constBegin(), qlist.constEnd());
+}
+
+template <typename T>
+QStringList QSetToQStringList(const QSet<T>& qset) {
+    return QStringList(qset.constBegin(), qset.constEnd());
+}
+
 template <typename K, typename V>
 static std::map<V, K> reverse_map(const std::map<K, V> &m) {
     std::map<V, K> r;
