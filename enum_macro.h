@@ -197,6 +197,28 @@ void EnumMacroTest();
     constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12}; \
     ENUM_MACRO_FUN(name)
 
+#define ENUM_MACRO13(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13) \
+    enum name {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13}; \
+    constexpr unsigned int name##_strings_size = 13; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13}; \
+    constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13}; \
+    ENUM_MACRO_FUN(name)
+
+#define ENUM_MACRO14(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14) \
+    enum name {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14}; \
+    constexpr unsigned int name##_strings_size = 14; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14}; \
+    constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14}; \
+    ENUM_MACRO_FUN(name)
+
 #define ENUM_MACRO15(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, \
                            e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, \
                            r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, \
@@ -217,6 +239,28 @@ void EnumMacroTest();
     constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16}; \
     constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16}; \
     constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, e16}; \
+    ENUM_MACRO_FUN(name)
+
+#define ENUM_MACRO17(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17) \
+    enum name {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17}; \
+    constexpr unsigned int name##_strings_size = 17; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17}; \
+    constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16, #r17}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16, #e17}; \
+    ENUM_MACRO_FUN(name)
+
+#define ENUM_MACRO18(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18) \
+    enum name {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18}; \
+    constexpr unsigned int name##_strings_size = 18; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18}; \
+    constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16, #r17, #r18}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16, #e17, #e18}; \
     ENUM_MACRO_FUN(name)
 
 #define ENUM_MACRO19(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, \
@@ -272,6 +316,28 @@ void EnumMacroTest();
     constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23}; \
     constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16, #r17, #r18, #r19, #r20, #r21, #r22, #r23}; \
     constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16, #e17, #e18, #e19, #e20, #e21, #e22, #e23}; \
+    ENUM_MACRO_FUN(name)
+
+#define ENUM_MACRO24(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24) \
+    enum name             {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24}; \
+    constexpr unsigned int name##_strings_size = 24; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24}; \
+    constexpr const char *name##_strings[] =    {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16, #r17, #r18, #r19, #r20, #r21, #r22, #r23, #r24}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16, #e17, #e18, #e19, #e20, #e21, #e22, #e23, #e24}; \
+    ENUM_MACRO_FUN(name)
+
+#define ENUM_MACRO25(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, \
+                           e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, \
+                           r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25, \
+                           d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24, d25) \
+    enum name             {v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25}; \
+    constexpr unsigned int name##_strings_size = 25; \
+    constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24, d25}; \
+    constexpr const char *name##_strings[] =    {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16, #r17, #r18, #r19, #r20, #r21, #r22, #r23, #r24, #r25}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16, #e17, #e18, #e19, #e20, #e21, #e22, #e23, #e24, #e25}; \
     ENUM_MACRO_FUN(name)
 
 #define ENUM_MACRO26(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, \
