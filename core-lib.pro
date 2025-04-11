@@ -34,6 +34,7 @@ SOURCES += \
 
 HEADERS += \
     Logger.h \
+    Random.h \
     enum_macro.h \
     mixins.h \
     Profiler.h \
