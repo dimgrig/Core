@@ -22,6 +22,24 @@ public:
     virtual void visit(T* t) = 0;
 };
 
+
+
+template <typename ... Types>
+class SharedPtrVisitor;
+
+template <typename T>
+class SharedPtrVisitor<T> {
+public:
+    virtual void visit(std::shared_ptr<T> t) = 0;
+};
+
+template <typename T, typename ... Types>
+class SharedPtrVisitor<T, Types ...> : public SharedPtrVisitor<Types ...> {
+public:
+    using SharedPtrVisitor<Types ...>::visit;
+    virtual void visit(std::shared_ptr<T> t) = 0;
+};
+
 // ----------------------------------------------
 //
 template <typename Base, typename ... >
