@@ -11,10 +11,22 @@ QMAKE_CXXFLAGS += -Wno-deprecated #-std=c++2a
 
 DISTFILES += \
     qmake-destination-path.pri \
-    qmake-target-platform.pri
+    qmake-target-platform.pri \
+    core-gcc10.pri
 
 include(qmake-target-platform.pri)
 include(qmake-destination-path.pri)
+
+
+exists(/etc/astra_version) {
+    LIBS += -L/usr/lib/qt/ -lcore-lib
+
+    DISTFILES += core-gcc10.pri
+    include(core-gcc10.pri)
+
+    message($${ASTRA_GCC_PATH})
+    message($${ASTRA_QT_PATH})
+}
 
 DEFINES += NOCRYPT #fix DOMDocument ambigious with qcustomplot
 DEFINES += NOUSER
