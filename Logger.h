@@ -35,6 +35,7 @@ public:
     static void log_delete();
     static void LogMessageOutput([[maybe_unused]] QtMsgType type, const QMessageLogContext &, const QString & str);
     static void LogFileOpening(int change);
+    static void log_shutdown();
 
     static bool __log_enable;
     static bool __log_to_file;

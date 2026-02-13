@@ -112,6 +112,11 @@ void Logger::LogMessageOutput(QtMsgType type, const QMessageLogContext &context,
 }
 
 void Logger::LogFileOpening(int change) {
+    if (!QCoreApplication::instance()) {
+        // Приложение уже разрушено – ничего не делаем
+        return;
+    }
+
     QString DATETIME_SUFFIX = "";
     //qCDebug(logDebug()) << cfg.FILE;
     if (__log_date) {
@@ -143,4 +148,15 @@ void Logger::LogFileOpening(int change) {
         logFile.reset(new QFile(qApp->applicationDirPath() + "/log/" + __log_file.c_str() + DATETIME_SUFFIX + ".txt"));
         logFile.data()->open(QFile::Append | QFile::Text);
     }
+}
+
+void Logger::log_shutdown() {
+    // Сбросить и закрыть файл
+    if (!logFile.isNull()) {
+        logFile->flush();
+        logFile->close();
+        logFile.reset(); // QScopedPointer удалит объект
+    }
+    // Отключить обработчик сообщений
+    qInstallMessageHandler(nullptr);
 }
