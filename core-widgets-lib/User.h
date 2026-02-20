@@ -15,6 +15,8 @@
 #include "enum_macro.h"
 #include "Logger.h"
 
+#include "core-widgets-lib-global.h"
+
 const int Length = 256;
 
 ENUM_MACRO4(AuthUserRole, AuthUserRole_Undefined, Developer, Admin, Operator,
@@ -31,7 +33,7 @@ static QStringList AuthUserRolesAdd = {AuthUserRole_to_text(Operator)};
 
 #define auth_user User_singleton::instance()
 
-struct User_s {
+struct CORE_WIDGETS_LIB_EXPORT User_s {
     char name[Length] = {};
     char level[Length] = {};
     char password[Length] = {};
@@ -47,7 +49,7 @@ struct User_s {
     }
 };
 
-class User_singleton {
+class CORE_WIDGETS_LIB_EXPORT User_singleton {
 public:
     static User_singleton& instance() {
         static User_singleton inst;
@@ -67,7 +69,7 @@ namespace Ui {
     class Users;
 }
 
-class User : public QDialog {
+class CORE_WIDGETS_LIB_EXPORT User : public QDialog {
 Q_OBJECT
 public:
     User(bool editing = true, QWidget *parent = nullptr);
@@ -82,7 +84,7 @@ private:
     Ui::User *ui;
 };
 
-class Users : public QDialog {
+class CORE_WIDGETS_LIB_EXPORT Users : public QDialog {
 Q_OBJECT
 public:
     Users(QWidget *parent = nullptr);

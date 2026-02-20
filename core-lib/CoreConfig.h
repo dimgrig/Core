@@ -30,7 +30,7 @@
 #define DATE_FORMAT "dd.MM.yyyy"
 
 #define SETTINGS_PATH           "settings/"
-#define ORGANIZATION_NAME        "ACS"
+#define __ORGANIZATION_NAME        "ACS"
 
 #define DEGREE_SYMBOL QChar(176)
 

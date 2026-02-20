@@ -18,6 +18,5 @@ tests.depends = core-lib \
                 core-modbus-lib \
                 core-mvc-lib \
                 core-utils-lib \
-                core-widgets-lib \
-                tests
+                core-widgets-lib
 

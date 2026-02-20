@@ -9,7 +9,7 @@
 #include "core-mvc-lib-global.h"
 
 template<typename T>
-CORE_MVC_LIB_EXPORT void HimikCompleter(
+void HimikCompleter(
     T* widget,
     QAbstractItemModel* model,
     int column,
@@ -32,7 +32,7 @@ CORE_MVC_LIB_EXPORT void HimikCompleter(
 }
 
 template<typename T>
-CORE_MVC_LIB_EXPORT void setupCompleter(
+void setupCompleter(
     T* widget,
     const QStringList& items,
     Qt::CaseSensitivity sensitivity = Qt::CaseInsensitive

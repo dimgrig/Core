@@ -117,7 +117,7 @@ CORE_MVC_LIB_EXPORT void get_csv_row_stream(QStringList sl, BaseTableView* tw, Q
 //     stream << "\n";
 // }
 
-CORE_MVC_LIB_EXPORT class BaseTableView : public QTableView {
+class CORE_MVC_LIB_EXPORT BaseTableView : public QTableView {
 Q_OBJECT
 public:
     BaseTableView(QWidget *parent = nullptr);

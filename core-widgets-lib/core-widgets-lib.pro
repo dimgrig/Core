@@ -2,7 +2,7 @@ QT       += core
 greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets
 
 TEMPLATE = lib
-DEFINES += WIDGETS_CORE_LIB_LIBRARY
+DEFINES += CORE_WIDGETS_LIB_LIBRARY
 
 CONFIG += c++17
 

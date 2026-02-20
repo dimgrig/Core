@@ -71,48 +71,48 @@ unix {
 }
 
 win32 {
-    # Используем относительные пути от текущего каталога
-    SOURCE_DLL_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/core-modbus-lib.dll
-    SOURCE_LIB_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/libcore-modbus-lib.a
-    DEST_RELATIVE = ../../../QtCreatorProjects/libs
+#    # Используем относительные пути от текущего каталога
+#    SOURCE_DLL_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/core-modbus-lib.dll
+#    SOURCE_LIB_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/libcore-modbus-lib.a
+#    DEST_RELATIVE = ../../../QtCreatorProjects/libs
 
-    # Получаем абсолютные пути
-    SOURCE_DLL_ABS = $$absolute_path($$SOURCE_DLL_RELATIVE, $$PWD)
-    SOURCE_LIB_ABS = $$absolute_path($$SOURCE_LIB_RELATIVE, $$PWD)
-    DEST_ABS = $$absolute_path($$DEST_RELATIVE, $$PWD)
+#    # Получаем абсолютные пути
+#    SOURCE_DLL_ABS = $$absolute_path($$SOURCE_DLL_RELATIVE, $$PWD)
+#    SOURCE_LIB_ABS = $$absolute_path($$SOURCE_LIB_RELATIVE, $$PWD)
+#    DEST_ABS = $$absolute_path($$DEST_RELATIVE, $$PWD)
 
-    # Преобразуем в системный формат
-    SOURCE_DLL_WIN = $$system_path($$SOURCE_DLL_ABS)
-    SOURCE_LIB_WIN = $$system_path($$SOURCE_LIB_ABS)
-    DEST_WIN = $$system_path($$DEST_ABS)
+#    # Преобразуем в системный формат
+#    SOURCE_DLL_WIN = $$system_path($$SOURCE_DLL_ABS)
+#    SOURCE_LIB_WIN = $$system_path($$SOURCE_LIB_ABS)
+#    DEST_WIN = $$system_path($$DEST_ABS)
 
-    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
-    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
+#    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
+#    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
 
-    #QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
-    #QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
 }
 win64 {
-    # Используем относительные пути от текущего каталога
-    SOURCE_DLL_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/core-modbus-lib.dll
-    SOURCE_LIB_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/libcore-modbus-lib.a
-    DEST_RELATIVE = ../../../QtCreatorProjects/libs
+#    # Используем относительные пути от текущего каталога
+#    SOURCE_DLL_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/core-modbus-lib.dll
+#    SOURCE_LIB_RELATIVE = ../core-modbus-lib-binaries/windows/gcc/x86/debug/libcore-modbus-lib.a
+#    DEST_RELATIVE = ../../../QtCreatorProjects/libs
 
-    # Получаем абсолютные пути
-    SOURCE_DLL_ABS = $$absolute_path($$SOURCE_DLL_RELATIVE, $$PWD)
-    SOURCE_LIB_ABS = $$absolute_path($$SOURCE_LIB_RELATIVE, $$PWD)
-    DEST_ABS = $$absolute_path($$DEST_RELATIVE, $$PWD)
+#    # Получаем абсолютные пути
+#    SOURCE_DLL_ABS = $$absolute_path($$SOURCE_DLL_RELATIVE, $$PWD)
+#    SOURCE_LIB_ABS = $$absolute_path($$SOURCE_LIB_RELATIVE, $$PWD)
+#    DEST_ABS = $$absolute_path($$DEST_RELATIVE, $$PWD)
 
-    # Преобразуем в системный формат
-    SOURCE_DLL_WIN = $$system_path($$SOURCE_DLL_ABS)
-    SOURCE_LIB_WIN = $$system_path($$SOURCE_LIB_ABS)
-    DEST_WIN = $$system_path($$DEST_ABS)
+#    # Преобразуем в системный формат
+#    SOURCE_DLL_WIN = $$system_path($$SOURCE_DLL_ABS)
+#    SOURCE_LIB_WIN = $$system_path($$SOURCE_LIB_ABS)
+#    DEST_WIN = $$system_path($$DEST_ABS)
 
-    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
-    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
+#    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
+#    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
 
-    #QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
-    #QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
 }
 
 #message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))

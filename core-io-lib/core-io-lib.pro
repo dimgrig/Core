@@ -16,10 +16,6 @@ DISTFILES += \
 include(../qmake-target-platform.pri)
 include(../qmake-destination-path.pri)
 
-# include("$$_PRO_FILE_PWD_/QtWebApp/httpserver/httpserver.pri")
-# #include("$$_PRO_FILE_PWD_/QtWebApp/logging/logging.pri")
-# include("$$_PRO_FILE_PWD_/QtWebApp/templateengine/templateengine.pri")
-
 exists(/etc/astra_version) {
     LIBS += -L/usr/lib/qt/ -lcore-lib
 
@@ -46,11 +42,15 @@ exists(/etc/astra_version) {
 DEFINES += NOCRYPT #fix DOMDocument ambigious with qcustomplot
 DEFINES += NOUSER
 
+# include("$$_PRO_FILE_PWD_/QtWebApp/httpserver/httpserver.pri")
+# #include("$$_PRO_FILE_PWD_/QtWebApp/logging/logging.pri")
+# include("$$_PRO_FILE_PWD_/QtWebApp/templateengine/templateengine.pri")
+
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/http"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/httpserver"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/logging"
+#INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/logging"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/templateengine"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"

@@ -91,7 +91,7 @@ void BaseTableView::closeEvent(QCloseEvent *event) {
     // }
 
     //QSettings settings(cfg.ORGANIZATION_NAME, cfg.APPLICATION_NAME);
-    QSettings settings(ORGANIZATION_NAME, qApp->applicationName());
+    QSettings settings(__ORGANIZATION_NAME, qApp->applicationName());
 
     // {
     //     //очистка настроек
@@ -126,7 +126,7 @@ void BaseTableView::restore_settings() {
     // }
 
     //QSettings settings(cfg.ORGANIZATION_NAME, cfg.APPLICATION_NAME);
-    QSettings settings(ORGANIZATION_NAME, qApp->applicationName());
+    QSettings settings(__ORGANIZATION_NAME, qApp->applicationName());
 
     QString key = QString("%1/header_state").arg(objectName());
     QByteArray state = settings.value(key).toByteArray();

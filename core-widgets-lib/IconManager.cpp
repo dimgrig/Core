@@ -4,14 +4,6 @@
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgRenderer>
 
-// Инициализация статических членов
-QSize IconManager::m_defaultIconSize = ICON_SIZE_32;
-
-QMap<QString, QIcon> IconManager::s_iconCache = {};
-QMap<QString, QPixmap> IconManager::s_pixmapCache = {};
-QMutex IconManager::s_iconMutex = QMutex();
-QMutex IconManager::s_pixmapMutex = QMutex();
-
 // QMap<QString, QIcon> IconManager::iconCache() {
 //     return s_iconCache;
 // }

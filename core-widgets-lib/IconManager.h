@@ -52,10 +52,10 @@ private:
     IconManager() = delete;
     ~IconManager() = delete;
 
-    static QMap<QString, QIcon> s_iconCache;
-    static QMap<QString, QPixmap> s_pixmapCache;
-    static QMutex s_iconMutex;
-    static QMutex s_pixmapMutex;
+    inline static QMap<QString, QIcon> s_iconCache = {};
+    inline static QMap<QString, QPixmap> s_pixmapCache = {};
+    inline static QMutex s_iconMutex;
+    inline static QMutex s_pixmapMutex;
 
     // static QMap<QString, QIcon> iconCache();
     // static QMap<QString, QPixmap> pixmapCache();
@@ -67,7 +67,7 @@ private:
 
     //static QIcon createScalableIconFromSvg(const QString& path);
 
-    static QSize m_defaultIconSize;
+    inline static QSize m_defaultIconSize = ICON_SIZE_32;
 };
 
 #define ICON_APP                    IconManager::getIcon(":/icons/app.ico")

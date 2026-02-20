@@ -8,11 +8,13 @@
 
 #include "User.h"
 
+#include "core-widgets-lib-global.h"
+
 namespace Ui {
     class Auth;
 }
 
-class Auth : public QDialog {
+class CORE_WIDGETS_LIB_EXPORT Auth : public QDialog {
 Q_OBJECT
 public:
     Auth(QWidget *parent = nullptr);

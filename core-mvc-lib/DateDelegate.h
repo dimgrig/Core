@@ -7,7 +7,7 @@
 
 #include "core-mvc-lib-global.h"
 
-CORE_MVC_LIB_EXPORT class DateDelegate : public QStyledItemDelegate {
+class CORE_MVC_LIB_EXPORT DateDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
     explicit DateDelegate(QObject *parent = nullptr);

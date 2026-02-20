@@ -7,7 +7,7 @@
 
 #include "core-mvc-lib-global.h"
 
-CORE_MVC_LIB_EXPORT class DoubleSpinBoxDelegate : public QStyledItemDelegate {
+class CORE_MVC_LIB_EXPORT DoubleSpinBoxDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
     explicit DoubleSpinBoxDelegate(QObject *parent = nullptr);

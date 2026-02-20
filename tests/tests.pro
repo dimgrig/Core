@@ -28,6 +28,7 @@ exists(/etc/astra_version) {
         LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
     }
 
+    WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
@@ -78,6 +79,7 @@ win32 {
 
 DIR_ROOT = $$PWD/../
 
+QMAKE_LFLAGS += -Wl,--allow-multiple-definition
 {
     # Добавляем все подпапки, где лежат исходники (перечислите все каталоги, которые есть в проекте)
     TESTS_SUBDIRS = core-lib \
@@ -85,6 +87,7 @@ DIR_ROOT = $$PWD/../
                     core-modbus-lib \
                     core-mvc-lib \
                     core-utils-lib \
+                    core-utils-lib\muParser \
                     core-widgets-lib
 
     # Собираем все .cpp файлы из этих папок, кроме main.cpp
