@@ -1,0 +1,168 @@
+[
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 1,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Значение"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 3,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Температура"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 5,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Current ouput value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 7,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Warning"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 8,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Measure mode"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 10,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Upper limit of measurement"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 12,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Lower limit of measurement"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 14,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Upper temperature limit"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 16,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Lower temperature limit"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 18,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Measured value offset"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 20,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Temperature offset"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 22,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Damping coefficient"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 25,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Device address"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 26,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Baud rate"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 27,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Restore factory"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 48,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "mV calibration value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 52,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Calibrating slope"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 54,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "First point calibration solution"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 56,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Second point calibration solution"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 58,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Manual temperature"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 62,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Zero confirmation"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 63,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Slope confirmation"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 102,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "Measured AD"
+    }
+]
+

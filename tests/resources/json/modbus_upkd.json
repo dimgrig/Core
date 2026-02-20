@@ -1,0 +1,575 @@
+[
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 1,
+        "Address": 30000,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "current_pressure"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 2,
+        "Address": 30002,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "system_status"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 3,
+        "Address": 30003,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "mode_state"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 4,
+        "Address": 30004,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "error_code"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 5,
+        "Address": 30005,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "mode_done"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 6,
+        "Address": 30006,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "protection_pressure"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 7,
+        "Address": 30008,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "leak_speed"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 8,
+        "Address": 30010,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "release_speed"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 9,
+        "Address": 30012,
+        "RegisterDataType": "UInt32",
+        "DataLength": 2,
+        "RegisterName": "operation_time"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 10,
+        "Address": 30014,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "raw_adc_value"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 11,
+        "Address": 30015,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "current_temperature"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 12,
+        "Address": 30017,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "firmware_major"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 13,
+        "Address": 30018,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "firmware_minor"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 14,
+        "Address": 30019,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "firmware_patch"
+    },
+    {
+        "RegisterType": "InputRegister",
+        "ObjType": 30000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 15,
+        "Address": 30020,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "hardware_version"
+    },
+
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 1,
+        "Address": 40000,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "control_flags"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 2,
+        "Address": 40001,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "operation_mode"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 3,
+        "Address": 40002,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "static_pressure_target"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 4,
+        "Address": 40004,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "adiabatic_timeout"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 5,
+        "Address": 40005,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "static_pressure_increase"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 6,
+        "Address": 40006,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "static_pump_power"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 7,
+        "Address": 40007,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "systolic_pressure"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 8,
+        "Address": 40009,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "diastolic_pressure"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 9,
+        "Address": 40011,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "pulse_rate"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 10,
+        "Address": 40012,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "piston_volume"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 11,
+        "Address": 40014,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "pulse_waveform"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 12,
+        "Address": 40015,
+        "RegisterDataType": "UInt32",
+        "DataLength": 2,
+        "RegisterName": "pressure_stable_threshold"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 13,
+        "Address": 40017,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_delta_threshold"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 14,
+        "Address": 40019,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "leak_test_pressure"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 15,
+        "Address": 40021,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "leak_wait_duration"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 16,
+        "Address": 40022,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "leak_test_duration"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 17,
+        "Address": 40023,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "max_allowed_leak_rate"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 18,
+        "Address": 40025,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_release_start"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 19,
+        "Address": 40027,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_release_end"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 20,
+        "Address": 40029,
+        "RegisterDataType": "UInt32",
+        "DataLength": 2,
+        "RegisterName": "max_release_duration"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 40,
+        "Address": 40031,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_calib_a0"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 41,
+        "Address": 40033,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_calib_a1"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 42,
+        "Address": 40035,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_calib_a2"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 43,
+        "Address": 40037,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_calib_a3"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 44,
+        "Address": 40039,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "pressure_calib_a4"
+    },
+
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 50,
+        "Address": 40041,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "max_safe_pressure"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 51,
+        "Address": 40043,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "min_safe_pressure"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 52,
+        "Address": 40045,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "negative_pressure_threshold"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 53,
+        "Address": 40047,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "max_adc_value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 54,
+        "Address": 40048,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "min_adc_value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 55,
+        "Address": 40049,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "no_pressure_timeout"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 56,
+        "Address": 40050,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "safety_timeout"
+    },
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 57,
+        "Address": 40051,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "settings_flags"
+    },
+
+
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 58,
+        "Address": 40052,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "stepper_test"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 59,
+        "Address": 40053,
+        "RegisterDataType": "Int32",
+        "DataLength": 2,
+        "RegisterName": "stepper_steps"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 60,
+        "Address": 40055,
+        "RegisterDataType": "UInt16",
+        "DataLength": 1,
+        "RegisterName": "stepper_speed"
+    }
+]

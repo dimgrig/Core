@@ -1,0 +1,65 @@
+[
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 9728,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Температура"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 9730,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "COD"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 9734,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "TOC"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 4352,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "COD K Value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 4354,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "COD B Value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 4608,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Turbidity value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 13312,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Turbidity K value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 13314,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Turbidity B value"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 12288,
+        "RegisterDataType": "UShort",
+        "DataLength": 1,
+        "RegisterName": "ID"
+    }
+]

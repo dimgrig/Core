@@ -1,0 +1,124 @@
+[
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 1,
+        "Address": 12292,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Temo"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 2,
+        "Address": 12306,
+        "RegisterDataType": "String",
+        "DataLength": 20,
+        "RegisterName": "Name"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 3,
+        "Address": 12326,
+        "RegisterDataType": "String",
+        "DataLength": 20,
+        "RegisterName": "Model"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 9,
+        "Address": 12928,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.1"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 10,
+        "Address": 12930,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.2"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 11,
+        "Address": 12932,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.3"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 12,
+        "Address": 12934,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.4"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 13,
+        "Address": 12936,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.5"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 14,
+        "Address": 12938,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.6"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 15,
+        "Address": 12940,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.7"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "ObjType": 40000,
+        "PageName": "",
+        "PageType": 0,
+        "Index": 16,
+        "Address": 12942,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Param.8"
+    }
+]
+

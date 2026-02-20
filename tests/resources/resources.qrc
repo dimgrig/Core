@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/qss"/>
+    <qresource prefix="/translations"/>
+    <qresource prefix="/json">
+        <file>json/modbus.json</file>
+        <file>json/modbus_10.json</file>
+        <file>json/modbus_nc3.json</file>
+        <file>json/modbus_ekostubpro_test.json</file>
+        <file>json/modbus_10_stm.json</file>
+        <file>json/modbus_upkd.json</file>
+        <file>json/modbus_veelang_vl_mpt_50x.json</file>
+        <file>json/modbus_XDB1208-1.json</file>
+        <file>json/modbus_XDB1212-2.json</file>
+        <file>json/modbus_XDB1213.json</file>
+        <file>json/modbus_XDB1217-3A.json</file>
+        <file>json/modbus_XDB1217-7A.json</file>
+        <file>json/modbus_XDB1218-5.json</file>
+        <file>json/modbus_AME3030.json</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>resources.qrc</file>
+    </qresource>
+    <qresource prefix="/bg"/>
+    <qresource prefix="/"/>
+</RCC>

@@ -1,0 +1,17 @@
+[
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 0,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Значение"
+    },
+    {
+        "RegisterType": "HoldingRegister",
+        "Address": 2,
+        "RegisterDataType": "Float",
+        "DataLength": 2,
+        "RegisterName": "Диапазон"
+    }
+]
+

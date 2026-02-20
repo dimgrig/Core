@@ -67,6 +67,10 @@ void Logger::log_init() {
 }
 
 void Logger::log_delete() {
+    if (!QCoreApplication::instance()) {
+        // Приложение уже разрушено – ничего не делаем
+        return;
+    }
 
     const QDate today = QDate::currentDate();
     const QString path = QCoreApplication::applicationDirPath() + "/log/";

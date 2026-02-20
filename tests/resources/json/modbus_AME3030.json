@@ -1,0 +1,1081 @@
+[
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1000,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Method"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1001,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1002,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Measurement IntervalAcquisition Cycle"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1003,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Current Measurement Range Upper Limit"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1005,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Current Measurement Range Lower Limit"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1007,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Calibration Curve Slope K"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1009,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Calibration Curve Slope B"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1011,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Calibration Curve Intercept"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1013,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Calibration Slope Correction Factor"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1015,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Current Temperature"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1017,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Dissolution Temperature"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1019,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Dissolution Time"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1021,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Color Development Temperature"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1023,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Color Development Time"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1025,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Cooling Temperature"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1027,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Limit of Detection"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1029,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Measurement Accuracy"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1031,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Reagent Remaining"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1035,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "​Automatic Calibration Time Interval"
+	},
+
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1191,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Main Operational Status"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1192,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Sub-workflow"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1193,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Fault"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1197,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "​Alarm Status"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1198,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "​Data Identification"
+	},
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1200,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, year"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1201,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1202,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1203,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, hour"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1204,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, minute"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1205,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Instrument Time, second"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1207,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "​Instrument Identification"
+	},
+
+	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1208,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Year"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1209,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1210,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Date"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1211,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Hour"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1212,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Minute"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1213,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Water Sample Measurement Time，Second"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1214,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Water Sample Measurement Data"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1216,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Absorbance Measurement Value of Water Sample"
+	},
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1220,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Year"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1221,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1222,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1223,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Hour"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1224,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Minute"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1225,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Last Calibration Time, Second"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1226,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Standard 1 (Zero Set Concentration)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1228,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Zero Point Calibration Absorbance Value (Standard 1)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1230,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Zero Point Measurement Value (Standard 1)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1232,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Zero Point Calibration Allowable Error"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1234,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Zero Point Calibration Deviation%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1236,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Zero Point Calibration Result (Standard 1)"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1240,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), year"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1241,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1242,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1243,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), hour"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1244,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), minute"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1245,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 2, Range 1), second"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1246,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Set Concentration (Standard 2, Range 1)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1248,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Standard 2 Absorbance (Range 1)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1250,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Measurement Value (Standard 2, Range 1)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1252,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Calibration Allowable Error (Range 1)%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1254,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Calibration Deviation (Standard 2, Range 1)%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1256,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Result (Standard 2, Range 1)"
+	},
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1260,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), year"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1261,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1262,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1263,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), hour"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1264,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), minute"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1265,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Time (Standard 3, Range 2), second"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1266,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Set Value (Standard 3, Range 2)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1268,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Absorbance (Standard 3, Range 2)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1270,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Measurement Value (Standard 3, Range 2)"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1272,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Calibration Allowable Error (Range 2)%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1274,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Calibration Deviation (Standard 3, Range 2)%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1276,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Calibration Result (Standard 3, Range 2)"
+	},
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1280,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), year"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1281,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1282,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1283,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), hour"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1284,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), minute"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1285,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Verification Time (Reference Material, Range), second"
+	},
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1286,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Reference Material Verification Value"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1288,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Reference Material Absorbance Verification Value"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1290,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Calibration Check Concentration"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1292,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "Reference Material Allowable Error%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1294,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Reference Material Verification Deviation%"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1296,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Reference Material Verification Result"
+	},
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1400,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Dilution Ratio １"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1402,
+		"RegisterDataType": "Float",
+		"DataLength": 2,
+		"RegisterName": "​Dilution Ratio 2"
+	},
+
+
+
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1902,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, year"
+	},
+		{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1903,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, month"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1904,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, day"
+	},
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1905,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, hour"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1906,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, minute"
+	},	
+	{
+		"RegisterType": "HoldingRegister",
+		"ObjType": 40000,
+		"PageName": "",
+		"PageType": 0,
+		"Index": 1,
+		"Address": 1907,
+		"RegisterDataType": "Short",
+		"DataLength": 1,
+		"RegisterName": "Current Instrument Time, second"
+	}
+]
