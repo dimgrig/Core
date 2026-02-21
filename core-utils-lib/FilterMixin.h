@@ -14,7 +14,7 @@ struct CORE_UTILS_LIB_EXPORT FilterSettings {
 };
 
 template<typename Derived>
-class CORE_UTILS_LIB_EXPORT FilterMixin {
+class FilterMixin {
 public:
     virtual ~FilterMixin() = default;
 
@@ -32,7 +32,7 @@ public:
 
 
 template<typename Base>
-class CORE_UTILS_LIB_EXPORT MovingAverageFilterMixin : public Base {
+class MovingAverageFilterMixin : public Base {
 public:
     void apply_filter_impl(double& value) override {
         // Вызов предыдущего фильтра в цепочке
@@ -73,7 +73,7 @@ private:
 };
 
 template<typename Base>
-class CORE_UTILS_LIB_EXPORT AdaptiveMovingAverageFilterMixin : public Base {
+class AdaptiveMovingAverageFilterMixin : public Base {
 public:
     void apply_filter_impl(double& value) override {
         // Вызов предыдущего фильтра в цепочке
@@ -142,7 +142,7 @@ private:
 };
 
 template<typename Base>
-class CORE_UTILS_LIB_EXPORT ExpMovingAverageFilterMixin : public Base {
+class ExpMovingAverageFilterMixin : public Base {
 public:
     void apply_filter_impl(double& value) override {
         // Вызов предыдущего фильтра в цепочке
@@ -175,7 +175,7 @@ private:
 };
 
 template<typename Base>
-class CORE_UTILS_LIB_EXPORT MedianNFilterMixin : public Base {
+class MedianNFilterMixin : public Base {
 public:
     void apply_filter_impl(double& value) override {
         // Вызов предыдущего фильтра в цепочке

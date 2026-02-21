@@ -109,6 +109,11 @@ QMAKE_LFLAGS += -Wl,--allow-multiple-definition
         }
     }
 
+    UI_FILES = $$files($$DIR_ROOT/uis/*.ui)
+    for(file, UI_FILES) {
+        FORMS += $$file
+    }
+
     # Также добавить .cpp из корня, исключая main.cpp
     ROOT_FILES = $$files($$DIR_ROOT/*.cpp)
     for(file, ROOT_FILES) {
