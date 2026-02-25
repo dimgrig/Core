@@ -16,6 +16,8 @@ public:
     QString parse(QString expression);
     double get_result() {return _result;};
 private:
+    void define_parser();
+
     mu::Parser _p;
     double _result;
     QString _result_buffer;

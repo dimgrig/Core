@@ -19,6 +19,7 @@ include(../qmake-destination-path.pri)
 exists(/etc/astra_version) {
     LIBS += -L/usr/lib/qt/ -lcore-lib
     LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
+    LIBS += -L/usr/local/lib/ -lmuparser
 
     DISTFILES += ../core-gcc10.pri
     include(../core-gcc10.pri)
@@ -29,6 +30,7 @@ exists(/etc/astra_version) {
     unix {
         LIBS += -L/usr/lib/qt/ -lcore-lib
         LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_unix
     }
 
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
@@ -36,12 +38,16 @@ exists(/etc/astra_version) {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_win
     }
     win64 {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_win
     }
 }
+
+DEFINES += MUPARSER_STATIC
 
 DEFINES += NOCRYPT #fix DOMDocument ambigious with qcustomplot
 DEFINES += NOUSER
@@ -92,20 +98,6 @@ HEADERS += \
     MathParser.h \
     SessionCache.h \
     functions.h \
-    muParser/muParser.h \
-    muParser/muParserBase.h \
-    muParser/muParserBytecode.h \
-    muParser/muParserCallback.h \
-    muParser/muParserComplex.h \
-    muParser/muParserDLL.h \
-    muParser/muParserDef.h \
-    muParser/muParserError.h \
-    muParser/muParserFixes.h \
-    muParser/muParserInt.h \
-    muParser/muParserStack.h \
-    muParser/muParserTest.h \
-    muParser/muParserToken.h \
-    muParser/muParserTokenReader.h \
     core-utils-lib-global.h
 
 SOURCES += \
@@ -117,14 +109,4 @@ SOURCES += \
     MathParser.cpp \
     SessionCache.cpp \
     functions.cpp \
-    muParser/muParser.cpp \
-    muParser/muParserBase.cpp \
-    muParser/muParserBytecode.cpp \
-    muParser/muParserCallback.cpp \
-    muParser/muParserComplex.cpp \
-    muParser/muParserDLL.cpp \
-    muParser/muParserError.cpp \
-    muParser/muParserInt.cpp \
-    muParser/muParserTest.cpp \
-    muParser/muParserTokenReader.cpp
 
