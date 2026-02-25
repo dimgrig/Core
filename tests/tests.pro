@@ -125,9 +125,11 @@ QMAKE_LFLAGS += -Wl,--allow-multiple-definition
 }
 
 HEADERS += \
+    TestAuth.h \
     TestModbusIntegration.h
 
 SOURCES += \
+    TestAuth.cpp \
     TestModbusIntegration.cpp \
     main.cpp \
 

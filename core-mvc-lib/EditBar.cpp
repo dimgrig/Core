@@ -56,28 +56,6 @@ QVector<std::string> edit_action_names = {
     "edit_ok"
 };
 
-std::map<int, std::map<std::string, int>> edit_action_enable_m =
-{
-    {
-        Developer,
-        {
-            {"edit_add", 1},
-            {"edit_add_before", 1},
-            {"edit_add_after", 1},
-            {"edit_copy", 1},
-            {"edit_cut", 1},
-            {"edit_paste", 1},
-            {"edit_paste_before", 1},
-            {"edit_paste_after", 1},
-            {"edit_delete", 1},
-            {"edit_save", 1},
-            {"edit_export", 1},
-            {"edit_cancel", 1},
-            {"edit_ok", 1}
-        }
-    }
-};
-
 EditBar::EditBar(QWidget *parent) :
     QToolBar(parent)
 {

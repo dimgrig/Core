@@ -17,13 +17,12 @@ namespace Ui {
 class CORE_WIDGETS_LIB_EXPORT Auth : public QDialog {
 Q_OBJECT
 public:
-    Auth(QWidget *parent = nullptr);
-    //explicit Auth(Users* users, QWidget *parent = nullptr);
+    Auth(IUserRoleManager* roleManager, QWidget *parent = nullptr);
     ~Auth();
 signals:
     void auth_ok();
+    void auth_failed();
 public slots:
-    //void set_users(Users *users);
     void users_show();
     void enter(std::string login, std::string password);
 
@@ -34,13 +33,15 @@ public slots:
     void reject() override;
 
     void exit();
+
+    friend class TestAuthWithPublicUsers;
 private slots:
-    //void enter();
     void on_shake();
 private:
     Ui::Auth *ui;
 
-    Users* _users = new Users(this);
+    IUserRoleManager *_roleManager;
+    Users* _users;
 };
 
 

@@ -83,10 +83,12 @@ HEADERS += \
     ComboBoxDialog.h \
     DoubleSpinBoxDialog.h \
     FocusWatcher.h \
+    IUserRoleManager.h \
     IconManager.h \
     MenuBar.h \
     MenuCornerWidget.h \
     MessageBox.h \
+    MockUserRoleManager.h \
     TabBarHorizontalText.h \
     User.h \
     aqp.h \
@@ -99,10 +101,12 @@ SOURCES += \
     ComboBoxDialog.cpp \
     DoubleSpinBoxDialog.cpp \
     FocusWatcher.cpp \
+    IUserRoleManager.cpp \
     IconManager.cpp \
     MenuBar.cpp \
     MenuCornerWidget.cpp \
     MessageBox.cpp \
+    MockUserRoleManager.cpp \
     TabBarHorizontalText.cpp \
     User.cpp \
     aqp.cpp

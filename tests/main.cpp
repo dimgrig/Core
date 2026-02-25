@@ -1,6 +1,7 @@
 #include <QtTest>
 
 #include "Approximation.h"
+#include "Auth.h"
 #include "enum_macro.h"
 #include "functions.h"
 #include "Logger.h"
@@ -9,11 +10,13 @@
 #include "Profiler.h"
 #include "templates.h"
 #include "TestRunner.h"
+#include "User.h"
 
 #include "modbus_functions.h"
 #include "ModbusDataConverter.h"
 #include "ModbusRegisterSerializer.h"
 
+#include "TestAuth.h"
 #include "TestModbusIntegration.h"
 
 int main(int argc, char *argv[])
@@ -36,9 +39,14 @@ int main(int argc, char *argv[])
     RUN_TEST(tr, ApproximationTest);
     RUN_TEST(tr, MathParserTest);
 
+    RUN_TEST(tr, UserTest);
+
     RUN_TEST(tr, ModbusFunctionsTest);
     RUN_TEST(tr, ModbusDataConverterTest);
     RUN_TEST(tr, ModbusRegisterSerializerTest);
+
+    TestAuth ta;
+    status |= QTest::qExec(&ta, argc, argv);
 
     TestModbusIntegration tmi;
     status |= QTest::qExec(&tmi, argc, argv);

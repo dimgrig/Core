@@ -1,9 +1,11 @@
 #include "Auth.h"
 #include "ui_Auth.h"
 
-Auth::Auth(QWidget *parent) :
+Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Auth)
+    ui(new Ui::Auth),
+    _roleManager(roleManager),
+    _users(new Users(roleManager, UserDefaultFilename, this))
 {
     ui->setupUi(this);
 
@@ -22,29 +24,9 @@ Auth::Auth(QWidget *parent) :
     connect(this->_users, &Users::password_fail, this, &Auth::password_fail);
 }
 
-//Auth::Auth(Users *users, QWidget *parent) :
-//    QDialog(parent),
-//    ui(new Ui::Auth),
-//    _users(users)
-//{
-//    ui->setupUi(this);
-
-//    this->ui->le_password->setEchoMode(QLineEdit::Password);
-
-//    connect(this->ui->pb_enter, &QPushButton::clicked, this, QOverload<>::of(&Auth::enter));
-//    connect(this->ui->pb_cancel, &QPushButton::clicked, this, &Auth::close);
-
-//    connect(this->_users, &Users::user_fail, this, &Auth::on_user_fail);
-//    connect(this->_users, &Users::password_fail, this, &Auth::on_password_fail);
-//}
-
 Auth::~Auth() {
     delete ui;
 }
-
-//void Auth::set_users(Users *users) {
-//    _users = users;
-//}
 
 void Auth::accept() {
     this->ui->l_text->setText("");    
@@ -56,17 +38,15 @@ void Auth::accept() {
     std::string login = this->ui->le_name->text().toStdString();
     std::string password = this->ui->le_password->text().toStdString();
 
-    //this->ui->le_name->text().clear();
-    //this->ui->le_password->text().clear();
-
     User_s* user = _users->find(login, password);
     if (nullptr != user) {
         auth_user.user = *user;
+        auth_user.setRoleManager(_roleManager);
         emit auth_ok();
         this->ui->le_name->clear();
         this->ui->le_password->clear();
     } else {
-
+        emit auth_failed();
     }    
 }
 

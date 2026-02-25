@@ -2,12 +2,16 @@
 #include "ui_User.h"
 #include "ui_Users.h"
 
-User::User(bool editing, QWidget *parent) :
+#include <QTemporaryFile>
+
+#include "MockUserRoleManager.h"
+
+User::User(IUserRoleManager* roleManager, bool editing, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::User)
+    ui(new Ui::User),
+    _roleManager(roleManager)
 {
     ui->setupUi(this);
-
 
     this->setModal(true);
 
@@ -27,10 +31,12 @@ User::User(bool editing, QWidget *parent) :
         this->ui->cb_level->setEnabled(true);
     }
 
-    auto copy = AuthUserRolesAll;
-    copy.pop_back();
-    this->ui->cb_level->addItems(copy); //AuthUserRolesAdd
-    this->ui->cb_level->setCurrentIndex(0);
+    if (_roleManager) {
+        QStringList roles = editing ? _roleManager->getRolesForEditing() : _roleManager->getRolesForAdding();
+        ui->cb_level->addItems(roles);
+        if (!roles.isEmpty())
+            ui->cb_level->setCurrentIndex(0);
+    }
 
     connect(this->ui->pb_save, &QPushButton::clicked, this, &User::on_save);
     connect(this->ui->pb_cancel, &QPushButton::clicked, this, &User::close);
@@ -60,9 +66,13 @@ void User::on_save() {
 
 /*********************************/
 
-Users::Users(QWidget *parent) :
+Users::Users(IUserRoleManager* roleManager,
+            const std::string& filename,
+            QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Users)
+    ui(new Ui::Users),
+    _filename(filename),
+    _roleManager(roleManager)
 {
     ui->setupUi(this);
 
@@ -90,14 +100,12 @@ Users::~Users() {
 }
 
 void Users::show() {
-    if (AuthUserRole_from_text(auth_user.user.level) <= Admin) {
-        this->ui->pb_add->setEnabled(true);
-        this->ui->pb_delete->setEnabled(true);
-    } else {
-        this->ui->pb_add->setEnabled(false);
-        this->ui->pb_delete->setEnabled(false);
+    if (_roleManager) {
+        QString currentRole = QString::fromStdString(auth_user.user.level);
+        bool canAdd = _roleManager->canAddUser(currentRole);
+        ui->pb_add->setEnabled(canAdd);
+        ui->pb_delete->setEnabled(canAdd);  // можно сделать отдельную проверку canDeleteUser
     }
-
     QDialog::show();
 }
 
@@ -109,16 +117,25 @@ void Users::_save() {
 void Users::_add() {
     _adding = true;
     _editing = false;
-    User *user = new User(false, this);
+    User *user = new User(_roleManager, false, this);
     connect(user, &User::save_user, this, &Users::save_user);
     user->show();
 }
 
 void Users::_delete() {
-    if (AuthUserRole_from_text(auth_user.user.level) > Admin) {
-        //qCDebug(logDebug()) << "deleting aborted";
-        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Удаление пользователя недоступно"), 0, 10);
-        return;
+    if (_roleManager) {
+        QString currentRole = QString::fromStdString(auth_user.user.level);
+        // Получаем роль выбранного пользователя
+        QList<QListWidgetItem*> selected = ui->lw_users->selectedItems();
+        if (selected.size() == 1) {
+            User_s user_s;
+            user_s.from_text(selected.at(0)->text());
+            QString targetRole = QString::fromStdString(user_s.level);
+            if (!_roleManager->canDeleteUser(currentRole, targetRole)) {
+                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Удаление пользователя недоступно"), 0, 10);
+                return;
+            }
+        }
     }
 
     QList<QListWidgetItem*> selected = this->ui->lw_users->selectedItems();
@@ -127,28 +144,8 @@ void Users::_delete() {
         User_s user_s;
         user_s.from_text(item->text());
 
-        int index_to_delete = -1;
-        int i = 0;
-        std::string name_s(user_s.name);
-        std::string level_s(user_s.level);
-        for (auto &user : _users) {
-            std::string user_name_s(user.name);
-            std::string user_level_s(user.level);
-            if (name_s == user_name_s) {
-                if (level_s == user_level_s) {
-                    index_to_delete = i;
-                }
-            }
-            ++i;
-        }
-
-        if ((index_to_delete != -1) && ((size_t)index_to_delete < _users.size())) {
-            //qCDebug(logDebug()) << "accept deleting";
-            _users.erase(_users.begin() + index_to_delete);
-        }
+        this->deleteUser(user_s.name, user_s.level, user_s.password);
     }
-
-    this->update_lw();
 }
 
 void Users::double_clicked(const QModelIndex& index) {
@@ -159,33 +156,22 @@ void Users::double_clicked(const QModelIndex& index) {
         return;
     }
 
-    if (AuthUserRole_from_text(auth_user.user.level) > Admin) {
-        //check editing developer or admin
-        //qCDebug(logDebug()) << "editing aborted";
-        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Редактирование недоступно"), 0, 10);
-        return;
-    }
-
-    if(QListWidget* lw = dynamic_cast<QListWidget*>(sender())) {
-        if(QListWidgetItem* item = lw->item(index.row())) {
-            //qCDebug(logDebug()) << item->text();
-
+    if (_roleManager) {
+        QString currentRole = QString::fromStdString(auth_user.user.level);
+        if(QListWidgetItem* item = static_cast<QListWidget*>(sender())->item(index.row())) {
             User_s user_s;
             user_s.from_text(item->text());
-
-            if ((AuthUserRole_from_text(user_s.level) == Developer)) { //||  (auth_user_role_from_text(user_s.level) == Admin)
-                //check editing developer or admin
-                //qCDebug(logDebug()) << "editing aborted";
-                AQP::warning(this, tr("Внимание"), tr("ошибка"), tr("Редактирование недоступно"), 0, 10);
+            QString targetRole = QString::fromStdString(user_s.level);
+            if (!_roleManager->canEditUser(currentRole, targetRole)) {
+                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Редактирование недоступно"), 0, 10);
                 return;
             }
-
+            // открываем диалог редактирования
             _editing = true;
-            User *user = new User(true, this);
+            User *user = new User(_roleManager, true, this);
             user->set_user(user_s.name, user_s.level);
             connect(user, &User::save_user, this, &Users::save_user);
             user->show();
-            return;
         }
     }
 }
@@ -206,7 +192,7 @@ void Users::save_user(const char *name, const char *level, const char *password)
         }
 
         if (!match) {
-            this->add(name, level, password);
+            this->addUser(name, level, password);
             this->update_lw();
         }
     }
@@ -223,13 +209,13 @@ void Users::save_user(const char *name, const char *level, const char *password)
                     std::string password_hash = this->hash(QString(password));
                     //qCDebug(logDebug) << password_hash;
 
-                    for (int k = 0; k < Length; ++k) {
+                    for (int k = 0; k < UserCharLength; ++k) {
                         _users[j].password[k] = '\0';
                     }
 
                     int i = 0;
                     for (auto &c : password_hash) {
-                        if (i < Length) {
+                        if (i < UserCharLength) {
                             _users[j].password[i] = c;
                         }
                         ++i;
@@ -246,12 +232,12 @@ void Users::save_user(const char *name, const char *level, const char *password)
 }
 
 void Users::load() {
-    std::ifstream ifst(filename, std::ios::binary);
+    std::ifstream ifst(_filename, std::ios::binary);
 
     if(!ifst) {
-        ifst.open(filename, std::ios::out);
+        ifst.open(_filename, std::ios::out);
         ifst.close(); // TODO: copy paste
-        ifst.open(filename, std::ios::binary);
+        ifst.open(_filename, std::ios::binary);
     }
 
     ifst.seekg(0, std::ios::end);
@@ -265,38 +251,67 @@ void Users::load() {
         }
     }
 
-    if (_users.empty()) {
-        std::string password = "123";
-        this->add("acs", "Разработчик", "5041511"); //developer
-        this->add("admin", "Администратор", password.c_str()); //superuser
-        this->add("Пользователь", "Пользователь", "Пользователь");
-        this->save();
-    }
-    User_s *default_user = this->find("Пользователь", "Пользователь");
-    if (default_user == nullptr) {
-        this->add("Пользователь", "Пользователь", "Пользователь");
+    if (_filename == UserDefaultFilename) {
+        if (_users.empty()) {
+            std::string password = "123";
+            this->addUser("acs", "Разработчик", "5041511"); //developer
+            this->addUser("admin", "Администратор", password.c_str()); //superuser
+            this->addUser("Пользователь", "Пользователь", "Пользователь");
+            this->save();
+        }
+        User_s *default_user = this->find("Пользователь", "Пользователь");
+        if (default_user == nullptr) {
+            this->addUser("Пользователь", "Пользователь", "Пользователь");
+        }
     }
 
     this->update_lw();
 }
 
-void Users::add(const char* name, const char* level, const char* password) {
+void Users::addUser(const char* name, const char* level, const char* password) {
     User_s user;
-    strncpy(user.name, name, Length);
-    strncpy(user.level, level, Length);
+    strncpy(user.name, name, UserCharLength);
+    strncpy(user.level, level, UserCharLength);
 
     std::string password_hash = this->hash(QString(password));
     //qCDebug(logDebug) << password_hash;
 
     int i = 0;
     for (auto &c : password_hash) {
-        if (i < Length) {
+        if (i < UserCharLength) {
             user.password[i] = c;
         }
         ++i;
     }
 
     _users.push_back(user);
+}
+
+void Users::deleteUser(const char* name, const char* level, const char* password) {
+    Q_UNUSED(password);
+
+    int index_to_delete = -1;
+    int i = 0;
+    std::string name_s(name);
+    std::string level_s(level);
+    for (auto &user : _users) {
+        std::string user_name_s(user.name);
+        std::string user_level_s(user.level);
+        if (name_s == user_name_s) {
+            if (level_s == user_level_s) {
+                index_to_delete = i;
+                break;
+            }
+        }
+        ++i;
+    }
+
+    if ((index_to_delete != -1) && ((size_t)index_to_delete < _users.size())) {
+        //qCDebug(logDebug()) << "accept deleting";
+        _users.erase(_users.begin() + index_to_delete);
+    }
+
+    this->update_lw();
 }
 
 User_s Users::read_user(std::ifstream &ifst) {
@@ -318,7 +333,7 @@ User_s* Users::find(const std::string& name, const std::string& password) {
 
     for (auto& user : _users) {
         int size = 0;
-        for (int i = Length - 1; i >= 0; --i) {
+        for (int i = UserCharLength - 1; i >= 0; --i) {
             if (user.password[i] != '\0') {
                 size = i + 1;
                 break;
@@ -348,7 +363,7 @@ User_s* Users::find(const std::string& name, const std::string& password) {
 
 void Users::save() {
     std::ofstream ofst;
-    ofst.open(filename, std::ios::out);
+    ofst.open(_filename, std::ios::out);
 
     for (auto& user : _users) {
         ofst.write((char*)&user, sizeof(User_s));
@@ -376,4 +391,145 @@ void Users::update_lw(){
     QStringList sl = this->get_list();
     this->ui->lw_users->clear();
     this->ui->lw_users->addItems(sl);
+}
+
+// Тест добавления и поиска пользователя
+void testUsersAddFind() {
+    MockUserRoleManager mock;
+    QTemporaryFile tempFile;
+    tempFile.open(); // создаёт уникальное имя
+    Users users(&mock, tempFile.fileName().toStdString());
+
+    users.addUser("testuser", "Администратор", "pass123");
+    User_s* found = users.find("testuser");
+    ASSERT(found != nullptr);
+    ASSERT_EQUAL(std::string(found->name), "testuser");
+    ASSERT_EQUAL(std::string(found->level), "Администратор");
+
+    User_s* foundWithPass = users.find("testuser", "pass123");
+    ASSERT(foundWithPass != nullptr);
+
+    User_s* wrongPass = users.find("testuser", "wrong");
+    ASSERT(wrongPass == nullptr); // неверный пароль
+}
+
+// Тест получения списка пользователей
+void testUsersGetList() {
+    MockUserRoleManager mock;
+    QTemporaryFile tempFile;
+    tempFile.open(); // создаёт уникальное имя
+    Users users(&mock, tempFile.fileName().toStdString());
+
+    users.addUser("acs", "Разработчик", "passacs");
+    users.addUser("user1", "Администратор", "p1");
+    users.addUser("user2", "Пользователь", "p2");
+
+    QStringList list = users.get_list();
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(list.contains("Администратор: user1"));
+    ASSERT(list.contains("Пользователь: user2"));
+}
+
+// Тест загрузки и сохранения (с временным файлом)
+void testUsersLoadSave() {
+    MockUserRoleManager mock;
+    QTemporaryFile tempFile;
+    tempFile.open(); // создаёт уникальное имя
+    Users users(&mock, tempFile.fileName().toStdString());
+
+    // Сохраняем тестовых пользователей
+    users.addUser("acs", "Разработчик", "passacs");
+    users.addUser("alice", "Администратор", "passA");
+    users.addUser("bob", "Пользователь", "passB");
+    users.save();
+
+    // Создаём новый объект Users и загружаем данные
+    Users users2(&mock, tempFile.fileName().toStdString());
+
+    QStringList list = users2.get_list();
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(list.contains("Администратор: alice"));
+    ASSERT(list.contains("Пользователь: bob"));
+
+    // Проверяем поиск
+    User_s* alice = users2.find("alice", "passA");
+    ASSERT(alice != nullptr);
+    ASSERT_EQUAL(std::string(alice->name), "alice");
+}
+
+// Тест удаления пользователя (только логика удаления из вектора)
+void testUsersDeleteLogic() {
+    MockUserRoleManager mock;
+    QTemporaryFile tempFile;
+    tempFile.open(); // создаёт уникальное имя
+    Users users(&mock, tempFile.fileName().toStdString());
+
+    users.addUser("acs", "Разработчик", "passacs");
+    users.addUser("alice", "Администратор", "passA");
+    users.addUser("bob", "Пользователь", "passB");
+
+    QStringList list = users.get_list();
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(list.contains("Администратор: alice"));
+    ASSERT(list.contains("Пользователь: bob"));
+
+    users.deleteUser("bob", "Пользователь", "passB");
+
+    list = users.get_list();
+    ASSERT_EQUAL(list.size(), 2);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(list.contains("Администратор: alice"));
+    ASSERT(!list.contains("Пользователь: bob"));
+
+    users.deleteUser("alice", "Администратор", "passA");
+
+    list = users.get_list();
+    ASSERT_EQUAL(list.size(), 1);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(!list.contains("Администратор: alice"));
+    ASSERT(!list.contains("Пользователь: bob"));
+}
+
+// Тест проверки прав через менеджер (метод show)
+void testUsersShowPermissions() {
+    MockUserRoleManager mock;
+    QTemporaryFile tempFile;
+    tempFile.open(); // создаёт уникальное имя
+    Users users(&mock, tempFile.fileName().toStdString());
+
+    users.addUser("acs", "Разработчик", "passacs");
+    users.addUser("user1", "Администратор", "p1");
+    users.addUser("user2", "Пользователь", "p2");
+
+    QStringList list = users.get_list();
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT(list.contains("Разработчик: acs"));
+    ASSERT(list.contains("Администратор: user1"));
+    ASSERT(list.contains("Пользователь: user2"));
+
+    // Устанавливаем текущего пользователя в синглтон
+    User_s current;
+    strncpy(current.level, "Разработчик", UserCharLength);
+    auth_user.user = current;
+    auth_user.setRoleManager(&mock);
+
+    bool canAdd = mock.canAddUser("Разработчик");
+    ASSERT(canAdd); // Разработчик может добавлять
+
+    canAdd = mock.canAddUser("Администратор");
+    ASSERT(canAdd); // Администратор может добавлять
+
+    canAdd = mock.canAddUser("Пользователь");
+    ASSERT(!canAdd); // Пользователь не может добавлять
+}
+
+void UserTest() {
+    testUsersAddFind();
+    testUsersGetList();
+    testUsersLoadSave();
+    testUsersDeleteLogic();
+    testUsersShowPermissions();
 }

@@ -45,6 +45,7 @@ HEADERS += \
     CoreConfig.h \
     Logger.h \
     Random.h \
+    TestRunner.h \
     enum_macro.h \
     mixins.h \
     Profiler.h \
