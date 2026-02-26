@@ -94,10 +94,12 @@ HEADERS += \
     BaseTableView.h \
     Completer.h \
     DateDelegate.h \
+    DateTimeUTCDelegate.h \
     DoubleSpinBoxDelegate.h \
     EditBar.h \
     FilterHeader.h \
     LineEditDelegate.h \
+    LogLevelDelegate.h \
     ReadOnlyDelegate.h \
     SpinBoxDelegate.h \
     TableShortcutHandler.h \
@@ -115,10 +117,12 @@ SOURCES += \
     BaseTableView.cpp \
     Completer.cpp \
     DateDelegate.cpp \
+    DateTimeUTCDelegate.cpp \
     DoubleSpinBoxDelegate.cpp \
     EditBar.cpp \
     FilterHeader.cpp \
     LineEditDelegate.cpp \
+    LogLevelDelegate.cpp \
     ReadOnlyDelegate.cpp \
     SpinBoxDelegate.cpp \
     TableShortcutHandler.cpp \

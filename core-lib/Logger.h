@@ -32,6 +32,33 @@ enum class LOG_LEV {
     NONE_LOG
 };
 
+static QString logLevelToString(LOG_LEV level) {
+    switch (level) {
+    case LOG_LEV::DEBUG:    return QStringLiteral("Debug");
+    case LOG_LEV::INFO:     return QStringLiteral("Info");
+    case LOG_LEV::WARNING:  return QStringLiteral("Warning");
+    case LOG_LEV::CRITICAL: return QStringLiteral("Critical");
+    case LOG_LEV::FATAL:    return QStringLiteral("Fatal");
+    default:                 return QStringLiteral("Unknown");
+    }
+}
+
+static LOG_LEV logLevelFromString(const QString &level) {
+    auto _level = level.toLower();
+    if (_level.contains("debug")) {
+        return LOG_LEV::DEBUG;
+    } else if (_level.contains("info")) {
+        return LOG_LEV::INFO;
+    } else if (_level.contains("warning")) {
+        return LOG_LEV::WARNING;
+    } else if (_level.contains("critical")) {
+        return LOG_LEV::CRITICAL;
+    } else if (_level.contains("fatal")) {
+        return LOG_LEV::FATAL;
+    }
+    return LOG_LEV::DEBUG;
+}
+
 class Logger {
 public:
     static void log_init();

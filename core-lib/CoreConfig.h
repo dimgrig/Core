@@ -30,6 +30,7 @@
 #define DT_FORMAT_SHORT "HH:mm:ss"
 #define DT_FORMAT_WRAP "yyyy-MM-dd\nHH:mm:ss.zzz"
 #define DATE_FORMAT "dd.MM.yyyy"
+#define DATE_TIME_FORMAT_WITHOUT_MS "dd.MM.yyyy HH:mm:ss"
 
 #define SETTINGS_PATH           "settings/"
 #define __ORGANIZATION_NAME        "ACS"
@@ -51,6 +52,10 @@
 #define R_COLOR "#FF3E3E" //#"#CD5C5C"
 #define G_COLOR "#32CD32"
 #define B_COLOR "#4169E1"
+
+#define LY_COLOR "#FFFF4C"
+#define Y_COLOR "#FFF200"
+#define DY_COLOR "#FEE12B"
 
 #define LO_COLOR "#FFBE00"
 #define O_COLOR "#FFA500" //#for TextItems Avaria
