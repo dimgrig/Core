@@ -52,7 +52,7 @@ private:
     QObject *_parent = nullptr;
 
     bool _is_modified = false;
-    bool _is_editable = false;
+    bool _is_editable = true;
 
     std::set<int> _relation_column_s = {};
 

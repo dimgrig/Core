@@ -49,7 +49,7 @@ protected:
     virtual CategoryId insertCategory(const QString& name) = 0;
     virtual void insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
                                 CategoryId categoryId, const QString& msg) = 0;
-    virtual bool openDatabase() = 0;  // открыть соединение с БД
+    virtual void cleanUpOldEntries(int keepDays) = 0;
 
     // Запись в файл через Logger (может использоваться наследниками)
     void logToFile(LOG_LEV level, const QString& fullMsg);

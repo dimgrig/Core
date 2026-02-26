@@ -28,8 +28,8 @@ void TestJournal::insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
     loggedEntries.append({timestamp, level, categoryId, msg});
 }
 
-bool TestJournal::openDatabase() {
-    return true; // всегда успешно
+void TestJournal::cleanUpOldEntries(int keepDays) {
+    Q_UNUSED(keepDays);
 }
 
 void TestJournal::reset() {
