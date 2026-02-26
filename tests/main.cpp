@@ -17,6 +17,7 @@
 #include "ModbusRegisterSerializer.h"
 
 #include "TestAuth.h"
+#include "TestJournal.h"
 #include "TestModbusIntegration.h"
 
 int main(int argc, char *argv[])
@@ -44,6 +45,12 @@ int main(int argc, char *argv[])
     RUN_TEST(tr, ModbusFunctionsTest);
     RUN_TEST(tr, ModbusDataConverterTest);
     RUN_TEST(tr, ModbusRegisterSerializerTest);
+
+    JournalBaseTest jbt;
+    status |= QTest::qExec(&jbt, argc, argv);
+
+    JournalAccessTest jat;
+    status |= QTest::qExec(&jat, argc, argv);
 
     TestAuth ta;
     status |= QTest::qExec(&ta, argc, argv);

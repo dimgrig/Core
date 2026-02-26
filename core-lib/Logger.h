@@ -12,13 +12,16 @@
 #include <QLoggingCategory>
 #include <QTextStream>
 
+#include "CoreConfig.h"
+
 Q_DECLARE_LOGGING_CATEGORY(logDebug)
 Q_DECLARE_LOGGING_CATEGORY(logInfo)
 Q_DECLARE_LOGGING_CATEGORY(logWarning)
 Q_DECLARE_LOGGING_CATEGORY(logCritical)
 Q_DECLARE_LOGGING_CATEGORY(logFatal)
 
-#define LOG_DT_FORMAT "yyyy-MM-dd HH:mm:ss.zzz"
+// Тип для идентификатора категории (используется в журнале)
+using CategoryId = quint16;
 
 enum class LOG_LEV {
     DEBUG,

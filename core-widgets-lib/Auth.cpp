@@ -1,6 +1,9 @@
 #include "Auth.h"
 #include "ui_Auth.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Auth),
@@ -22,6 +25,9 @@ Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
 
     connect(this->_users, &Users::user_fail, this, &Auth::user_fail);
     connect(this->_users, &Users::password_fail, this, &Auth::password_fail);
+
+    connect(this, &Auth::auth_ok, this, &Auth::onAuthOk);
+    connect(this, &Auth::auth_failed, this, &Auth::onAuthFailed);
 }
 
 Auth::~Auth() {
@@ -98,6 +104,22 @@ void Auth::on_shake() {
     pAnimation->setKeyValueAt(0.9, QPoint(geometry().x() + value, geometry().y() + value));
     pAnimation->setKeyValueAt(1, QPoint(geometry().x() - value/2, geometry().y() - value/2));
     pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void Auth::onAuthOk() {
+    if (auto* j = JournalAccess::journal()) {
+        j->info(Category::Authorization,
+                QString("Авторизован пользователь - %1")
+                    .arg(auth_user.user.get_text().c_str()));
+    }
+}
+
+void Auth::onAuthFailed() {
+    if (auto* j = JournalAccess::journal()) {
+        j->info(Category::Authorization,
+                QString("Неудачная попытка авторизации с логином %1")
+                    .arg(this->ui->le_name->text()));
+    }
 }
 
 void Auth::exit() {

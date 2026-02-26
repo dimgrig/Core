@@ -37,6 +37,8 @@ public slots:
     friend class TestAuthWithPublicUsers;
 private slots:
     void on_shake();
+    void onAuthOk();
+    void onAuthFailed();
 private:
     Ui::Auth *ui;
 

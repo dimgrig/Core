@@ -10,6 +10,7 @@ include(../qmake-destination-path.pri)
 exists(/etc/astra_version) {
     LIBS += -L/usr/lib/qt/ -lcore-lib
     LIBS += -L/usr/lib/qt/ -lcore-io-lib
+    LIBS += -L/usr/lib/qt/ -lcore-journal-lib
     LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
     LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
     LIBS += -L/usr/lib/qt/ -lcore-utils-lib
@@ -22,6 +23,7 @@ exists(/etc/astra_version) {
         LIBS += -ldl
         LIBS += -L/usr/lib/qt/ -lcore-lib
         LIBS += -L/usr/lib/qt/ -lcore-io-lib
+        LIBS += -L/usr/lib/qt/ -lcore-journal-lib
         LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
         LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
         LIBS += -L/usr/lib/qt/ -lcore-utils-lib
@@ -33,6 +35,7 @@ exists(/etc/astra_version) {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-io-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
@@ -42,6 +45,7 @@ exists(/etc/astra_version) {
         DEFINES += win64
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-io-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
@@ -55,6 +59,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-io-lib/"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-journal-lib/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib/bindings"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-mvc-lib/"
@@ -84,6 +89,7 @@ QMAKE_LFLAGS += -Wl,--allow-multiple-definition
     # Добавляем все подпапки, где лежат исходники (перечислите все каталоги, которые есть в проекте)
     TESTS_SUBDIRS = core-lib \
                     core-io-lib \
+                    core-journal-lib \
                     core-modbus-lib \
                     core-mvc-lib \
                     core-utils-lib \
@@ -126,10 +132,12 @@ QMAKE_LFLAGS += -Wl,--allow-multiple-definition
 
 HEADERS += \
     TestAuth.h \
+    TestJournal.h \
     TestModbusIntegration.h
 
 SOURCES += \
     TestAuth.cpp \
+    TestJournal.cpp \
     TestModbusIntegration.cpp \
     main.cpp \
 

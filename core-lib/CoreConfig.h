@@ -19,6 +19,8 @@
 #define ELEMENTS_DELIMETER  ";"
 #define ROW_DELIMETER       "\r\n"
 
+#define LOG_DT_FORMAT "yyyy-MM-dd HH:mm:ss.zzz"
+
 #define TIME_FORMAT "HH:mm:ss"
 #define TIME_FORMAT_SHORT "mm:ss"
 #define TIME_FORMAT_MS "HH:mm:ss.zzz"
