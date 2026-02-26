@@ -6,6 +6,12 @@ JournalBase::JournalBase() {}
 
 JournalBase::~JournalBase() {}
 
+void JournalBase::addCategoryToCache(CategoryId id, const QString& name) {
+    QMutexLocker locker(&m_cacheMutex);
+    m_categoryCache[name] = id;
+    m_reverseCache[id] = name;
+}
+
 void JournalBase::log(LOG_LEV level, CategoryId categoryId, const QString& msg) {
     // Получаем имя категории из кэша
     QString categoryName;

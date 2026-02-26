@@ -32,6 +32,10 @@ void TestJournal::cleanUpOldEntries(int keepDays) {
     Q_UNUSED(keepDays);
 }
 
+void TestJournal::loadCategoriesFromModel() {
+
+}
+
 void TestJournal::reset() {
     insertCategoryCallCount = 0;
     lastInsertCategoryName.clear();

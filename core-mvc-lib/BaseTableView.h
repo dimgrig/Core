@@ -25,6 +25,8 @@
 
 enum TableType {
     TableType_MainTable,
+    TableType_Journal,
+    TableType_JournalCategories,
     TableType_Devices,
     TableType_DeviceChannels,
     TableType_Measurements,

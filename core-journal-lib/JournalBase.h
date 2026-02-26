@@ -50,12 +50,15 @@ protected:
     virtual void insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
                                 CategoryId categoryId, const QString& msg) = 0;
     virtual void cleanUpOldEntries(int keepDays) = 0;
+    virtual void loadCategoriesFromModel() = 0;
 
     // Запись в файл через Logger (может использоваться наследниками)
     void logToFile(LOG_LEV level, const QString& fullMsg);
 
     // Общий метод логирования
     void log(LOG_LEV level, CategoryId categoryId, const QString& msg);
+
+    void addCategoryToCache(CategoryId id, const QString& name);
 
     // Кэш категорий (потокобезопасный)
     mutable QMutex m_cacheMutex;
