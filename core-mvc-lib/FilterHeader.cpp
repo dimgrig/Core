@@ -2,12 +2,14 @@
 
 #include <QApplication>
 #include <QCalendarWidget>
+#include <QDateTimeEdit>
 #include <QPainter>
 #include <QPushButton>
 #include <QVBoxLayout>
 
 #include "CalendarWidget.h"
 #include "CoreConfig.h"
+#include "DateTimeRangeWidget.h"
 #include "Logger.h"
 
 FilterHeader::FilterHeader(QWidget* parent) :
@@ -97,6 +99,34 @@ void FilterHeader::showFilterMenu(int section, const QPoint& pos) {
             QDate end = calendar->endDate();
             QString date_filter = this->createDateFilter(start, end);
             onFilterTextChanged(section, date_filter);
+        });
+
+        connect(resetButton, &QPushButton::clicked, [&]() {
+            menu.close();
+            clearFilter(section);
+        });
+    } else if (this->datetimes.contains(section)) {
+        QPushButton* resetButton = new QPushButton("Сбросить", widget);
+
+        DateTimeRangeWidget* dtrw = new DateTimeRangeWidget(widget);
+        {
+            QDateTime startDateTime;
+            QDateTime endDateTime;
+            getDateTimeSelection(filters.value(section), startDateTime, endDateTime);
+            dtrw->setSelection(startDateTime, endDateTime);
+        }
+
+        layout->addWidget(dtrw);
+        layout->addWidget(applyButton);
+        layout->addWidget(resetButton);
+
+        connect(applyButton, &QPushButton::clicked, [&]() {
+            menu.close();
+
+            QDateTime start = dtrw->startDateTime();
+            QDateTime end = dtrw->endDateTime();
+            QString date_time_filter = this->createDateTimeFilter(start, end);
+            onFilterTextChanged(section, date_time_filter);
         });
 
         connect(resetButton, &QPushButton::clicked, [&]() {
@@ -195,6 +225,21 @@ QString FilterHeader::createDateFilter(const QDate& startDate, const QDate& endD
     return QString(); // Пустой фильтр, если даты не заданы
 }
 
+QString FilterHeader::createDateTimeFilter(const QDateTime& startDateTime, const QDateTime& endDateTime) {
+    if (startDateTime.isValid() && endDateTime.isValid()) {
+        return QString("BETWEEN '%1' AND '%2'")
+        .arg(startDateTime.toString(DATE_TIME_FORMAT_WITHOUT_MS))
+            .arg(endDateTime.toString(DATE_TIME_FORMAT_WITHOUT_MS));
+    } else if (startDateTime.isValid()) {
+        return QString(" >= '%1'")
+        .arg(startDateTime.toString(DATE_TIME_FORMAT_WITHOUT_MS));
+    } else if (endDateTime.isValid()) {
+        return QString(" <= '%1'")
+        .arg(endDateTime.toString(DATE_TIME_FORMAT_WITHOUT_MS));
+    }
+    return QString();
+}
+
 void FilterHeader::getDateSelection(QString filter, QDate& startDate, QDate& endDate) {
     if (filter.contains("BETWEEN")) {
         filter.remove(0, 8);
@@ -208,5 +253,25 @@ void FilterHeader::getDateSelection(QString filter, QDate& startDate, QDate& end
         filter.remove(0, 3);
         filter.replace("'", "");
         startDate = QDate::fromString(filter, ISO_DATE_FORMAT);
+    }
+}
+
+void FilterHeader::getDateTimeSelection(QString filter, QDateTime& startDateTime, QDateTime& endDateTime) {
+    if (filter.contains("BETWEEN")) {
+        filter.remove(0, 8); // убираем "BETWEEN "
+        filter.replace("'", "");
+        QStringList date_time_sl = filter.split(" AND ");
+        if (date_time_sl.size() == 2) {
+            startDateTime = QDateTime::fromString(date_time_sl.front(), DATE_TIME_FORMAT_WITHOUT_MS);
+            endDateTime = QDateTime::fromString(date_time_sl.back(), DATE_TIME_FORMAT_WITHOUT_MS);
+        }
+    } else if (filter.contains(" >= ")) {
+        filter.remove(0, 4);
+        filter.replace("'", "");
+        startDateTime = QDateTime::fromString(filter, DATE_TIME_FORMAT_WITHOUT_MS);
+    } else if (filter.contains(" <= ")) {
+        filter.remove(0, 4);
+        filter.replace("'", "");
+        endDateTime = QDateTime::fromString(filter, DATE_TIME_FORMAT_WITHOUT_MS);
     }
 }

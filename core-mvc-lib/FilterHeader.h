@@ -14,6 +14,7 @@ class CORE_MVC_LIB_EXPORT FilterHeader : public QHeaderView {
 public:
     FilterHeader(QWidget* parent = nullptr);
     void set_date(int column) {this->dates.insert(column);};
+    void set_datetime(int column) {this->datetimes.insert(column);};
 
 signals:
     void filterChanged(int column, const QString& text);
@@ -28,11 +29,14 @@ protected:
 private:
     void showFilterMenu(int section, const QPoint& pos);
     QString createDateFilter(const QDate& startDate, const QDate& endDate);
+    QString createDateTimeFilter(const QDateTime& startDateTime, const QDateTime& endDateTime);
     void getDateSelection(QString filter, QDate& startDate, QDate& endDate);
+    void getDateTimeSelection(QString filter, QDateTime& startDateTime, QDateTime& endDateTime);
 
     // Хранилище фильтров: [column, filter text]
     QMap<int, QString> filters;
     QSet<int> dates;
+    QSet<int> datetimes;
 };
 
 #endif // FILTERHEADER_H

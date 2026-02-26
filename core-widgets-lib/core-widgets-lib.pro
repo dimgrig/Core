@@ -86,6 +86,7 @@ HEADERS += \
     Auth.h \
     CalendarWidget.h \
     ComboBoxDialog.h \
+    DateTimeRangeWidget.h \
     DoubleSpinBoxDialog.h \
     FocusWatcher.h \
     IUserRoleManager.h \
@@ -104,6 +105,7 @@ SOURCES += \
     Auth.cpp \
     CalendarWidget.cpp \
     ComboBoxDialog.cpp \
+    DateTimeRangeWidget.cpp \
     DoubleSpinBoxDialog.cpp \
     FocusWatcher.cpp \
     IUserRoleManager.cpp \
