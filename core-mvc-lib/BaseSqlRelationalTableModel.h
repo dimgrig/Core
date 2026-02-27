@@ -35,6 +35,7 @@ public:
     void setRelation(int column, const QSqlRelation &relation) override;
     void updateRelations();
     void updateRelations(int column);
+    QString buildTimestampCondition(const QString& fieldName, const QString& filterExpr) const;
 signals:
     void view_repaint();
     void view_repaint(int row, int col);

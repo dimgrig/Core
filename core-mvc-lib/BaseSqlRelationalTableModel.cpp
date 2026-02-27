@@ -5,6 +5,8 @@
 #include <QSqlField>
 #include <QSqlRecord>
 
+#include <QRegularExpression>
+
 #include "aqp.h"
 #include "Logger.h"
 
@@ -143,12 +145,17 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
             QString escapedValue = "%" + value + "%";
 
             QVariant::Type type = this->record().field(col).type();
+            QString fieldNameLower = fieldName.toLower();
 
-            if (this->record().field(col).name().toLower().contains("date")) {
+            if (fieldNameLower.contains("date")) {
                 //date field
                 //qCDebug(logDebug) << "date field";
                 //conditions << QString("%1 = %2").arg(fieldName).arg(value);
                 conditions << QString("%1 %2").arg(fieldName).arg(value);
+            } else if (fieldNameLower.contains("timestamp")) {
+                QString condition = buildTimestampCondition(fieldName, value);
+                if (!condition.isEmpty())
+                    conditions << condition;
             } else {
                 // Формируем условие в зависимости от типа данных
                 if (type == QVariant::Int || type == QVariant::Double) {
@@ -214,4 +221,77 @@ void BaseSqlRelationalTableModel::updateRelations(int column) {
             }
         }
     }
+}
+
+QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fieldName, const QString& filterExpr) const
+{
+    // Формат даты-времени, используемый в FilterHeader
+    const QString datetimeFormat = DATE_TIME_FORMAT_WITHOUT_MS;
+
+    // Если фильтр пустой – ничего не делаем
+    if (filterExpr.isEmpty())
+        return QString();
+
+    // Парсим выражение
+    QRegularExpression betweenRe("BETWEEN\\s+'([^']+)'\\s+AND\\s+'([^']+)'", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression geRe(">=\\s+'([^']+)'", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression leRe("<=\\s+'([^']+)'", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression eqRe("=\\s+'([^']+)'", QRegularExpression::CaseInsensitiveOption);
+
+    QDateTime start, end;
+    QString op;
+
+    if (auto match = betweenRe.match(filterExpr); match.hasMatch()) {
+        start = QDateTime::fromString(match.captured(1), datetimeFormat);
+        end = QDateTime::fromString(match.captured(2), datetimeFormat);
+        op = "BETWEEN";
+    } else if (auto match = geRe.match(filterExpr); match.hasMatch()) {
+        start = QDateTime::fromString(match.captured(1), datetimeFormat);
+        op = ">=";
+    } else if (auto match = leRe.match(filterExpr); match.hasMatch()) {
+        end = QDateTime::fromString(match.captured(1), datetimeFormat);
+        op = "<=";
+    } else if (auto match = eqRe.match(filterExpr); match.hasMatch()) {
+        start = end = QDateTime::fromString(match.captured(1), datetimeFormat);
+        op = "=";
+    } else {
+        // Неизвестный формат – логируем и игнорируем
+        qWarning() << "Unknown timestamp filter format:" << filterExpr;
+        return QString();
+    }
+
+    // Преобразуем локальное время в UTC Unix timestamp
+    // Предполагаем, что FilterHeader отправляет время в локальном поясе,
+    // а в БД хранится UTC.
+    auto toUtcSecs = [](const QDateTime& localDt) -> qint64 {
+        if (!localDt.isValid()) return 0;
+        QDateTime utcDt = localDt.toUTC();
+        return utcDt.toSecsSinceEpoch();
+    };
+
+    qint64 startSecs = toUtcSecs(start);
+    qint64 endSecs = toUtcSecs(end);
+
+    // Формируем условие в зависимости от оператора
+    if (op == "BETWEEN") {
+        if (start.isValid() && end.isValid()) {
+            return QString("%1 BETWEEN %2 AND %3").arg(fieldName).arg(startSecs).arg(endSecs);
+        }
+    } else if (op == ">=") {
+        if (start.isValid()) {
+            return QString("%1 >= %2").arg(fieldName).arg(startSecs);
+        }
+    } else if (op == "<=") {
+        if (end.isValid()) {
+            return QString("%1 <= %2").arg(fieldName).arg(endSecs);
+        }
+    } else if (op == "=") {
+        if (start.isValid()) {
+            // Для точного равенства по дате-времени можно сделать диапазон
+            // Например, если пользователь выбрал конкретный момент
+            return QString("%1 = %2").arg(fieldName).arg(startSecs);
+        }
+    }
+
+    return QString();
 }
