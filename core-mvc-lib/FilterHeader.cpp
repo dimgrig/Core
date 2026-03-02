@@ -34,6 +34,16 @@ FilterHeader::FilterHeader(QWidget* parent) :
 //     }
 // }
 
+void FilterHeader::setFilter(int section, const QString& text) {
+    if (text.isEmpty()) {
+        filters.remove(section);
+    } else {
+        filters[section] = text;
+    }
+    emit filterChanged(section, text);
+    viewport()->update();
+}
+
 void FilterHeader::mouseDoubleClickEvent(QMouseEvent* event) {
     int section = logicalIndexAt(event->pos());
     if (section == -1)
@@ -178,13 +188,7 @@ void FilterHeader::showFilterMenu(int section, const QPoint& pos) {
 }
 
 void FilterHeader::onFilterTextChanged(int section, const QString& text) {
-    if (text.isEmpty()) {
-        filters.remove(section);
-    } else {
-        filters[section] = text;
-    }
-    emit filterChanged(section, text);
-    viewport()->update();
+    this->setFilter(section, text);
 }
 
 void FilterHeader::clearFilter(int section) {

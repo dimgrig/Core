@@ -13,11 +13,12 @@ class CORE_MVC_LIB_EXPORT FilterHeader : public QHeaderView {
     Q_OBJECT
 public:
     FilterHeader(QWidget* parent = nullptr);
-    void set_date(int column) {this->dates.insert(column);};
-    void set_datetime(int column) {this->datetimes.insert(column);};
+    void set_date(int section) {this->dates.insert(section);};
+    void set_datetime(int section) {this->datetimes.insert(section);};
 
+    void setFilter(int section, const QString& text);
 signals:
-    void filterChanged(int column, const QString& text);
+    void filterChanged(int section, const QString& text);
 private slots:
     void onFilterTextChanged(int section, const QString& text);
     void clearFilter(int section);
