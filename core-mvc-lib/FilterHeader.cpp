@@ -145,9 +145,11 @@ void FilterHeader::showFilterMenu(int section, const QPoint& pos) {
         });
     } else {
         // Создаем виджет с полем ввода и кнопкой
-
         QLineEdit* filterEdit = new QLineEdit(widget);
-        filterEdit->setText(filters.value(section));
+
+        QString text = filters.value(section);
+        text = checkLogLevelToText(section, text);
+        filterEdit->setText(text);
         layout->addWidget(filterEdit);
         layout->addWidget(applyButton);
 
@@ -174,7 +176,9 @@ void FilterHeader::showFilterMenu(int section, const QPoint& pos) {
             // Применяем фильтр и закрываем меню по нажатию кнопки
             connect(applyButton, &QPushButton::clicked, [&]() {
                 menu.close();
-                onFilterTextChanged(section, filterEdit->text());
+                QString text = filterEdit->text();
+                text = checkLogLevelFromText(section, text);
+                onFilterTextChanged(section, text);
             });                      
         }
     }
@@ -278,4 +282,32 @@ void FilterHeader::getDateTimeSelection(QString filter, QDateTime& startDateTime
         filter.replace("'", "");
         endDateTime = QDateTime::fromString(filter, DATE_TIME_FORMAT_WITHOUT_MS);
     }
+}
+
+QString FilterHeader::checkLogLevelToText(int section, QString& text) {
+    if (this->logs.contains(section)) {
+        if (text != "") {
+            QString str = logLevelToString(static_cast<LOG_LEV>(text.toInt()));
+            if (str == "Unknown") {
+                text = "";
+            } else {
+                text = str;
+            }
+        }
+    }
+    return text;
+}
+
+QString FilterHeader::checkLogLevelFromText(int section, QString& text) {
+    if (this->logs.contains(section)) {
+        if (text != "") {
+            auto level = logLevelFromString(text);
+            if (level == LOG_LEV::NONE_LOG) {
+                text = "";
+            } else {
+                text = QString::number(static_cast<int>(level));
+            }
+        }
+    }
+    return text;
 }

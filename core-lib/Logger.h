@@ -56,7 +56,7 @@ static LOG_LEV logLevelFromString(const QString &level) {
     } else if (_level.contains("fatal")) {
         return LOG_LEV::FATAL;
     }
-    return LOG_LEV::DEBUG;
+    return LOG_LEV::NONE_LOG;
 }
 
 class Logger {

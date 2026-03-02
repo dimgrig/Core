@@ -158,8 +158,12 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
                     conditions << condition;
             } else {
                 // Формируем условие в зависимости от типа данных
-                if (type == QVariant::Int || type == QVariant::Double) {
-                    conditions << QString("%1 = %2").arg(fieldName).arg(escapedValue);
+                if (type == QVariant::Int) {
+                    int num = value.toInt();
+                    conditions << QString("%1 = %2").arg(fieldName).arg(num);
+                } else if (type == QVariant::Double) {
+                    double num = value.toDouble();
+                    conditions << QString("%1 = %2").arg(fieldName).arg(num);
                 } else {
                     //string or date
                     conditions << QString("%1 LIKE '%2'").arg(fieldName).arg(escapedValue); //'%%2%'

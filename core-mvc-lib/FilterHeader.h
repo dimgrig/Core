@@ -15,6 +15,7 @@ public:
     FilterHeader(QWidget* parent = nullptr);
     void set_date(int section) {this->dates.insert(section);};
     void set_datetime(int section) {this->datetimes.insert(section);};
+    void set_log(int section) {this->logs.insert(section);};
 
     void setFilter(int section, const QString& text);
 signals:
@@ -33,11 +34,14 @@ private:
     QString createDateTimeFilter(const QDateTime& startDateTime, const QDateTime& endDateTime);
     void getDateSelection(QString filter, QDate& startDate, QDate& endDate);
     void getDateTimeSelection(QString filter, QDateTime& startDateTime, QDateTime& endDateTime);
+    QString checkLogLevelToText(int section, QString& text);
+    QString checkLogLevelFromText(int section, QString& text);
 
     // Хранилище фильтров: [column, filter text]
     QMap<int, QString> filters;
     QSet<int> dates;
     QSet<int> datetimes;
+    QSet<int> logs;
 };
 
 #endif // FILTERHEADER_H
