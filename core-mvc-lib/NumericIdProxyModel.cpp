@@ -75,6 +75,15 @@ bool NumericIdProxyModel::filterAcceptsRow(int source_row,
     }
 }
 
+QVariant NumericIdProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation == Qt::Vertical && role == Qt::DisplayRole) {
+        // section – это индекс строки в прокси-модели (отфильтрованной)
+        return section + 1; // нумерация с 1
+    }
+    return QSortFilterProxyModel::headerData(section, orientation, role);
+}
+
 void NumericIdProxyModel::invalidateFilter()
 {
     QSortFilterProxyModel::invalidateFilter();

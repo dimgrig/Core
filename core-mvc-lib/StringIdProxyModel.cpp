@@ -68,6 +68,15 @@ bool StringIdProxyModel::filterAcceptsRow(int source_row,
     }
 }
 
+QVariant StringIdProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation == Qt::Vertical && role == Qt::DisplayRole) {
+        // section – это индекс строки в прокси-модели (отфильтрованной)
+        return section + 1; // нумерация с 1
+    }
+    return QSortFilterProxyModel::headerData(section, orientation, role);
+}
+
 void StringIdProxyModel::invalidateFilter()
 {
     QSortFilterProxyModel::invalidateFilter();

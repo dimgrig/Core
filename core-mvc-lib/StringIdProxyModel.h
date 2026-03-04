@@ -30,6 +30,7 @@ signals:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 private:
     int m_column = 0;
     QString m_id = "-1";
