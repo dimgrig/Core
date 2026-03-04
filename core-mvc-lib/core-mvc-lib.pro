@@ -100,8 +100,10 @@ HEADERS += \
     FilterHeader.h \
     LineEditDelegate.h \
     LogLevelDelegate.h \
+    NumericIdProxyModel.h \
     ReadOnlyDelegate.h \
     SpinBoxDelegate.h \
+    StringIdProxyModel.h \
     TableShortcutHandler.h \
     TemplateEditRelationalTableModel.h \
     TemplateEditRelationalTableModel.hpp \
@@ -123,8 +125,10 @@ SOURCES += \
     FilterHeader.cpp \
     LineEditDelegate.cpp \
     LogLevelDelegate.cpp \
+    NumericIdProxyModel.cpp \
     ReadOnlyDelegate.cpp \
     SpinBoxDelegate.cpp \
+    StringIdProxyModel.cpp \
     TableShortcutHandler.cpp \
     TemplateEditRelationalTableModel.cpp \
     TemplateEditTableModel.cpp

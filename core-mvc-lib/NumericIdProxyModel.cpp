@@ -1,0 +1,81 @@
+#include "NumericIdProxyModel.h"
+
+NumericIdProxyModel::NumericIdProxyModel(int column, QObject *parent)
+    : QSortFilterProxyModel(parent)
+    , m_column(column)
+{
+    setDynamicSortFilter(true);
+
+    setId(-1);
+}
+
+void NumericIdProxyModel::setId(int id)
+{
+    if (m_id != id) {
+        m_id = id;
+        m_useMultipleIds = false;
+        invalidateFilter();
+        emit idChanged(id);
+    }
+}
+
+int NumericIdProxyModel::getId() const
+{
+    return m_id;
+}
+
+void NumericIdProxyModel::setIds(const QSet<int>& ids)
+{
+    if (m_ids != ids) {
+        m_ids = ids;
+        m_useMultipleIds = true;
+        invalidateFilter();
+    }
+}
+
+QSet<int> NumericIdProxyModel::getIds() const
+{
+    return m_ids;
+}
+
+bool NumericIdProxyModel::filterAcceptsRow(int source_row,
+                                                const QModelIndex &source_parent) const
+{
+    if (!(m_column < sourceModel()->columnCount())) {
+        return false;
+    }
+
+    // Если фильтр не установлен, показываем все строки
+    if (!m_useMultipleIds && m_id == -1) {
+        return true;
+    }
+
+    // Получаем индекс столбца с ID
+    QModelIndex index = sourceModel()->index(source_row, m_column, source_parent);
+
+    if (!index.isValid()) {
+        return false;
+    }
+
+    // Получаем ID из модели
+    bool ok;
+    int rowId = sourceModel()->data(index).toInt(&ok);
+
+    if (!ok) {
+        // Если данные не могут быть преобразованы в int, пробуем получить через роль
+        QVariant data = sourceModel()->data(index, Qt::UserRole);
+        rowId = data.toInt();
+    }
+
+    // Применяем фильтр
+    if (m_useMultipleIds) {
+        return m_ids.contains(rowId);
+    } else {
+        return rowId == m_id;
+    }
+}
+
+void NumericIdProxyModel::invalidateFilter()
+{
+    QSortFilterProxyModel::invalidateFilter();
+}
