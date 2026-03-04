@@ -3,6 +3,7 @@
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlField>
+#include <QSqlQuery>
 #include <QSqlRecord>
 
 #include <QRegularExpression>
@@ -298,4 +299,21 @@ QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fiel
     }
 
     return QString();
+}
+
+bool BaseSqlRelationalTableModel::cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays) {
+    QDateTime threshold = QDateTime::currentDateTimeUtc().addDays(-keepDays);
+    volatile qint64 thresholdSecs = threshold.toSecsSinceEpoch();
+
+    QSqlQuery query;
+    query.prepare(QString("DELETE FROM %1 WHERE %2 < :threshold").arg(table).arg(timestamp));
+    query.bindValue(":threshold", thresholdSecs);
+
+    if (query.exec()) {
+        return true;
+    }
+
+    qCDebug(logWarning()) << "Failed to clean up :" << this->lastError().text();
+
+    return false;
 }

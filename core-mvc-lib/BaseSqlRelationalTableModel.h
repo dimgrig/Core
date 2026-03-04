@@ -36,6 +36,8 @@ public:
     void updateRelations();
     void updateRelations(int column);
     QString buildTimestampCondition(const QString& fieldName, const QString& filterExpr) const;
+
+    bool cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays);
 signals:
     void view_repaint();
     void view_repaint(int row, int col);
