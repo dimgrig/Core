@@ -31,6 +31,7 @@
 #define DT_FORMAT_WRAP "yyyy-MM-dd\nHH:mm:ss.zzz"
 #define DATE_FORMAT "dd.MM.yyyy"
 #define DATE_TIME_FORMAT_WITHOUT_MS "dd.MM.yyyy HH:mm:ss"
+#define DATE_TIME_FORMAT_WITHOUT_MS_WRAP "dd.MM.yyyy\nHH:mm:ss"
 
 #define SETTINGS_PATH           "settings/"
 #define __ORGANIZATION_NAME        "ACS"

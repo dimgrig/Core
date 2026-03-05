@@ -181,10 +181,14 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
     //qCDebug(logDebug) << column << text << filter << this->record().field(column).type();
 
     // Применяем фильтр
-    //qCDebug(logDebug()) << "setFilter start";
+    qCDebug(logDebug()) << "setFilter start";
     this->setFilter(filter);
     this->select();
-    //qCDebug(logDebug()) << "setFilter end";
+    qCDebug(logDebug()) << "setFilter end";
+
+    emit filterChanged();
+
+    qCDebug(logDebug()) << "emit filterChanged end";
 
     QApplication::restoreOverrideCursor();
 }

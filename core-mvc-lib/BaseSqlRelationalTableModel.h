@@ -44,6 +44,8 @@ signals:
 
     void modified(bool modified);
     void saved();
+
+    void filterChanged();
 public slots:
     void filter_changed(int column, const QString& text);
 private slots:
