@@ -5,6 +5,7 @@
 #include <QSqlField>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QTimer>
 
 #include <QRegularExpression>
 
@@ -176,17 +177,17 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
     }
 
     // Объединяем условия через AND
-    QString filter = conditions.join(" AND ");
+    _fullFilter = conditions.join(" AND ");
 
     //qCDebug(logDebug) << column << text << filter << this->record().field(column).type();
 
     // Применяем фильтр
-    qCDebug(logDebug()) << "setFilter start";
-    this->setFilter(filter);
+    qCDebug(logDebug()) << "setFilter start" << _fullFilter;
+    this->setFilter(_fullFilter);
     this->select();
-    qCDebug(logDebug()) << "setFilter end";
+    qCDebug(logDebug()) << "setFilter end" << _fullFilter;
 
-    emit filterChanged();
+    emit filterChanged(_fullFilter);
 
     qCDebug(logDebug()) << "emit filterChanged end";
 
@@ -238,7 +239,7 @@ void BaseSqlRelationalTableModel::updateRelations(int column) {
     }
 }
 
-QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fieldName, const QString& filterExpr) const
+QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fieldName, const QString& filterExpr)
 {
     // Формат даты-времени, используемый в FilterHeader
     const QString datetimeFormat = DATE_TIME_FORMAT_WITHOUT_MS;
@@ -262,15 +263,20 @@ QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fiel
         op = "BETWEEN";
     } else if (auto match = geRe.match(filterExpr); match.hasMatch()) {
         start = QDateTime::fromString(match.captured(1), datetimeFormat);
+        end = QDateTime();
         op = ">=";
     } else if (auto match = leRe.match(filterExpr); match.hasMatch()) {
+        start = QDateTime();
         end = QDateTime::fromString(match.captured(1), datetimeFormat);
         op = "<=";
     } else if (auto match = eqRe.match(filterExpr); match.hasMatch()) {
         start = end = QDateTime::fromString(match.captured(1), datetimeFormat);
+        end = QDateTime();
         op = "=";
     } else {
         // Неизвестный формат – логируем и игнорируем
+        start = QDateTime();
+        end = QDateTime();
         qWarning() << "Unknown timestamp filter format:" << filterExpr;
         return QString();
     }
@@ -284,27 +290,28 @@ QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fiel
         return utcDt.toSecsSinceEpoch();
     };
 
-    qint64 startSecs = toUtcSecs(start);
-    qint64 endSecs = toUtcSecs(end);
+    _timestampOp = op;
+    _startSecs = toUtcSecs(start);
+    _endSecs = toUtcSecs(end);
 
     // Формируем условие в зависимости от оператора
     if (op == "BETWEEN") {
         if (start.isValid() && end.isValid()) {
-            return QString("%1 BETWEEN %2 AND %3").arg(fieldName).arg(startSecs).arg(endSecs);
+            return QString("%1 BETWEEN %2 AND %3").arg(fieldName).arg(_startSecs).arg(_endSecs);
         }
     } else if (op == ">=") {
         if (start.isValid()) {
-            return QString("%1 >= %2").arg(fieldName).arg(startSecs);
+            return QString("%1 >= %2").arg(fieldName).arg(_startSecs);
         }
     } else if (op == "<=") {
         if (end.isValid()) {
-            return QString("%1 <= %2").arg(fieldName).arg(endSecs);
+            return QString("%1 <= %2").arg(fieldName).arg(_endSecs);
         }
     } else if (op == "=") {
         if (start.isValid()) {
             // Для точного равенства по дате-времени можно сделать диапазон
             // Например, если пользователь выбрал конкретный момент
-            return QString("%1 = %2").arg(fieldName).arg(startSecs);
+            return QString("%1 = %2").arg(fieldName).arg(_startSecs);
         }
     }
 

@@ -35,9 +35,14 @@ public:
     void setRelation(int column, const QSqlRelation &relation) override;
     void updateRelations();
     void updateRelations(int column);
-    QString buildTimestampCondition(const QString& fieldName, const QString& filterExpr) const;
+    QString buildTimestampCondition(const QString& fieldName, const QString& filterExpr);
 
     bool cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays);
+
+    QString getFullFilter() const {return _fullFilter;};
+    QString getTimestampOp() const {return _timestampOp;};
+    qint64 getStartSecs() const {return _startSecs;};
+    qint64 getEndSecs() const {return _endSecs;};
 signals:
     void view_repaint();
     void view_repaint(int row, int col);
@@ -45,7 +50,7 @@ signals:
     void modified(bool modified);
     void saved();
 
-    void filterChanged();
+    void filterChanged(const QString &fullFilter);
 public slots:
     void filter_changed(int column, const QString& text);
 private slots:
@@ -62,6 +67,11 @@ private:
     std::set<int> _relation_column_s = {};
 
     QMap<int, QString> _filters;
+    QString _fullFilter;
+
+    QString _timestampOp;
+    qint64 _startSecs = 0;
+    qint64 _endSecs = 0;
 };
 
 #endif // BASESQLRELATIONALTABLEMODEL_H
