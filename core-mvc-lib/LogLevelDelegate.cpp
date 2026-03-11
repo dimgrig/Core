@@ -5,7 +5,8 @@
 #include "CoreConfig.h"
 #include "Logger.h"
 
-LogLevelDelegate::LogLevelDelegate(QObject *)
+LogLevelDelegate::LogLevelDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
 {
 
 }

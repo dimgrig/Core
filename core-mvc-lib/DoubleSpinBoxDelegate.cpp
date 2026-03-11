@@ -2,7 +2,8 @@
 
 #include <QDoubleSpinBox>
 
-DoubleSpinBoxDelegate::DoubleSpinBoxDelegate(QObject *)
+DoubleSpinBoxDelegate::DoubleSpinBoxDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
 {
     this->setDecimals(3);
 }

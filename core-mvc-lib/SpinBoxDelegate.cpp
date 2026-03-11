@@ -2,7 +2,8 @@
 
 #include <QSpinBox>
 
-SpinBoxDelegate::SpinBoxDelegate(QObject *)
+SpinBoxDelegate::SpinBoxDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
 {
 
 }

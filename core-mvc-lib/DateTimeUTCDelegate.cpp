@@ -4,7 +4,8 @@
 
 #include "Logger.h"
 
-DateTimeUTCDelegate::DateTimeUTCDelegate(QObject *)
+DateTimeUTCDelegate::DateTimeUTCDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
 {
 
 }
