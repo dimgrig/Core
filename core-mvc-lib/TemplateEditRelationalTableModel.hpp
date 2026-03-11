@@ -48,7 +48,7 @@ void TemplateEditRelationalTableModel<T>::load() {
 }
 
 template<class T>
-void TemplateEditRelationalTableModel<T>::save() {
+bool TemplateEditRelationalTableModel<T>::save() {
     this->database().transaction();
     if (this->submitAll()) {
         this->database().commit();
@@ -58,12 +58,16 @@ void TemplateEditRelationalTableModel<T>::save() {
         qCDebug(logDebug()) << "Изменения успешно сохранены!";
 
         emit saved();
+
+        return true;
     } else {
         this->database().rollback();
         qCDebug(logDebug()) << "Ошибка, не удалось сохранить изменения: " + this->lastError().text();
+
+        return false;
     }
 
-    //this->write_config();
+    return false;
 }
 
 template<class T>

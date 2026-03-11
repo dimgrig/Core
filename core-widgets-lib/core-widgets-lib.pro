@@ -83,9 +83,11 @@ win64 {
 #message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))
 
 HEADERS += \
+    AspectRatioPixmapLabel.h \
     Auth.h \
     CalendarWidget.h \
     ComboBoxDialog.h \
+    ConnectionButton.h \
     DateTimeRangeWidget.h \
     DoubleSpinBoxDialog.h \
     FocusWatcher.h \
@@ -102,9 +104,11 @@ HEADERS += \
     icons.h
 
 SOURCES += \
+    AspectRatioPixmapLabel.cpp \
     Auth.cpp \
     CalendarWidget.cpp \
     ComboBoxDialog.cpp \
+    ConnectionButton.cpp \
     DateTimeRangeWidget.cpp \
     DoubleSpinBoxDialog.cpp \
     FocusWatcher.cpp \

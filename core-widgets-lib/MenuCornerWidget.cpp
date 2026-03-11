@@ -9,6 +9,8 @@ MenuCornerWidget::MenuCornerWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->set_pb_connection_visible(false);
+
     this->ui->le_auth_user->setDisabled(true);
     this->ui->l_logo->setPixmap(PIXMAP_APP);
     this->ui->l_logo->setVisible(false);
@@ -25,4 +27,12 @@ MenuCornerWidget::~MenuCornerWidget() {
 
 void MenuCornerWidget::set_auth_user(QString auth_user_str) {
     this->ui->le_auth_user->setText(auth_user_str);
+}
+
+void MenuCornerWidget::set_pb_connection_visible(bool visible) {
+    this->ui->pb_connection->setVisible(visible);
+}
+
+ConnectionButton *MenuCornerWidget::get_pb_connection() {
+    return this->ui->pb_connection;
 }

@@ -7,6 +7,7 @@
 #include <QScreen>
 #include <QTableView>
 
+#include "dimensions.h"
 #include "MathParser.h"
 
 //bool string_replace(std::string& str, const std::string& from, const std::string& to) {
@@ -48,6 +49,23 @@ int round_down_to_value(int value, int value_to_round) {
     } else {
         return 0;
     }
+}
+
+// Удаляет лишние нули после запятой. Например, "3.500" → "3.5", "3.000" → "3"
+std::string trim_trailing_zeros(std::string s) {
+    if ((s.find(',') != std::string::npos) ||
+        (s.find('.') != std::string::npos)) {
+        // Удаляем все нули справа после точки
+        //s = std::regex_replace(s, std::regex("([0-9]+\\.[0-9]*[1-9])0+$"), "$1");
+        std::regex reg(R"(([.,]\d*[1-9])0+$|[.,]0*$)");
+        s = std::regex_replace(s, reg, "$1");
+
+        // Дополнительная обработка особых случаев
+        if (s.empty() || s == "-" || s == "-0") {
+            return s = "0";
+        }
+    }
+    return s;
 }
 
 std::string TRANSLATION_EN_RU(std::string EN) {
@@ -199,26 +217,26 @@ unsigned int extract_outcome_id(const QString str) {
     return res.toInt();
 }
 
-// ////|-Uзи ут||Uзи ут|Uзи изм|Uзи|-Iз изм|Iз изм|Uпр|Iпр|Uобр|Iобр|Iс изм|Iс max огр|Iс инд огр|Iс max|Iс инд|Iс|Rси|S|Uси изм|Uси|Uис
-// //|Uзи ут|Uзи изм|Uзи|Iз изм|Uпр|Iпр|Uобр|Iобр|Iс изм|Iс max|Iс инд|Iс|Rси|S|Uси изм|Uси|Uис
-// QString extract_name(const QString str) {
-// //    QStringList sn_sl_re;
-// //    for (auto s : SignalName_sl_re()) {
-// //        s.replace("|", "[|]");
-// //        sn_sl_re.push_back(s);
-// //    }
-// //    //qCDebug(logDebug) << sn_sl_re;
-//     QString signal_names = SignalName_sl_re.join("|");
-//     QRegularExpression rx("(" + signal_names + ")");
-//     QString res = "";
-//     QRegularExpressionMatchIterator i = rx.globalMatch(str);
-//     if (i.hasNext()) {
-//         QRegularExpressionMatch match = i.next();
-//         res = match.captured(0);
-//         //qCDebug(logDebug()) << res;
-//     }
-//     return res;
-// }
+////|-Uзи ут||Uзи ут|Uзи изм|Uзи|-Iз изм|Iз изм|Uпр|Iпр|Uобр|Iобр|Iс изм|Iс max огр|Iс инд огр|Iс max|Iс инд|Iс|Rси|S|Uси изм|Uси|Uис
+//|Uзи ут|Uзи изм|Uзи|Iз изм|Uпр|Iпр|Uобр|Iобр|Iс изм|Iс max|Iс инд|Iс|Rси|S|Uси изм|Uси|Uис
+QString extract_name(const QStringList SignalName_sl_re, const QString str) {
+//    QStringList sn_sl_re;
+//    for (auto s : SignalName_sl_re()) {
+//        s.replace("|", "[|]");
+//        sn_sl_re.push_back(s);
+//    }
+//    //qCDebug(logDebug) << sn_sl_re;
+    QString signal_names = SignalName_sl_re.join("|");
+    QRegularExpression rx("(" + signal_names + ")");
+    QString res = "";
+    QRegularExpressionMatchIterator i = rx.globalMatch(str);
+    if (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        res = match.captured(0);
+        //qCDebug(logDebug()) << res;
+    }
+    return res;
+}
 
 QString extract_signal_type(const QString str) {
     QRegularExpression rx("(U|I|R|S)");
@@ -232,18 +250,18 @@ QString extract_signal_type(const QString str) {
     return res;
 }
 
-// QString extract_testType(const QString str) {
-//     QString test_types = TestTypes_re.join("|");
-//     QRegularExpression rx("(" + test_types + ")"); //Контактирование|Обратный ток|Прямое напряжение //Импульсный ток стока Iс(и) max
-//     QString res = "";
-//     QRegularExpressionMatchIterator i = rx.globalMatch(str);
-//     if (i.hasNext()) {
-//         QRegularExpressionMatch match = i.next();
-//         res = match.captured(0);
-//         //qCDebug(logDebug()) << res;
-//     }
-//     return res;
-// }
+QString extract_testType(const QStringList TestTypes_re, const QString str) {
+    QString test_types = TestTypes_re.join("|");
+    QRegularExpression rx("(" + test_types + ")"); //Контактирование|Обратный ток|Прямое напряжение //Импульсный ток стока Iс(и) max
+    QString res = "";
+    QRegularExpressionMatchIterator i = rx.globalMatch(str);
+    if (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        res = match.captured(0);
+        //qCDebug(logDebug()) << res;
+    }
+    return res;
+}
 
 QString extract_standardUnit(const QString str) {
     QRegularExpression rx("([0-9][ ])(нс|мкс|мс|с|"
@@ -342,18 +360,18 @@ std::string su_from_name(const std::string name) {
     return su;
 }
 
-// double extract_scale_factor(const std::string su) {
-//     double scale_factor = 1.0;
-//     for (const auto &dimension : dimension_v) {
-//         if (startsWith(su, dimension)) {
-//             if (dimension_m.count(dimension) > 0) {
-//                 scale_factor = dimension_m.at(dimension).first / dimension_m.at(dimension).second;
-//             }
-//             break;
-//         }
-//     }
-//     return scale_factor;
-// }
+double extract_scale_factor(const std::string su) {
+    double scale_factor = 1.0;
+    for (const auto &dimension : dimension_v) {
+        if (startsWith(su, dimension)) {
+            if (dimension_m.count(dimension) > 0) {
+                scale_factor = dimension_m.at(dimension).first / dimension_m.at(dimension).second;
+            }
+            break;
+        }
+    }
+    return scale_factor;
+}
 
 int extract_controller_id(const QString str) {
     QRegularExpression rx("CONTROLLER(\\d+)");
@@ -1021,6 +1039,56 @@ void FunctionsTest() {
 //        std::vector<char> rx_ba = {1,2,3,4,5,6,7,8,9,10,11,12};
 //        buf_to_chunks(rx_ba);
 //    }
+    {
+        {
+            std::string str_zeroes = "123,45000";
+            std::string str_ref = "123,45";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "123,000";
+            std::string str_ref = "123";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "123,001020300";
+            std::string str_ref = "123,0010203";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "0,45000";
+            std::string str_ref = "0,45";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "10,000";
+            std::string str_ref = "10";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "0,000";
+            std::string str_ref = "0";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "-123,450";
+            std::string str_ref = "-123,45";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+        {
+            std::string str_zeroes = "-0,12300";
+            std::string str_ref = "-0,123";
+            std::string str = trim_trailing_zeros(str_zeroes);
+            ASSERT_EQUAL(str, str_ref);
+        }
+    }
     {
         {
             int x = 90;

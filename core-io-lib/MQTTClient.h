@@ -26,10 +26,12 @@ public slots:
     void connectToHost(QString host = "localhost", int port = 1883);
     void disconnectFromHost();
     void subscribe(QString topic);
+    void unsubscribe(QString topic);
     void publish(QString topic, QByteArray message);
     void publish(QString topic, QString message);
     void publish(QString topic, std::string message);
     void onMessageReceived(const QByteArray &message, const QMqttTopicName &topic);
+    void ping() {this->_mqtt->requestPing();};
 private slots:
     //void handleError(QSerialPort::SerialPortError error);
     void on_timer();

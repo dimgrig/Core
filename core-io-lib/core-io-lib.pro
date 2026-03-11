@@ -88,16 +88,17 @@ win64 {
 
 HEADERS += \
     MQTTClient.h \
+    ResourceManager.h \
     SerialClient.h \
     TCPClient.h \
     TCPServer.h \
     UDPClient.h \
     UDPServer.h \
-    core-io-lib-global.h \
-    mqtt_topics.h
+    core-io-lib-global.h
 
 SOURCES += \
     MQTTClient.cpp \
+    ResourceManager.cpp \
     SerialClient.cpp \
     TCPClient.cpp \
     TCPServer.cpp \

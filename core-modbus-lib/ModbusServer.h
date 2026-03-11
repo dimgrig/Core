@@ -42,14 +42,15 @@ public slots:
 
     void setRegister(const QString &reg_name, double value);
     void setRegisterString(const QString &reg_name, const QString &value);
+
+    void setRegister(QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
+    void setRegisterString(QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
 private slots:
     void onModbusStateChanged(int state);
     void onModbusErrorOccurred(QModbusDevice::Error error);
     void settings_change();
 
 private:
-    void setRegister(QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
-    void setRegisterString(QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
     void updateRegisters(QModbusDataUnit::RegisterType table, int address, int size);
 
     //QModbusReply *lastRequest = nullptr;

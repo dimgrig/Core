@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "ConnectionButton.h"
+
 #include "core-widgets-lib-global.h"
 
 QT_BEGIN_NAMESPACE
@@ -16,6 +18,9 @@ public:
     virtual ~MenuCornerWidget();
 
     void set_auth_user(QString auth_user_str);
+
+    void set_pb_connection_visible(bool visible);
+    ConnectionButton *get_pb_connection();
 
 signals:
     void logout();

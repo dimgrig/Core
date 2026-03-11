@@ -17,7 +17,7 @@ public:
     const std::vector<std::shared_ptr<T>>& get_shared_data_ref() const;
 
     void load();
-    void save() override;
+    bool save() override;
     void sync_v();
 protected:
     // virtual void read_config() = 0;

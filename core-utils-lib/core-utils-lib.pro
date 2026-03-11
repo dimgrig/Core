@@ -93,20 +93,27 @@ HEADERS += \
     Approximation.h \
     AsyncWaiter.h \
     CQueue.h \
+    Calibration.h \
+    DelayUtils.h \
     DocxExporter.h \
     FilterMixin.h \
     MathParser.h \
     SessionCache.h \
+    dimensions.h \
     functions.h \
-    core-utils-lib-global.h
+    core-utils-lib-global.h \
+    functions_degrees.h
 
 SOURCES += \
     Approximation.cpp \
     AsyncWaiter.cpp \
     CQueue.cpp \
+    Calibration.cpp \
+    DelayUtils.cpp \
     DocxExporter.cpp \
     FilterMixin.cpp \
     MathParser.cpp \
     SessionCache.cpp \
     functions.cpp \
+    functions_degrees.cpp
 

@@ -4,6 +4,7 @@
 #include "Auth.h"
 #include "enum_macro.h"
 #include "functions.h"
+#include "functions_degrees.h"
 #include "Logger.h"
 #include "macroses.h"
 #include "MathParser.h"
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
     TestRunner tr;
     RUN_TEST(tr, TemplatesTest);
     RUN_TEST(tr, FunctionsTest);
+    RUN_TEST(tr, FunctionsDegreesTest);
     RUN_TEST(tr, EnumMacroTest);
     RUN_TEST(tr, MacrosesTest);
     RUN_TEST(tr, ApproximationTest);

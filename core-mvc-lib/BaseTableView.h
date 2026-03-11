@@ -24,6 +24,7 @@
 // };
 
 enum TableType {
+    //saks
     TableType_MainTable,
     TableType_Journal,
     TableType_JournalCategories,
@@ -33,6 +34,9 @@ enum TableType {
     TableType_CalibrationRanges,
     TableType_Calibration,
     TableType_ModbusReg,
+
+    //upkd
+    TableType_StaticPressureResult
 };
 
 class BaseTableView;
