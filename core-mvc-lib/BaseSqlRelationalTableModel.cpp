@@ -98,7 +98,7 @@ Qt::ItemFlags BaseSqlRelationalTableModel::flags(const QModelIndex& index) const
 void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    QSqlDriver* driver = this->database().driver();
+    //QSqlDriver* driver = this->database().driver();
 
     _filters[column] = text;
 
@@ -177,19 +177,20 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
     }
 
     // Объединяем условия через AND
-    _fullFilter = conditions.join(" AND ");
+    QString fullFilter = conditions.join(" AND ");
+    _fullFilter = fullFilter;
 
     //qCDebug(logDebug) << column << text << filter << this->record().field(column).type();
 
     // Применяем фильтр
-    qCDebug(logDebug()) << "setFilter start" << _fullFilter;
+    //qCDebug(logDebug()) << "setFilter start" << _fullFilter;
     this->setFilter(_fullFilter);
     this->select();
-    qCDebug(logDebug()) << "setFilter end" << _fullFilter;
+    //qCDebug(logDebug()) << "setFilter end" << _fullFilter;
 
     emit filterChanged(_fullFilter);
 
-    qCDebug(logDebug()) << "emit filterChanged end";
+    //qCDebug(logDebug()) << "emit filterChanged end";
 
     QApplication::restoreOverrideCursor();
 }

@@ -50,7 +50,7 @@ signals:
     void modified(bool modified);
     void saved();
 
-    void filterChanged(const QString &fullFilter);
+    void filterChanged(const QString fullFilter);
 public slots:
     void filter_changed(int column, const QString& text);
 private slots:
