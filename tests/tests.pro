@@ -15,6 +15,7 @@ exists(/etc/astra_version) {
     LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
     LIBS += -L/usr/lib/qt/ -lcore-utils-lib
     LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
+    LIBS += -L/usr/local/lib/ -lmuparser
 
     DISTFILES += core-gcc10.pri
     include(core-gcc10.pri)
@@ -28,6 +29,7 @@ exists(/etc/astra_version) {
         LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
         LIBS += -L/usr/lib/qt/ -lcore-utils-lib
         LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_unix
     }
 
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
@@ -40,6 +42,7 @@ exists(/etc/astra_version) {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_win
     }
     win64 {
         DEFINES += win64
@@ -50,6 +53,7 @@ exists(/etc/astra_version) {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
+        LIBS += -L$$PWD -lmuParser_win
     }
 }
 
