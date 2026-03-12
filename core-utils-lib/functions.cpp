@@ -666,49 +666,49 @@ void FunctionsTest() {
     {
         {
             double d_ref = 123.456;
-            QString str = "ABC 123,456 DEG";
+            QString str = QStringLiteral("ABC 123,456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = -123.456;
-            QString str = "ABC -123,456 DEG";
+            QString str = QStringLiteral("ABC -123,456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = 0.456;
-            QString str = "ABC 0,456 DEG";
+            QString str = QStringLiteral("ABC 0,456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = -0.456;
-            QString str = "ABC -0,456 DEG";
+            QString str = QStringLiteral("ABC -0,456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = 456;
-            QString str = "ABC 456 DEG";
+            QString str = QStringLiteral("ABC 456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = -123;
-            QString str = "ABC -123 DEG";
+            QString str = QStringLiteral("ABC -123 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = 0;
-            QString str = "ABC 0 DEG";
+            QString str = QStringLiteral("ABC 0 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
         {
             double d_ref = 123.456;
-            QString str = "ABC = 123,456 DEG";
+            QString str = QStringLiteral("ABC = 123,456 DEG");
             double d = extract_double(str);
             ASSERT_EQUAL(d, d_ref);
         }
@@ -716,25 +716,25 @@ void FunctionsTest() {
     {
         {
             int id_ref = 1;
-            QString str = "test1";
+            QString str = QStringLiteral("test1");
             int id = extract_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 1;
-            QString str = "test 1";
+            QString str = QStringLiteral("test 1");
             int id = extract_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 123;
-            QString str = "test123";
+            QString str = QStringLiteral("test123");
             int id = extract_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 123;
-            QString str = "test123asf";
+            QString str = QStringLiteral("test123asf");
             int id = extract_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
@@ -742,211 +742,213 @@ void FunctionsTest() {
     {
         {
             int id_ref = 1;
-            QString str = "o1";
+            QString str = QStringLiteral("o1");
             int id = extract_outcome_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 10;
-            QString str = "o10";
+            QString str = QStringLiteral("o10");
             int id = extract_outcome_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 123;
-            QString str = "test123o123";
+            QString str = QStringLiteral("test123o123");
             int id = extract_outcome_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
             int id_ref = 123;
-            QString str = "test123asfo123asfas";
+            QString str = QStringLiteral("test123asfo123asfas");
             int id = extract_outcome_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
     }
-    // {
-    //     {
-    //         QString name_ref = "Uпр";
-    //         QString str = "Uпр1";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iпр";
-    //         QString str = "Iпрasf";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Uобр";
-    //         QString str = "Uобр2";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iобр";
-    //         QString str = "Iобр2";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
+    {
+        QString SignalName = QStringLiteral("-Uзи ут|Uзи ут|Uзи изм|Uзи|-Iз изм|Iз изм|Uпр|Iпр|Uобр|Iобр|Iс изм|Iс max огр|Iс инд огр|Iс max|Iс инд|Iс|Rси|S|Uси изм|Uси|Uис");
+        QStringList SignalName_sl_re = SignalName.split("|");
+        {
+            QString name_ref = QStringLiteral("Uпр");
+            QString str = QStringLiteral("Uпр1");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iпр");
+            QString str = QStringLiteral("Iпрasf");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Uобр");
+            QString str = QStringLiteral("Uобр2");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iобр");
+            QString str = QStringLiteral("Iобр2");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
 
 
-    //     {
-    //         QString name_ref = "Iс";
-    //         QString str = "Iс = 10 А";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iс изм";
-    //         QString str = "Iс изм = 10 А";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iс max";
-    //         QString str = "Iс max = 10 А";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iс инд";
-    //         QString str = "Iс инд = 10 А";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Rси";
-    //         QString str = "Rси = 1 Ом";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "S";
-    //         QString str = "S = 10 См";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Uси изм";
-    //         QString str = "Uси изм = 10 В";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Uси";
-    //         QString str = "Uси = 10 В";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Uзи изм";
-    //         QString str = "Uзи изм = 10 В";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Uзи";
-    //         QString str = "Uзи = 10 В";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    //     {
-    //         QString name_ref = "Iз изм";
-    //         QString str = "Iз изм = 10 А";
-    //         QString name = extract_name(str);
-    //         ASSERT_EQUAL(name, name_ref);
-    //     }
-    // }
+        {
+            QString name_ref = QStringLiteral("Iс");
+            QString str = QStringLiteral("Iс = 10 А");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iс изм");
+            QString str = QStringLiteral("Iс изм = 10 А");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iс max");
+            QString str = QStringLiteral("Iс max = 10 А");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iс инд");
+            QString str = QStringLiteral("Iс инд = 10 А");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Rси");
+            QString str = QStringLiteral("Rси = 1 Ом");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("S");
+            QString str = QStringLiteral("S = 10 См");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Uси изм");
+            QString str = QStringLiteral("Uси изм = 10 В");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Uси");
+            QString str = QStringLiteral("Uси = 10 В");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Uзи изм");
+            QString str = QStringLiteral("Uзи изм = 10 В");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Uзи");
+            QString str = QStringLiteral("Uзи = 10 В");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+        {
+            QString name_ref = QStringLiteral("Iз изм");
+            QString str = QStringLiteral("Iз изм = 10 А");
+            QString name = extract_name(SignalName_sl_re, str);
+            ASSERT_EQUAL(name, name_ref);
+        }
+    }
     {
         {
-            QString su_ref = "мкс";
-            QString str = "5000 мкс";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("5000 мкс");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мкс";
-            QString str = "5000 мкс errlimit";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("5000 мкс errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мкс";
-            QString str = "aasd 5000 мкс 6000 А";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("aasd 5000 мкс 6000 А");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мкс";
-            QString str = "aasd 500,0 мкс 6000 А";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("aasd 500,0 мкс 6000 А");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мкс";
-            QString str = "aasd 500.0 мкс 6000 А";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("aasd 500.0 мкс 6000 А");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мкс";
-            QString str = "aasd 500.99 мкс 6000 А";
+            QString su_ref = QStringLiteral("мкс");
+            QString str = QStringLiteral("aasd 500.99 мкс 6000 А");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "";
-            QString str = "aasd 5000мкс asf";
+            QString su_ref = QStringLiteral("");
+            QString str = QStringLiteral("aasd 5000мкс asf");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мА";
-            QString str = "500 мА errlimit";
+            QString su_ref = QStringLiteral("мА");
+            QString str = QStringLiteral("500 мА errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мВ";
-            QString str = "100 мВ errlimit";
+            QString su_ref = QStringLiteral("мВ");
+            QString str = QStringLiteral("100 мВ errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "А";
-            QString str = "500 А errlimit";
+            QString su_ref = QStringLiteral("А");
+            QString str = QStringLiteral("500 А errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "В";
-            QString str = "100 В errlimit";
+            QString su_ref = QStringLiteral("В");
+            QString str = QStringLiteral("100 В errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }        
         {
-            QString su_ref = "мСм";
-            QString str = "100 мСм errlimit";
+            QString su_ref = QStringLiteral("мСм");
+            QString str = QStringLiteral("100 мСм errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "mS";
-            QString str = "100 mS errlimit";
+            QString su_ref = QStringLiteral("mS");
+            QString str = QStringLiteral("100 mS errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "мСм";
-            QString str = "S = 100 мСм errlimit";
+            QString su_ref = QStringLiteral("мСм");
+            QString str = QStringLiteral("S = 100 мСм errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
         {
-            QString su_ref = "mS";
-            QString str = "S = 100 mS errlimit";
+            QString su_ref = QStringLiteral("mS");
+            QString str = QStringLiteral("S = 100 mS errlimit");
             QString su = extract_standardUnit(str);
             ASSERT_EQUAL(su, su_ref);
         }
@@ -954,20 +956,20 @@ void FunctionsTest() {
     {
         {
             double tolerance_ref = 2;
-            QString str = "100 В errlimit +- 2%";
+            QString str = QStringLiteral("100 В errlimit +- 2%");
             double tolerance = extract_tolerance(str);
             ASSERT_EQUAL(tolerance, tolerance_ref);
         }
         {
             double tolerance_ref = 2;
-            QString str = "100 В errlimit +- 2.0%";
+            QString str = QStringLiteral("100 В errlimit +- 2.0%");
             double tolerance = extract_tolerance(str);
             ASSERT_EQUAL(tolerance, tolerance_ref);
         }
     }
     // {
     //     {
-    //         QString test_name = "Импульсный ток стока Iс(и) max1";
+    //         QString test_name = QStringLiteral("Импульсный ток стока Iс(и) max1");
     //         TestType test_type_ref = Test_I_DM;
     //         TestType test_type = TestType_from_text(extract_testType(test_name).toStdString().c_str());
     //         ASSERT_EQUAL(test_type, test_type_ref);
@@ -997,13 +999,13 @@ void FunctionsTest() {
     }
     {
         {
-            QString str = "CONTROLLER1_SENSOR1_Метка времени";
+            QString str = QStringLiteral("CONTROLLER1_SENSOR1_Метка времени");
             int id_ref = 1;
             int id = extract_sensor_id(str);
             ASSERT_EQUAL(id, id_ref);
         }
         {
-            QString str = "CONTROLLER1_SENSOR2_Статус";
+            QString str = QStringLiteral("CONTROLLER1_SENSOR2_Статус");
             int id_ref = 2;
             int id = extract_sensor_id(str);
             ASSERT_EQUAL(id, id_ref);

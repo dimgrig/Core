@@ -4,61 +4,61 @@
 #include "templates.h"
 #include "User.h"
 
-QVector<std::string> edit_tb_names = {
-    "tb_edit_add",
-    "tb_edit_add_before",
-    "tb_edit_add_after",
-    "tb_edit_copy",
-    "tb_edit_cut",
-    "tb_edit_paste",
-    "tb_edit_paste_before",
-    "tb_edit_paste_after",
-    "tb_edit_delete",
-    "tb_edit_save",
-    "tb_edit_export",
-    "tb_edit_cancel",
-    "tb_edit_ok"
-};
-
-QVector<std::string> tooltips_v = {
-    "Добавить",
-    "Добавить до",
-    "Добавить после",
-    "Копировать",
-    "Вырезать",
-    "Вставить (заменить)",
-    "Вставить до",
-    "Вставить после",
-    "Удалить",
-    "Сохранить",
-    "Экспорт",
-    "Отмена",
-    "Ок"
-};
-
-QVector<std::string> edit_action_names = {
-    "edit_add",
-    "edit_add_before",
-    "edit_add_after",
-    "edit_add_separator",
-    "edit_copy",
-    "edit_cut",
-    "edit_paste",
-    "edit_paste_before",
-    "edit_paste_after",
-    "edit_copy_paste_separator",
-    "edit_delete",
-    "edit_delete_separator",
-    "edit_save",
-    "edit_save_separator",
-    "edit_export",
-    "edit_cancel",
-    "edit_ok"
-};
-
 EditBar::EditBar(QWidget *parent) :
     QToolBar(parent)
 {
+    static const char* edit_tb_names[] = {
+        "tb_edit_add",
+        "tb_edit_add_before",
+        "tb_edit_add_after",
+        "tb_edit_copy",
+        "tb_edit_cut",
+        "tb_edit_paste",
+        "tb_edit_paste_before",
+        "tb_edit_paste_after",
+        "tb_edit_delete",
+        "tb_edit_save",
+        "tb_edit_export",
+        "tb_edit_cancel",
+        "tb_edit_ok"
+    };
+
+    static const char* tooltips_v[] = {
+        "Добавить",
+        "Добавить до",
+        "Добавить после",
+        "Копировать",
+        "Вырезать",
+        "Вставить (заменить)",
+        "Вставить до",
+        "Вставить после",
+        "Удалить",
+        "Сохранить",
+        "Экспорт",
+        "Отмена",
+        "Ок"
+    };
+
+    static const char* edit_action_names[] = {
+        "edit_add",
+        "edit_add_before",
+        "edit_add_after",
+        "edit_add_separator",
+        "edit_copy",
+        "edit_cut",
+        "edit_paste",
+        "edit_paste_before",
+        "edit_paste_after",
+        "edit_copy_paste_separator",
+        "edit_delete",
+        "edit_delete_separator",
+        "edit_save",
+        "edit_save_separator",
+        "edit_export",
+        "edit_cancel",
+        "edit_ok"
+    };
+
     this->setObjectName("Панель инструментов");
 
     this->setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -138,16 +138,38 @@ EditBar::EditBar(QWidget *parent) :
         this->addWidget(tb_ok),
     });
 
-    for (auto &[name, tb] : qzip(edit_tb_names, buttons)) {
-        tb->setObjectName(name.c_str());
-    }
+    // for (auto &[name, tb] : qzip(edit_tb_names, buttons)) {
+    //     tb->setObjectName(name.c_str());
+    // }
 
-    for (auto &[tooltip, tb] : qzip(tooltips_v, buttons)) {
-        tb->setToolTip(tooltip.c_str());
-    }
+    // for (auto &[tooltip, tb] : qzip(tooltips_v, buttons)) {
+    //     tb->setToolTip(tooltip.c_str());
+    // }
 
-    for (auto &[name, action] : qzip(edit_action_names, widget_actions)) {
-        action->setObjectName(name.c_str());
+    // for (auto &[name, action] : qzip(edit_action_names, widget_actions)) {
+    //     action->setObjectName(name.c_str());
+    // }
+
+    if (buttons.size() == (sizeof(edit_tb_names) / sizeof(edit_tb_names[0]))) {
+        for (int i = 0; i < buttons.size(); ++i) {
+            buttons[i]->setObjectName(edit_tb_names[i]);
+        }
+    } else {
+        qCDebug(logWarning) << "EditBar vectors size mismath";
+    }
+    if (buttons.size() == (sizeof(tooltips_v) / sizeof(tooltips_v[0]))) {
+        for (int i = 0; i < buttons.size(); ++i) {
+            buttons[i]->setToolTip(tooltips_v[i]);
+        }
+    } else {
+        qCDebug(logWarning) << "EditBar vectors size mismath";
+    }
+    if (widget_actions.size() == (sizeof(edit_action_names) / sizeof(edit_action_names[0]))) {
+        for (int i = 0; i < widget_actions.size(); ++i) {
+            widget_actions[i]->setObjectName(edit_action_names[i]);
+        }
+    } else {
+        qCDebug(logWarning) << "EditBar vectors size mismath";
     }
 }
 
