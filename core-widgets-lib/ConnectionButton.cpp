@@ -67,6 +67,6 @@ void ConnectionButton::setupStateMachine() {
     machine->setInitialState(disconnectedState);
     machine->start();
 
-    qCDebug(logDebug()) << this->iconSize();
+    //qCDebug(logDebug()) << this->iconSize();
 }
 

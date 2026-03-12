@@ -83,6 +83,7 @@ win64 {
 #message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))
 
 HEADERS += \
+    AboutPanel.h \
     AspectRatioPixmapLabel.h \
     Auth.h \
     CalendarWidget.h \
@@ -104,6 +105,7 @@ HEADERS += \
     icons.h
 
 SOURCES += \
+    AboutPanel.cpp \
     AspectRatioPixmapLabel.cpp \
     Auth.cpp \
     CalendarWidget.cpp \
@@ -126,6 +128,7 @@ FORMS += \
     uis/Auth.ui \
     uis/User.ui \
     uis/Users.ui \
+    uis/about.ui \
     uis/combobox_dialog.ui \
     uis/doublespinbox_dialog.ui \
     uis/menu_corner_widget.ui \
