@@ -102,7 +102,8 @@ HEADERS += \
     dimensions.h \
     functions.h \
     core-utils-lib-global.h \
-    functions_degrees.h
+    functions_degrees.h \
+    functions_http.h
 
 SOURCES += \
     Approximation.cpp \
@@ -115,5 +116,6 @@ SOURCES += \
     MathParser.cpp \
     SessionCache.cpp \
     functions.cpp \
-    functions_degrees.cpp
+    functions_degrees.cpp \
+    functions_http.cpp
 
