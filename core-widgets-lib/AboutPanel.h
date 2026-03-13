@@ -3,11 +3,13 @@
 
 #include <QWidget>
 
+#include "core-widgets-lib-global.h"
+
 namespace Ui {
     class fabout;
 }
 
-class AboutPanel : public QWidget {
+class CORE_WIDGETS_LIB_EXPORT AboutPanel : public QWidget {
 Q_OBJECT
 public:
     explicit AboutPanel(QWidget *parent = nullptr,

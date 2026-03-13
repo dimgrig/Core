@@ -30,7 +30,7 @@ exists(/etc/astra_version) {
     unix {
         LIBS += -L/usr/lib/qt/ -lcore-lib
         LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_unix
+        LIBS += -L/usr/lib/qt/ -lmuParser
     }
 
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
@@ -38,12 +38,12 @@ exists(/etc/astra_version) {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_win
+        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
     win64 {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_win
+        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
 }
 

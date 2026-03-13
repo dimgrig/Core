@@ -6,7 +6,9 @@
 
 #include "IUserRoleManager.h"
 
-class MockUserRoleManager : public IUserRoleManager {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT MockUserRoleManager : public IUserRoleManager {
 public:
     enum class Role {
         Undefined = 0,

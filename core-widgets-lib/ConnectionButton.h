@@ -7,7 +7,9 @@
 #include <QPushButton>
 #include <QIcon>
 
-class ConnectionButton : public QPushButton {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT ConnectionButton : public QPushButton {
     Q_OBJECT
 public:
     explicit ConnectionButton(QWidget *parent = nullptr);

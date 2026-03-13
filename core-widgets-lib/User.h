@@ -23,7 +23,7 @@ const std::string UserDefaultFilename = "user.dat";
 
 #define auth_user User_singleton::instance()
 
-void UserTest();
+CORE_WIDGETS_LIB_EXPORT void UserTest();
 
 struct CORE_WIDGETS_LIB_EXPORT User_s {
     char name[UserCharLength] = {};

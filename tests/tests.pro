@@ -29,7 +29,7 @@ exists(/etc/astra_version) {
         LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
         LIBS += -L/usr/lib/qt/ -lcore-utils-lib
         LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_unix
+        LIBS += -L/usr/lib/qt/ -lmuParser
     }
 
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
@@ -42,7 +42,7 @@ exists(/etc/astra_version) {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_win
+        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
     win64 {
         DEFINES += win64
@@ -53,7 +53,7 @@ exists(/etc/astra_version) {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$$PWD -lmuParser_win
+        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
 }
 
@@ -88,51 +88,51 @@ win32 {
 
 DIR_ROOT = $$PWD/../
 
-QMAKE_LFLAGS += -Wl,--allow-multiple-definition
-{
-    # Добавляем все подпапки, где лежат исходники (перечислите все каталоги, которые есть в проекте)
-    TESTS_SUBDIRS = core-lib \
-                    core-io-lib \
-                    core-journal-lib \
-                    core-modbus-lib \
-                    core-mvc-lib \
-                    core-utils-lib \
-                    core-utils-lib\muParser \
-                    core-widgets-lib
+#QMAKE_LFLAGS += -Wl,--allow-multiple-definition
+#{
+#    # Добавляем все подпапки, где лежат исходники (перечислите все каталоги, которые есть в проекте)
+#    TESTS_SUBDIRS = core-lib \
+#                    core-io-lib \
+#                    core-journal-lib \
+#                    core-modbus-lib \
+#                    core-mvc-lib \
+#                    core-utils-lib \
+#                    core-utils-lib\muParser \
+#                    core-widgets-lib
 
-    # Собираем все .cpp файлы из этих папок, кроме main.cpp
-    for(dir, TESTS_SUBDIRS) {
-        #message($$dir)
-        FILES = $$files($$DIR_ROOT/$$dir/*.cpp)
-        for(file, FILES) {
-            # Исключаем main.cpp, если он там есть (обычно main.cpp лежит в корне)
-            name = $$basename(file)
-            !equals(name, main.cpp) {
-                SOURCES += $$file
-            }
-        }
+#    # Собираем все .cpp файлы из этих папок, кроме main.cpp
+#    for(dir, TESTS_SUBDIRS) {
+#        #message($$dir)
+#        FILES = $$files($$DIR_ROOT/$$dir/*.cpp)
+#        for(file, FILES) {
+#            # Исключаем main.cpp, если он там есть (обычно main.cpp лежит в корне)
+#            name = $$basename(file)
+#            !equals(name, main.cpp) {
+#                SOURCES += $$file
+#            }
+#        }
 
-        UI_FILES = $$files($$DIR_ROOT/$$dir/uis/*.ui)
-        for(file, UI_FILES) {
-            #message($$file)
-            FORMS += $$file
-        }
-    }
+#        UI_FILES = $$files($$DIR_ROOT/$$dir/uis/*.ui)
+#        for(file, UI_FILES) {
+#            #message($$file)
+#            FORMS += $$file
+#        }
+#    }
 
-    UI_FILES = $$files($$DIR_ROOT/uis/*.ui)
-    for(file, UI_FILES) {
-        FORMS += $$file
-    }
+#    UI_FILES = $$files($$DIR_ROOT/uis/*.ui)
+#    for(file, UI_FILES) {
+#        FORMS += $$file
+#    }
 
-    # Также добавить .cpp из корня, исключая main.cpp
-    ROOT_FILES = $$files($$DIR_ROOT/*.cpp)
-    for(file, ROOT_FILES) {
-        name = $$basename(file)
-        !equals(name, main.cpp) {
-            SOURCES += $$file
-        }
-    }
-}
+#    # Также добавить .cpp из корня, исключая main.cpp
+#    ROOT_FILES = $$files($$DIR_ROOT/*.cpp)
+#    for(file, ROOT_FILES) {
+#        name = $$basename(file)
+#        !equals(name, main.cpp) {
+#            SOURCES += $$file
+#        }
+#    }
+#}
 
 HEADERS += \
     TestAuth.h \

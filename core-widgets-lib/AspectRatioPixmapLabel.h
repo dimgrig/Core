@@ -9,7 +9,9 @@
 
 #include "macroses.h"
 
-class AspectRatioPixmapLabel : public QLabel
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT AspectRatioPixmapLabel : public QLabel
 {
     Q_OBJECT
 public:
