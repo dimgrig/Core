@@ -43,10 +43,7 @@ struct CORE_WIDGETS_LIB_EXPORT User_s {
 
 class CORE_WIDGETS_LIB_EXPORT User_singleton {
 public:
-    static User_singleton& instance() {
-        static User_singleton inst;
-        return inst;
-    }
+    static User_singleton& instance();
 
     void setRoleManager(IUserRoleManager* roleManager) {_roleManager = roleManager;};
     bool isAdmin(QString userRole = "") const {

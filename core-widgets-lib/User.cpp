@@ -6,6 +6,11 @@
 
 #include "MockUserRoleManager.h"
 
+User_singleton& User_singleton::instance() {
+    static User_singleton inst;
+    return inst;
+}
+
 User::User(IUserRoleManager* roleManager, bool editing, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::User),

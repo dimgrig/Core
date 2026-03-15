@@ -26,10 +26,7 @@ struct ModbusSettings;
 
 class CORE_IO_LIB_EXPORT ResourceManager {
 public:
-    static ResourceManager& instance() {
-        static ResourceManager instance;
-        return instance;
-    }
+    static ResourceManager& instance();
 
     // Основной шаблонный метод для получения любого клиента
     template<typename ClientType, typename... Args>
