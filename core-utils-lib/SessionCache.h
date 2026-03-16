@@ -10,10 +10,7 @@
 
 class CORE_UTILS_LIB_EXPORT SessionCache {
 public:
-    static SessionCache& instance() {
-        static SessionCache inst;
-        return inst;
-    }
+    static SessionCache& instance();
 
     void set(const QString& key, const QVariant& value) {
         _cache[key] = value;

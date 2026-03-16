@@ -8,7 +8,7 @@
 #include "core-mvc-lib-global.h"
 
 template<class T>
-class CORE_MVC_LIB_EXPORT TemplateEditRelationalTableModel : public BaseSqlRelationalTableModel {
+class TemplateEditRelationalTableModel : public BaseSqlRelationalTableModel {
 public:
     explicit TemplateEditRelationalTableModel(QObject *parent = nullptr);
 

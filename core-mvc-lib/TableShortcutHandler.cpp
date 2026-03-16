@@ -9,6 +9,11 @@ TableShortcutHandler::TableShortcutHandler(QWidget* parent) :
 
 }
 
+TableShortcutHandler& TableShortcutHandler::instance() {
+    static TableShortcutHandler inst;
+    return inst;
+}
+
 void TableShortcutHandler::registerTableView(QTableView* tableView, bool enableShortcuts) {
     _tables.append(tableView);
     if (enableShortcuts) {

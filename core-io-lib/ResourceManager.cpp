@@ -4,6 +4,11 @@ ResourceManager::ResourceManager() {
 
 }
 
+ResourceManager& ResourceManager::instance() {
+    static ResourceManager instance;
+    return instance;
+}
+
 // // Реализация упрощенного метода для ModbusClient
 // std::shared_ptr<ModbusClient> ResourceManager::get_modbus_client(
 //     const QString& resource_id,

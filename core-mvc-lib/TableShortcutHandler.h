@@ -11,10 +11,7 @@
 class CORE_MVC_LIB_EXPORT TableShortcutHandler : public QObject {
     Q_OBJECT
 public:
-    static TableShortcutHandler& instance() {
-        static TableShortcutHandler inst;
-        return inst;
-    }
+    static TableShortcutHandler& instance();
 
     void registerTableView(QTableView* tableView, bool enableShortcuts = true);
 private slots:
