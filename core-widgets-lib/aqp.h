@@ -32,10 +32,6 @@
 #include <cmath>
 #endif
 #include <exception>
-// For weird Microsoft compilers, e.g. MSVC9
-#ifndef M_PI
-#define M_PI 3.14159265358
-#endif
 
 #include "Logger.h"
 
@@ -114,11 +110,6 @@ const int MSecPerSecond = 1000;
 
 CORE_WIDGETS_LIB_EXPORT void hoursMinutesSecondsForMSec(const int msec, int *hours,
                                 int *minutes, int *seconds);
-
-CORE_WIDGETS_LIB_EXPORT inline qreal radiansFromDegrees(qreal degrees)
-    { return degrees * M_PI / 180.0; }
-CORE_WIDGETS_LIB_EXPORT inline qreal degreesFromRadians(qreal radians)
-    { return radians * 180.0 / M_PI; }
 
 CORE_WIDGETS_LIB_EXPORT QString applicationPathOf(const QString &path=QString());
 CORE_WIDGETS_LIB_EXPORT QString filenameFilter(const QString &name,

@@ -28,6 +28,11 @@ lines/revolution = 1638400 или 65536000
 counts = 4*lines т.к. quad encoder
 */
 
+qreal CORE_UTILS_LIB_EXPORT radiansFromDegrees(qreal degrees)
+    { return degrees * M_PI / 180.0; }
+qreal CORE_UTILS_LIB_EXPORT degreesFromRadians(qreal radians)
+    { return radians * 180.0 / M_PI; }
+
 double cnt_to_radians(double cnt, int interpolation) {
     return cnt * (2.0 * M_PI / (double)(65536 * interpolation));
 }

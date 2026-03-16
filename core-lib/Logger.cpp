@@ -21,6 +21,14 @@ std::string getExecutablePath() {
     return std::string(buffer);
 }
 #endif
+std::string getExecutableDirectory() {
+    std::string fullPath = getExecutablePath(); // ваша функция
+    size_t pos = fullPath.find_last_of("/\\");
+    if (pos != std::string::npos) {
+        return fullPath.substr(0, pos);
+    }
+    return ""; // на случай ошибки
+}
 
 Q_LOGGING_CATEGORY(logDebug,    "Debug")
 Q_LOGGING_CATEGORY(logInfo,     "Info")
@@ -90,33 +98,35 @@ void Logger::log_init() {
 
 void Logger::log_delete() {
     const QDate today = QDate::currentDate();
-    QString exeDir = QString::fromUtf8(getExecutablePath().c_str());
-    const QString path = exeDir + "/log/";
+    QString exeDir = QString::fromUtf8(getExecutableDirectory().c_str());
+    if (exeDir != "") {
+        const QString path = exeDir + "/log/";
 
-    QDir dir = QDir(path);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    } else {
-        QDirIterator it(path, QStringList() << "*.txt", QDir::Files, QDirIterator::Subdirectories);
-        while (it.hasNext()) {
-            QString name = it.next();
-            //qCDebug(logDebug()) << name;
-            QFileInfo fileInfo = it.fileInfo();
+        QDir dir = QDir(path);
+        if (!dir.exists()) {
+            dir.mkpath(".");
+        } else {
+            QDirIterator it(path, QStringList() << "*.txt", QDir::Files, QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                QString name = it.next();
+                //qCDebug(logDebug()) << name;
+                QFileInfo fileInfo = it.fileInfo();
 
-            //qCDebug(logDebug()) << fileInfo.lastModified().date().daysTo(today);
-            if (fileInfo.lastModified().date().daysTo(today) > __log_keep_days) {
-                QString filepath = fileInfo.absoluteFilePath();
-                QDir deletefile;
-                deletefile.setPath(filepath);
-                deletefile.remove(filepath);
+                //qCDebug(logDebug()) << fileInfo.lastModified().date().daysTo(today);
+                if (fileInfo.lastModified().date().daysTo(today) > __log_keep_days) {
+                    QString filepath = fileInfo.absoluteFilePath();
+                    QDir deletefile;
+                    deletefile.setPath(filepath);
+                    deletefile.remove(filepath);
 
-                //qCDebug(logDebug()) << "File " + filepath + " is deleted!";
-            }
+                    //qCDebug(logDebug()) << "File " + filepath + " is deleted!";
+                }
 
-            QDir filedir = fileInfo.dir();
-            if (filedir.isEmpty()) {
-                //qCDebug(logDebug()) << "Dir " + fileInfo.dir().path() + " is deleted!";
-                filedir.removeRecursively();
+                QDir filedir = fileInfo.dir();
+                if (filedir.isEmpty()) {
+                    //qCDebug(logDebug()) << "Dir " + fileInfo.dir().path() + " is deleted!";
+                    filedir.removeRecursively();
+                }
             }
         }
     }
@@ -155,16 +165,18 @@ void Logger::LogFileOpening(int change) {
     }
 
     if (change == 1) {        
-        QString exeDir = QString::fromUtf8(getExecutablePath().c_str());
-        const QString path = exeDir + "/log/";
+        QString exeDir = QString::fromUtf8(getExecutableDirectory().c_str());
+        if (exeDir != "") {
+            const QString path = exeDir + "/log/";
 
-        QDir dir = QDir(path);
-        if (!dir.exists()) {
-            dir.mkpath(".");
+            QDir dir = QDir(path);
+            if (!dir.exists()) {
+                dir.mkpath(".");
+            }
+
+            logFile.reset(new QFile(exeDir + "/log/" + __log_file.c_str() + DATETIME_SUFFIX + ".txt"));
+            logFile.data()->open(QFile::Append | QFile::Text);
         }
-
-        logFile.reset(new QFile(exeDir + "/log/" + __log_file.c_str() + DATETIME_SUFFIX + ".txt"));
-        logFile.data()->open(QFile::Append | QFile::Text);
     }
 }
 

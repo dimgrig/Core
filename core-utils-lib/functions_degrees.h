@@ -9,6 +9,13 @@
 
 void CORE_UTILS_LIB_EXPORT FunctionsDegreesTest();
 
+// For weird Microsoft compilers, e.g. MSVC9
+#ifndef M_PI
+#define M_PI 3.14159265358
+#endif
+
+qreal CORE_UTILS_LIB_EXPORT radiansFromDegrees(qreal degrees);
+qreal CORE_UTILS_LIB_EXPORT degreesFromRadians(qreal radians);
 double CORE_UTILS_LIB_EXPORT cnt_to_radians(double cnt, int interpolation);
 double CORE_UTILS_LIB_EXPORT radians_to_cnt(double radians, int interpolation);
 QString CORE_UTILS_LIB_EXPORT dms_to_string(int degrees, int min, double sec);
