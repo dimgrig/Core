@@ -4,25 +4,22 @@
 #include <filesystem>
 
 #ifdef Q_OS_UNIX
-std::filesystem::path GetExecutableDirectory() {
-    std::vector<char> buffer(1024);
-    ssize_t len;
-    while ((len = readlink("/proc/self/exe", buffer.data(), buffer.size())) == static_cast<ssize_t>(buffer.size())) {
-        buffer.resize(buffer.size() * 2);
+std::string getExecutablePath() {
+    char buffer[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
+    if (len != -1) {
+        buffer[len] = '\0';
+        return std::string(buffer);
     }
-    if (len == -1) {
-        // Обработка ошибки
-        return {};
-    }
-    return std::filesystem::path(std::string(buffer.data(), len)).parent_path();
+    return "";
 }
 #endif
 #ifdef Q_OS_WIN
 #include <windows.h>
-std::filesystem::path GetExecutableDirectory() {
+std::string getExecutablePath() {
     char buffer[MAX_PATH];
     GetModuleFileNameA(NULL, buffer, MAX_PATH);
-    return std::filesystem::path(buffer).parent_path();
+    return std::string(buffer);
 }
 #endif
 
@@ -94,7 +91,7 @@ void Logger::log_init() {
 
 void Logger::log_delete() {
     const QDate today = QDate::currentDate();
-    QString exeDir = QString::fromUtf8(GetExecutableDirectory().string().c_str());
+    QString exeDir = QString::fromUtf8(getExecutablePath().c_str());
     const QString path = exeDir + "/log/";
 
     QDir dir = QDir(path);
@@ -159,7 +156,7 @@ void Logger::LogFileOpening(int change) {
     }
 
     if (change == 1) {        
-        QString exeDir = QString::fromUtf8(GetExecutableDirectory().string().c_str());
+        QString exeDir = QString::fromUtf8(getExecutablePath().c_str());
         const QString path = exeDir + "/log/";
 
         QDir dir = QDir(path);
