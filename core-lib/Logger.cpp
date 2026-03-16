@@ -1,5 +1,31 @@
 #include "Logger.h"
 
+#include <unistd.h>
+#include <filesystem>
+
+#ifdef Q_OS_UNIX
+std::filesystem::path GetExecutableDirectory() {
+    std::vector<char> buffer(1024);
+    ssize_t len;
+    while ((len = readlink("/proc/self/exe", buffer.data(), buffer.size())) == static_cast<ssize_t>(buffer.size())) {
+        buffer.resize(buffer.size() * 2);
+    }
+    if (len == -1) {
+        // Обработка ошибки
+        return {};
+    }
+    return std::filesystem::path(std::string(buffer.data(), len)).parent_path();
+}
+#endif
+#ifdef Q_OS_WIN
+#include <windows.h>
+std::filesystem::path GetExecutableDirectory() {
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    return std::filesystem::path(buffer).parent_path();
+}
+#endif
+
 Q_LOGGING_CATEGORY(logDebug,    "Debug")
 Q_LOGGING_CATEGORY(logInfo,     "Info")
 Q_LOGGING_CATEGORY(logWarning,  "Warning")
@@ -67,13 +93,9 @@ void Logger::log_init() {
 }
 
 void Logger::log_delete() {
-    if (!QCoreApplication::instance()) {
-        // Приложение уже разрушено – ничего не делаем
-        return;
-    }
-
     const QDate today = QDate::currentDate();
-    const QString path = QCoreApplication::applicationDirPath() + "/log/";
+    QString exeDir = QString::fromUtf8(GetExecutableDirectory().string().c_str());
+    const QString path = exeDir + "/log/";
 
     QDir dir = QDir(path);
     if (!dir.exists()) {
@@ -116,11 +138,6 @@ void Logger::LogMessageOutput(QtMsgType type, const QMessageLogContext &context,
 }
 
 void Logger::LogFileOpening(int change) {
-    if (!QCoreApplication::instance()) {
-        // Приложение уже разрушено – ничего не делаем
-        return;
-    }
-
     QString DATETIME_SUFFIX = "";
     //qCDebug(logDebug()) << cfg.FILE;
     if (__log_date) {
@@ -141,15 +158,16 @@ void Logger::LogFileOpening(int change) {
         DATETIME_SUFFIX = QDate::currentDate().toString("_yyyyMMdd"); // + QTime::currentTime().toString("_hhmm");
     }
 
-    if (change == 1) {
-        const QString path = QCoreApplication::applicationDirPath() + "/log/";
+    if (change == 1) {        
+        QString exeDir = QString::fromUtf8(GetExecutableDirectory().string().c_str());
+        const QString path = exeDir + "/log/";
 
         QDir dir = QDir(path);
         if (!dir.exists()) {
             dir.mkpath(".");
         }
 
-        logFile.reset(new QFile(qApp->applicationDirPath() + "/log/" + __log_file.c_str() + DATETIME_SUFFIX + ".txt"));
+        logFile.reset(new QFile(exeDir + "/log/" + __log_file.c_str() + DATETIME_SUFFIX + ".txt"));
         logFile.data()->open(QFile::Append | QFile::Text);
     }
 }
