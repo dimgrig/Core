@@ -1,7 +1,6 @@
 #include "Logger.h"
 
 #include <unistd.h>
-#include <filesystem>
 
 #ifdef Q_OS_UNIX
 std::string getExecutablePath() {
