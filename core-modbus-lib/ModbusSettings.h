@@ -9,11 +9,11 @@ namespace Ui { class fmodbus_settings; }
 
 struct ModbusSettings {
     bool MODBUS_ENABLE = true;
-    int MODBUS_POLL_TIMER = 500;
+    int MODBUS_POLL_TIMER = 1000;
     int MODBUS_ADDRESS = 1;
     QString MODBUS_TYPE = "TCP";
     QString MODBUS_IP = "192.168.1.1";
-    int MODBUS_PORT = 32767;
+    int MODBUS_PORT = 502;
     QString MODBUS_SERIAL_PORT = "COM1";
     int MODBUS_BAUDRATE = 115200;
     int MODBUS_DATA_BITS = 8;
