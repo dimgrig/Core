@@ -1,6 +1,10 @@
 #include "Auth.h"
 #include "ui_Auth.h"
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QDesktopWidget>
+#endif
+
 #include "Categories.h"
 #include "JournalAccess.h"
 
@@ -28,6 +32,20 @@ Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
 
     connect(this, &Auth::auth_ok, this, &Auth::onAuthOk);
     connect(this, &Auth::auth_failed, this, &Auth::onAuthFailed);
+
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+        //TODO
+#else
+  #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
+    QRect desktopRect = QApplication::primaryScreen()->availableGeometry();
+  #else
+    QRect desktopRect = QApplication::desktop()->availableGeometry(this);
+  #endif
+#endif
+
+    QPoint center = desktopRect.center();
+
+    move(center.x() - width() * 0.5, center.y() - height() * 0.5);
 }
 
 Auth::~Auth() {
@@ -57,8 +75,12 @@ void Auth::accept() {
 }
 
 void Auth::reject() {
-    this->close();
-    QCoreApplication::quit();
+    if (auth_user.user.name[0] == '\0') { // никто не авторизован (первый запуск)
+        this->close();
+        QCoreApplication::quit();
+    } else {
+        QDialog::reject(); // просто закрыть диалог
+    }
 }
 
 void Auth::users_show() {
@@ -69,6 +91,22 @@ void Auth::enter(std::string login, std::string password) {
     this->ui->le_name->setText(login.c_str());
     this->ui->le_password->setText(password.c_str());
     //this->enter();
+}
+
+bool Auth::tryAutoLogin() {
+    QString login, password;
+    if (!_users->getDefaultUser(login, password))
+        return false;
+
+    ui->le_name->setText(login);
+    ui->le_password->setText(password);
+
+    // Вызов accept проверит учётные данные
+    accept();
+
+    // Если авторизация прошла успешно, accept() закроет диалог (через сигнал auth_ok)
+    // Если нет – диалог останется открытым, и мы вернём false
+    return auth_user.user.name[0] != '\0'; // простейшая проверка, что пользователь установлен
 }
 
 void Auth::user_fail() {

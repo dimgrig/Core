@@ -1,9 +1,6 @@
 #ifndef IUSERROLEMANAGER_H
 #define IUSERROLEMANAGER_H
 
-#ifndef USER_ROLE_MANAGER_H
-#define USER_ROLE_MANAGER_H
-
 #include <QStringList>
 
 class IUserRoleManager {
@@ -23,14 +20,13 @@ public:
     virtual int roleToInt(const QString& userRole) const = 0;
 
     // Списки ролей для пользовательского интерфейса
-    virtual QStringList getAllRoles() const = 0;          // все существующие роли
-    virtual QStringList getRolesForAdding() const = 0;    // роли, доступные для назначения новому пользователю
-    virtual QStringList getRolesForEditing() const = 0;   // роли, которые можно редактировать (обычно совпадают с adding)
-    virtual QString getDefaultRole() const = 0;           // роль по умолчанию для новых пользователей
+    virtual QStringList getAllRoles() const = 0;                            // все существующие роли
+    virtual QStringList getAllRolesExcludeDeveloper() const = 0;            // все существующие роли кроме разработчика
+    virtual QStringList getRolesForAdding() const = 0;                      // роли, доступные для назначения новому пользователю
+    virtual QStringList getRolesForEditing() const = 0;                     // роли, которые можно редактировать (обычно совпадают с adding)
+    virtual QString getDefaultRole() const = 0;                             // роль по умолчанию для новых пользователей
 
     virtual bool isFeatureEnabled(const QString& featureName, const QString& userRole) const = 0;
 };
-
-#endif // USER_ROLE_MANAGER_H
 
 #endif // IUSERROLEMANAGER_H

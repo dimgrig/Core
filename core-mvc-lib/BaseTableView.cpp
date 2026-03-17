@@ -597,7 +597,7 @@ void BaseTableView::slot_print() {
                 document->print(printer.get());
             }
         } else {
-            AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Нет настроенных принтеров"), 0, 10);
+            AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Нет настроенных принтеров"), 0, 10000);
         }
     }
 }
@@ -723,7 +723,7 @@ bool BaseTableView::check_empty() const {
         QString title = "Ошибка";
         QString text = "Нет данных";
         QString detailed_text = "";
-        AQP::warning(nullptr, title, text, detailed_text, 0, 10);
+        AQP::warning(nullptr, title, text, detailed_text, 0, 10000);
     }
     return empty;
 }

@@ -32,6 +32,7 @@ public:
     int roleToInt(const QString& userRole) const override;
 
     QStringList getAllRoles() const override;
+    QStringList getAllRolesExcludeDeveloper() const override;
     QStringList getRolesForAdding() const override;
     QStringList getRolesForEditing() const override;
     QString getDefaultRole() const override;

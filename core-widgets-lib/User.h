@@ -117,6 +117,18 @@ public:
     //std::vector<User_s> get() {return _users;};
     QStringList get_list() const;
 
+    // Возвращает список пользователей, исключая разработчиков
+    QStringList getUsersExceptDeveloper() const;
+
+    // Сохраняет логин и пароль пользователя по умолчанию
+    void setDefaultUser(const QString& login, const QString& password);
+
+    // Загружает сохранённые логин и пароль, возвращает true, если они есть
+    bool getDefaultUser(QString& login, QString& password) const;
+
+    // Удаляет сохранённого пользователя по умолчанию
+    void clearDefaultUser();
+
 signals:
     void user_fail();
     void password_fail();
@@ -128,6 +140,9 @@ private slots:
     void _delete();
     void double_clicked(const QModelIndex& index);
     void save_user(const char *name, const char *level, const char *password);
+
+    void onSetDefault();
+    void onClearDefault();
 private:
     Ui::Users *ui;
 

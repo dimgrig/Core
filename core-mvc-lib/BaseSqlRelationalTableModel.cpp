@@ -36,7 +36,7 @@ bool BaseSqlRelationalTableModel::save() {
     } else {
         this->database().rollback();
         qCDebug(logDebug()) << "Ошибка, не удалось сохранить изменения: " + this->lastError().text();
-        AQP::warning(nullptr, tr("Внимание"), tr("Не удалось сохранить изменения: ") + this->lastError().text(), 0, 10);
+        AQP::warning(nullptr, tr("Внимание"), tr("Не удалось сохранить изменения: ") + this->lastError().text(), 0, 10000);
     }
 
     return false;

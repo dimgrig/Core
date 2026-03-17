@@ -70,6 +70,16 @@ QStringList MockUserRoleManager::getAllRoles() const {
     return list;
 }
 
+QStringList MockUserRoleManager::getAllRolesExcludeDeveloper() const {
+    QStringList list;
+    for (Role r : _allRoles) {
+        if (r != Role::Developer) {
+            list << roleToString(r);
+        }
+    }
+    return list;
+}
+
 QStringList MockUserRoleManager::getRolesForAdding() const {
     QStringList list;
     list << roleToString(Role::Operator) << roleToString(Role::Admin);

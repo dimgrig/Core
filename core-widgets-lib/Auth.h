@@ -25,6 +25,7 @@ signals:
 public slots:
     void users_show();
     void enter(std::string login, std::string password);
+    bool tryAutoLogin();
 
     void user_fail();
     void password_fail();
@@ -41,6 +42,8 @@ private slots:
     void onAuthFailed();
 private:
     Ui::Auth *ui;
+
+    bool _autoLoginSuccess = false;
 
     IUserRoleManager *_roleManager;
     Users* _users;

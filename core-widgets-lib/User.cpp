@@ -2,8 +2,11 @@
 #include "ui_User.h"
 #include "ui_Users.h"
 
+#include <QInputDialog>
+#include <QSettings>
 #include <QTemporaryFile>
 
+#include "aqp.h"
 #include "MockUserRoleManager.h"
 
 User_singleton& User_singleton::instance() {
@@ -62,7 +65,7 @@ void User::on_save() {
     std::string password = this->ui->le_password->text().toStdString();
 
     if (name.empty() || level.empty() || password.empty()) {
-        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Неверно заданы параметры пользователя"), 0, 10);
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Неверно заданы параметры пользователя"), 0, 3000);
     } else {
         emit save_user(name.c_str(), level.c_str(), password.c_str());
         this->accept();
@@ -90,6 +93,14 @@ Users::Users(IUserRoleManager* roleManager,
 
     this->load();
 
+    QString login;
+    QString password;
+    if (this->getDefaultUser(login, password)) {
+        this->ui->l_defaultUser->setText(login);
+    } else {
+        this->ui->l_defaultUser->setText("");
+    }
+
     //connect(this->ui->pb_add, &QPushButton::clicked, this, &Users::on_add);
     connect(this->ui->pb_save, &QPushButton::clicked, this, &Users::save);
     connect(this->ui->pb_cancel, &QPushButton::clicked, this, &Users::close);
@@ -98,6 +109,9 @@ Users::Users(IUserRoleManager* roleManager,
     connect(this->ui->pb_delete, &QPushButton::clicked, this, &Users::_delete);
 
     connect(this->ui->lw_users, &QListWidget::doubleClicked, this, &Users::double_clicked);
+
+    connect(this->ui->pb_setDefault, &QPushButton::clicked, this, &Users::onSetDefault);
+    connect(this->ui->pb_clearDefault, &QPushButton::clicked, this, &Users::onClearDefault);
 }
 
 Users::~Users() {
@@ -110,6 +124,10 @@ void Users::show() {
         bool canAdd = _roleManager->canAddUser(currentRole);
         ui->pb_add->setEnabled(canAdd);
         ui->pb_delete->setEnabled(canAdd);  // можно сделать отдельную проверку canDeleteUser
+
+        bool canDefaultUser = _roleManager && (_roleManager->isAdmin(currentRole) || _roleManager->isDeveloper(currentRole));
+        this->ui->pb_setDefault->setVisible(canDefaultUser);
+        this->ui->pb_clearDefault->setVisible(canDefaultUser);
     }
     QDialog::show();
 }
@@ -137,7 +155,7 @@ void Users::_delete() {
             user_s.from_text(selected.at(0)->text());
             QString targetRole = QString::fromStdString(user_s.level);
             if (!_roleManager->canDeleteUser(currentRole, targetRole)) {
-                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Удаление пользователя недоступно"), 0, 10);
+                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Удаление пользователя недоступно"), 0, 3000);
                 return;
             }
         }
@@ -149,6 +167,9 @@ void Users::_delete() {
         User_s user_s;
         user_s.from_text(item->text());
 
+        if (!AQP::okToDelete(this, "Удаление", QString("Удалить %1?").arg(user_s.name))) {
+            return;
+        }
         this->deleteUser(user_s.name, user_s.level, user_s.password);
     }
 }
@@ -168,7 +189,7 @@ void Users::double_clicked(const QModelIndex& index) {
             user_s.from_text(item->text());
             QString targetRole = QString::fromStdString(user_s.level);
             if (!_roleManager->canEditUser(currentRole, targetRole)) {
-                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Редактирование недоступно"), 0, 10);
+                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Редактирование недоступно"), 0, 3000);
                 return;
             }
             // открываем диалог редактирования
@@ -190,7 +211,7 @@ void Users::save_user(const char *name, const char *level, const char *password)
             std::string user_name_s(user.name);
             if (name_s == user_name_s) {
                 //qCDebug(logDebug()) << "user already exist";
-                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Пользователь с указанным именем уже существует"), 0, 10);
+                AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Пользователь с указанным именем уже существует"), 0, 3000);
                 match = true;
                 break;
             }
@@ -236,6 +257,54 @@ void Users::save_user(const char *name, const char *level, const char *password)
     _editing = false;
 }
 
+void Users::onSetDefault() {
+    auto selected = ui->lw_users->selectedItems();
+    if (selected.isEmpty()) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Выберите пользователя"), 0, 3000);
+        return;
+    }
+
+    User_s user;
+    user.from_text(selected.first()->text());
+
+    // Запрашиваем пароль (можно использовать QInputDialog)
+    bool ok;
+    QString password = QInputDialog::getText(this, tr("Пароль"),
+                                             tr("Введите пароль пользователя:"),
+                                             QLineEdit::Password, "", &ok);
+    if (!ok) return;
+
+    // Проверяем пароль (опционально)
+    User_s* found = find(user.name, password.toStdString());
+    if (!found) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Неверный пароль"), 0, 3000);
+        return;
+    }
+
+    setDefaultUser(QString::fromStdString(user.name), password);
+    this->ui->l_defaultUser->setText(user.name);
+    AQP::information(this, tr("Информация"), tr("Пользователь %1 сохранен как пользователь по умолчанию сохранён").arg(user.name));
+}
+
+void Users::onClearDefault() {
+    // Проверяем, что текущий пользователь может сбрасывать настройки
+    QString currentRole = QString::fromStdString(auth_user.user.level);
+    if (!_roleManager || (!_roleManager->isAdmin(currentRole) && !_roleManager->isDeveloper(currentRole))) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Недостаточно прав для сброса"), 0, 3000);
+        return;
+    }
+
+    // Запрашиваем подтверждение
+    int ret = QMessageBox::question(this, tr("Подтверждение"),
+                                     tr("Вы действительно хотите сбросить пользователя по умолчанию?"),
+                                     QMessageBox::Yes | QMessageBox::No);
+    if (ret == QMessageBox::Yes) {
+        clearDefaultUser();
+        this->ui->l_defaultUser->setText("");
+        AQP::information(this, tr("Информация"), tr("Пользователь по умолчанию сброшен"));
+    }
+}
+
 void Users::load() {
     std::ifstream ifst(_filename, std::ios::binary);
 
@@ -262,6 +331,7 @@ void Users::load() {
             this->addUser("acs", "Разработчик", "5041511"); //developer
             this->addUser("admin", "Администратор", password.c_str()); //superuser
             this->addUser("Пользователь", "Пользователь", "Пользователь");
+            this->setDefaultUser("admin", password.c_str());
             this->save();
         }
         User_s *default_user = this->find("Пользователь", "Пользователь");
@@ -364,6 +434,39 @@ User_s* Users::find(const std::string& name, const std::string& password) {
     }
     emit user_fail();
     return nullptr;
+}
+
+QStringList Users::getUsersExceptDeveloper() const {
+    QStringList result;
+    for (const auto& user : _users) {
+        QString role = QString::fromStdString(user.level);
+        if (!_roleManager->isDeveloper(role)) {
+            result << user.get_text().c_str();
+        }
+    }
+    return result;
+}
+
+void Users::setDefaultUser(const QString& login, const QString& password) {
+    QSettings settings(__ORGANIZATION_NAME, qApp->applicationName());
+    settings.setValue("Auth/DefaultLogin", login);
+    settings.setValue("Auth/DefaultPassword", password);
+}
+
+bool Users::getDefaultUser(QString& login, QString& password) const {
+    QSettings settings(__ORGANIZATION_NAME, qApp->applicationName());
+    if (settings.contains("Auth/DefaultLogin") && settings.contains("Auth/DefaultPassword")) {
+        login = settings.value("Auth/DefaultLogin").toString();
+        password = settings.value("Auth/DefaultPassword").toString();
+        return true;
+    }
+    return false;
+}
+
+void Users::clearDefaultUser() {
+    QSettings settings(__ORGANIZATION_NAME, qApp->applicationName());
+    settings.remove("Auth/DefaultLogin");
+    settings.remove("Auth/DefaultPassword");
 }
 
 void Users::save() {

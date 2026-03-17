@@ -163,8 +163,6 @@ ModbusSettingsUI::ModbusSettingsUI(QWidget *parent)
 {
     ui->setupUi(this);
 
-    this->ui->tw->tabBar()->hide();
-
     this->initializeModbusComboboxes();
 
     connect(this->ui->cb_connect_type, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ModbusSettingsUI::settings_changed);
@@ -241,25 +239,39 @@ void ModbusSettingsUI::initializeModbusComboboxes() {
 
 void ModbusSettingsUI::type_changed(const QString &type) {
     auto connection_type = ModbusConnection_from_text(type.toStdString().c_str());
-    int index = 0;
     if (connection_type == ModbusTCP) {
-        index = 0;
-        this->ui->tw->setCurrentIndex(index);
+        this->ui->l_ip->show();
+        this->ui->le_ip->show();
+        this->ui->l_port->show();
+        this->ui->le_port->show();
+
+        this->ui->l_com_port->hide();
+        this->ui->le_com_port->hide();
+        this->ui->l_baudrate->hide();
+        this->ui->cb_baudrate->hide();
+        this->ui->l_data_bits->hide();
+        this->ui->cb_data_bits->hide();
+        this->ui->l_stop_bits->hide();
+        this->ui->cb_stop_bits->hide();
+        this->ui->l_parity->hide();
+        this->ui->cb_parity->hide();
     } else {
-        index = 1;
-        this->ui->tw->setCurrentIndex(index);
+        this->ui->l_ip->hide();
+        this->ui->le_ip->hide();
+        this->ui->l_port->hide();
+        this->ui->le_port->hide();
+
+        this->ui->l_com_port->show();
+        this->ui->le_com_port->show();
+        this->ui->l_baudrate->show();
+        this->ui->cb_baudrate->show();
+        this->ui->l_data_bits->show();
+        this->ui->cb_data_bits->show();
+        this->ui->l_stop_bits->show();
+        this->ui->cb_stop_bits->show();
+        this->ui->l_parity->show();
+        this->ui->cb_parity->show();
     }
-
-    QWidget* currentWidget = this->ui->tw->widget(index);
-
-    // Получаем рекомендуемый размер содержимого
-    int contentHeight = currentWidget->sizeHint().height();
-
-    // Добавляем высоту панели вкладок
-    int tabBarHeight = this->ui->tw->tabBar()->sizeHint().height();
-
-    // Устанавливаем фиксированную высоту
-    this->ui->tw->setFixedHeight(contentHeight + tabBarHeight + 2); // +2 для рамок
 }
 
 ModbusSettings ModbusSettingsUI::getSettingsFromUi() {
