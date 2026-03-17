@@ -37,7 +37,10 @@ void convert_32bit_format(const uint8_t* src, uint8_t* dst, ModbusFormat from, M
     }
 
     // Представим байты в формате from как A B C D
-    uint8_t A, B, C, D;
+    uint8_t A = 0;
+    uint8_t B = 0;
+    uint8_t C = 0;
+    uint8_t D = 0;
 
     switch (from) {
     case BigEndian: // A B C D
@@ -356,6 +359,7 @@ bool approx_equal(T a, T b, T epsilon = std::numeric_limits<T>::epsilon() * 100)
 // Тест симметричности преобразования для заданного типа и формата
 template<typename T>
 void testRoundTrip(T originalValue, ModbusFormat format, const std::string& typeName) {
+    Q_UNUSED(typeName);
     const size_t regCount = sizeof(T) / sizeof(uint16_t);
     uint16_t registers[regCount];
 

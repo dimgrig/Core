@@ -363,6 +363,8 @@ void BaseTableView::get_html_head(QTextStream &stream) {
 }
 
 void BaseTableView::get_html_table(TableType table_type, QString table_title, QString table_subtitle, QTextStream &stream, int header, int row) {
+    Q_UNUSED(table_type);
+
     auto model = this->model();
     const int rowCount = model->rowCount();
     const int columnCount = model->columnCount();

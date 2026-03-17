@@ -397,6 +397,7 @@ void ModbusClient::setRegister(QModbusDataUnit::RegisterType table, const QStrin
 
     if (_mdum.count(regName) > 0) {
         bool ok = true;
+        Q_UNUSED(ok);
 
         QModbusDataUnit mdu = _mdum[regName];
 
@@ -447,6 +448,7 @@ void ModbusClient::setRegisterString(QModbusDataUnit::RegisterType table, const 
         QModbusDataUnit mdu = _mdum[regName];
         int size = mdu.valueCount();
         int maxBytes = size * 2;
+        Q_UNUSED(maxBytes);
 
         switch (table) {
         case QModbusDataUnit::HoldingRegisters:

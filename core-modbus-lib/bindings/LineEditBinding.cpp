@@ -164,6 +164,7 @@ QVector<quint16> LineEditBinding::encodeString(const QString& str) const
     case LengthPrefixed: {
         // Добавляем префикс длины
         int lengthInRegisters = (bytes.size() + 1) / 2; // Округляем вверх
+        Q_UNUSED(lengthInRegisters);
         QByteArray prefixedBytes;
 
         // Добавляем длину (в символах) как первый регистр

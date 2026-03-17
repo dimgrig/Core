@@ -171,7 +171,7 @@ protected slots:
 protected:
     void setupDeviceData();
 
-    std::map<QString, QModbusDataUnit> update_mdu(QModbusDataUnit::RegisterType table, int address, int size, std::map<QString, QModbusDataUnit> &mdum);
+    std::map<QString, QModbusDataUnit> update_mdu(QModbusDataUnit::RegisterType table, unsigned int address, unsigned int size, std::map<QString, QModbusDataUnit> &mdum);
 
     void on_read_json(QString config);
 

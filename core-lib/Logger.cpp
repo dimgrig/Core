@@ -16,9 +16,23 @@ std::string getExecutablePath() {
 #ifdef Q_OS_WIN
 #include <windows.h>
 std::string getExecutablePath() {
-    char buffer[MAX_PATH];
-    GetModuleFileNameA(NULL, buffer, MAX_PATH);
-    return std::string(buffer);
+    // Начинаем с буфера стандартного размера
+    std::vector<wchar_t> buffer(MAX_PATH);
+    DWORD len = GetModuleFileNameW(NULL, buffer.data(), (DWORD)buffer.size());
+
+    // Если буфер мал, увеличиваем его (маловероятно для пути к exe, но для надёжности)
+    while (len == buffer.size() && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        buffer.resize(buffer.size() * 2);
+        len = GetModuleFileNameW(NULL, buffer.data(), (DWORD)buffer.size());
+    }
+
+    if (len == 0) return ""; // ошибка
+
+    // Преобразуем UTF-16 в UTF-8
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, buffer.data(), (int)len, NULL, 0, NULL, NULL);
+    std::string result(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, buffer.data(), (int)len, &result[0], size_needed, NULL, NULL);
+    return result;
 }
 #endif
 std::string getExecutableDirectory() {

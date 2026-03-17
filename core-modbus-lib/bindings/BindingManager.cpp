@@ -96,18 +96,18 @@ void BindingManager::processModbusData(const QModbusDataUnit& unit) {
         const QModbusDataUnit& regUnit = regPair.second;
 
         if (regUnit.registerType() == unit.registerType()) {
-            int start = regUnit.startAddress();
-            int count = regUnit.valueCount();
+            unsigned int start = regUnit.startAddress();
+            unsigned int count = regUnit.valueCount();
 
-            if (start + count > unit.startAddress() &&
-                start < unit.startAddress() + unit.valueCount()) {
+            if ((start + count) > static_cast<unsigned int>(unit.startAddress()) &&
+                start < (static_cast<unsigned int>(unit.startAddress()) + unit.valueCount())) {
 
-                int offset = qMax(0, start - unit.startAddress());
-                int copyCount = qMin(count, (int)(unit.valueCount() - offset));
+                unsigned int offset = qMax((unsigned int)0, start - static_cast<unsigned int>(unit.startAddress()));
+                unsigned int copyCount = qMin(count, (unit.valueCount() - offset));
 
                 if (copyCount > 0) {
                     QVector<quint16> data(copyCount);
-                    for (int i = 0; i < copyCount; ++i) {
+                    for (unsigned int i = 0; i < copyCount; ++i) {
                         data[i] = unit.values().at(offset + i);
                     }
 

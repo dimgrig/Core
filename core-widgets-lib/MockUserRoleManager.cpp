@@ -85,5 +85,7 @@ QString MockUserRoleManager::getDefaultRole() const {
 }
 
 bool MockUserRoleManager::isFeatureEnabled(const QString& featureName, const QString& userRole) const {
+    Q_UNUSED(featureName);
+    Q_UNUSED(userRole);
     return false;
 }

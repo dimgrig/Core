@@ -89,10 +89,6 @@ std::string TRANSLATION_EN_RU(std::string EN) {
     return res;
 }
 
-//old version macros
-//#define TRANSLATION_RU_EN(x) (translations_RU_EN.find(((x))) != translations_RU_EN.end()) ? \
-//    translations_RU_EN[((x))] : ""
-
 std::string TRANSLATION_RU_EN(std::string RU) {
     std::string res;
 

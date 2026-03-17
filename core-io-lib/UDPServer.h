@@ -2,7 +2,6 @@
 #define UDPSERVER_H
 
 #include <QObject>
-//#include <QUdpServer>
 #include <QUdpSocket>
 #include <QDataStream>
 #include <QHostAddress>

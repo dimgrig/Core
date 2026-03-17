@@ -32,5 +32,12 @@ void TableShortcutHandler::setupShortcuts(QTableView* _tableView) {
         QShortcut* deleteShortcut = new QShortcut(QKeySequence::Delete, tableView, SLOT(slotDelete()), nullptr, Qt::WidgetWithChildrenShortcut);
         QShortcut* selectAllShortcut = new QShortcut(QKeySequence::SelectAll, tableView, SLOT(slotSelectAll()), nullptr, Qt::WidgetWithChildrenShortcut);
         QShortcut* saveShortcut = new QShortcut(QKeySequence::Save, tableView, SLOT(slotSave()), nullptr, Qt::WidgetWithChildrenShortcut);
+
+        Q_UNUSED(copyShortcut);
+        Q_UNUSED(pasteShortcut);
+        Q_UNUSED(cutShortcut);
+        Q_UNUSED(deleteShortcut);
+        Q_UNUSED(selectAllShortcut);
+        Q_UNUSED(saveShortcut);
     }
 }

@@ -242,21 +242,23 @@ void ModbusServer::setRegister(QModbusDataUnit::RegisterType table, const QStrin
 
     if (_mdum.count(regName) > 0) {
         bool ok = true;
+        Q_UNUSED(ok);
 
         int address = _mdum.at(regName).startAddress(); // + 1
         int size = _mdum.at(regName).valueCount();
+        Q_UNUSED(size);
 
         //qCDebug(logDebug) << "setRegister" << "reg_name" << reg_name << "registerType" << table  << "value" << value << "startAddress" << address;
 
         switch (table) {
             case QModbusDataUnit::Coils:
             {
-                modbusDevice->setData(table, address, value);                
+                ok = modbusDevice->setData(table, address, value);
             }
             break;
             case QModbusDataUnit::DiscreteInputs:
             {
-                modbusDevice->setData(table, address, value);
+                ok = modbusDevice->setData(table, address, value);
             }
             break;
             case QModbusDataUnit::InputRegisters:
@@ -270,12 +272,15 @@ void ModbusServer::setRegister(QModbusDataUnit::RegisterType table, const QStrin
 
                 QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
                 _mdum[regName].setValues(values);
-                modbusDevice->setData(_mdum[regName]);
+                ok = modbusDevice->setData(_mdum[regName]);
             }
             break;
             default:
 
             break;
+        }
+        if (!ok) {
+            qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
         }
 //        if (!ok)
 //            statusBar()->showMessage(tr("Could not set register: ") + modbusDevice->errorString());

@@ -15,11 +15,11 @@ void mdum_v_to_reg_v(const std::vector<std::pair<QString, QModbusDataUnit>> &mdu
             reg_v.push_back(mdum);
         } else {
             //qCDebug(logDebug()) << reg_v.back()[_mdu.second.registerType()].startAddress() + reg_v.back()[_mdu.second.registerType()].valueCount() << _mdu.second.startAddress();
-            if ((reg_v.back()[_mdu.second.registerType()].startAddress() + reg_v.back()[_mdu.second.registerType()].valueCount()) ==
-                (_mdu.second.startAddress())) {
+            if (static_cast<unsigned int>((reg_v.back()[_mdu.second.registerType()].startAddress()) + reg_v.back()[_mdu.second.registerType()].valueCount()) ==
+                static_cast<unsigned int>((_mdu.second.startAddress()))) {
                 //reg_v.back()[_mdu.second.registerType()].setValueCount(reg_v.back()[_mdu.second.registerType()].valueCount() + _mdu.second.valueCount());
                 auto values = reg_v.back()[_mdu.second.registerType()].values();
-                for (int i = 0; i < _mdu.second.valueCount(); ++i) {
+                for (unsigned int i = 0; i < _mdu.second.valueCount(); ++i) {
                     values.push_back(0);
                 }
                 reg_v.back()[_mdu.second.registerType()].setValues(values);
@@ -189,18 +189,18 @@ void ModbusBase::setupDeviceData() {
 //    }
 }
 
-std::map<QString, QModbusDataUnit> ModbusBase::update_mdu(QModbusDataUnit::RegisterType table, int address, int size,
+std::map<QString, QModbusDataUnit> ModbusBase::update_mdu(QModbusDataUnit::RegisterType table, unsigned int address, unsigned int size,
                                                           std::map<QString, QModbusDataUnit> &mdum) {
     std::map<QString, QModbusDataUnit> res;
     for (const auto & mdu : mdum) {
         if (mdu.second.registerType() == table) {
-            if ((mdu.second.startAddress() <= address) &&
-                ((mdu.second.startAddress() + mdu.second.valueCount()) > address)) {
+            if ((static_cast<unsigned int>(mdu.second.startAddress()) <= address) &&
+                ((static_cast<unsigned int>(mdu.second.startAddress()) + mdu.second.valueCount()) > address)) {
                 res[mdu.first] = mdu.second;
                 break;
             }
-            if ((mdu.second.startAddress() >= address) &&
-                (mdu.second.startAddress() < (address + size))) {
+            if ((static_cast<unsigned int>(mdu.second.startAddress()) >= address) &&
+                (static_cast<unsigned int>(mdu.second.startAddress()) < (address + size))) {
                 res[mdu.first] = mdu.second;
             }
         }
