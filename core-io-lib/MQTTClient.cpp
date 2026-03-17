@@ -53,6 +53,8 @@ MQTTClient::MQTTClient(QObject *parent) :
 }
 
 MQTTClient::~MQTTClient() {
+    this->timer->stop();
+
     disconnect(_mqtt, &QMqttClient::stateChanged, this, &MQTTClient::stateChanged);
 
     this->disconnectFromHost();

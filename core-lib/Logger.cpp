@@ -30,11 +30,24 @@ std::string getExecutableDirectory() {
     return ""; // на случай ошибки
 }
 
-Q_LOGGING_CATEGORY(logDebug,    "Debug")
-Q_LOGGING_CATEGORY(logInfo,     "Info")
-Q_LOGGING_CATEGORY(logWarning,  "Warning")
-Q_LOGGING_CATEGORY(logCritical, "Critical")
-Q_LOGGING_CATEGORY(logFatal,    "Fatal")
+//Q_LOGGING_CATEGORY(logDebug,    "Debug")
+//Q_LOGGING_CATEGORY(logInfo,     "Info")
+//Q_LOGGING_CATEGORY(logWarning,  "Warning")
+//Q_LOGGING_CATEGORY(logCritical, "Critical")
+//Q_LOGGING_CATEGORY(logFatal,    "Fatal")
+
+namespace {
+    QLoggingCategory& createCategory(const char* name) {
+        static QLoggingCategory* cat = new QLoggingCategory(name);
+        return *cat;
+    }
+}
+
+QLoggingCategory &logDebug   = createCategory("Debug");
+QLoggingCategory &logInfo    = createCategory("Info");
+QLoggingCategory &logWarning = createCategory("Warning");
+QLoggingCategory &logCritical= createCategory("Critical");
+QLoggingCategory &logFatal   = createCategory("Fatal");
 
 QScopedPointer<QFile> logFile;
 
@@ -162,6 +175,13 @@ void Logger::LogFileOpening(int change) {
 //            }
         }
         DATETIME_SUFFIX = QDate::currentDate().toString("_yyyyMMdd"); // + QTime::currentTime().toString("_hhmm");
+    }
+
+    if (change == 0) {
+        if (!QCoreApplication::instance()) {
+            // Приложение уже разрушено – ничего не делаем
+            return;
+        }
     }
 
     if (change == 1) {        

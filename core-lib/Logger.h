@@ -14,11 +14,17 @@
 
 #include "CoreConfig.h"
 
-Q_DECLARE_LOGGING_CATEGORY(logDebug)
-Q_DECLARE_LOGGING_CATEGORY(logInfo)
-Q_DECLARE_LOGGING_CATEGORY(logWarning)
-Q_DECLARE_LOGGING_CATEGORY(logCritical)
-Q_DECLARE_LOGGING_CATEGORY(logFatal)
+//Q_DECLARE_LOGGING_CATEGORY(logDebug)
+//Q_DECLARE_LOGGING_CATEGORY(logInfo)
+//Q_DECLARE_LOGGING_CATEGORY(logWarning)
+//Q_DECLARE_LOGGING_CATEGORY(logCritical)
+//Q_DECLARE_LOGGING_CATEGORY(logFatal)
+
+extern QLoggingCategory &logDebug;
+extern QLoggingCategory &logInfo;
+extern QLoggingCategory &logWarning;
+extern QLoggingCategory &logCritical;
+extern QLoggingCategory &logFatal;
 
 // Тип для идентификатора категории (используется в журнале)
 using CategoryId = quint16;
@@ -32,7 +38,7 @@ enum class LOG_LEV {
     NONE_LOG
 };
 
-static QString logLevelToString(LOG_LEV level) {
+[[maybe_unused]] static QString logLevelToString(LOG_LEV level) {
     switch (level) {
     case LOG_LEV::DEBUG:    return QStringLiteral("Debug");
     case LOG_LEV::INFO:     return QStringLiteral("Info");
@@ -43,7 +49,7 @@ static QString logLevelToString(LOG_LEV level) {
     }
 }
 
-static LOG_LEV logLevelFromString(const QString &level) {
+[[maybe_unused]] static LOG_LEV logLevelFromString(const QString &level) {
     auto _level = level.toLower();
     if (_level.contains("debug")) {
         return LOG_LEV::DEBUG;

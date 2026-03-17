@@ -4,21 +4,14 @@
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgRenderer>
 
-// QMap<QString, QIcon> IconManager::iconCache() {
-//     return s_iconCache;
-// }
-
-// QMap<QString, QPixmap> IconManager::pixmapCache() {
-//     return s_pixmapCache;
-// }
-
-// QMutex& IconManager::iconMutex() {
-//     return s_iconMutex;
-// }
-
-// QMutex& IconManager::pixmapMutex() {
-//     return s_pixmapMutex;
-// }
+void IconManager::ensureInitialized() {
+    if (!s_iconCache) {
+        s_iconCache = new QMap<QString, QIcon>();
+        s_pixmapCache = new QMap<QString, QPixmap>();
+        s_iconMutex = new QMutex();
+        s_pixmapMutex = new QMutex();
+    }
+}
 
 QString IconManager::generatePixmapCacheKey(const QString& path, const QSize& size) {
     if (size.isEmpty()) {
@@ -53,11 +46,12 @@ QString IconManager::generatePixmapCacheKey(const QString& path, const QSize& si
 // }
 
 QIcon IconManager::getIcon(const QString& path) {
-    QMutexLocker locker(&s_iconMutex);
+    ensureInitialized();
+    QMutexLocker locker(s_iconMutex);
 
     // Проверяем кэш
-    if (s_iconCache.contains(path)) {
-        return s_iconCache.value(path);
+    if (s_iconCache->contains(path)) {
+        return s_iconCache->value(path);
     }
 
     // if (s_pixmapCache.contains(path)) {
@@ -84,18 +78,20 @@ QIcon IconManager::getIcon(const QString& path) {
         return QIcon();
     }
 
-    s_iconCache.insert(path, icon);
+    s_iconCache->insert(path, icon);
     return icon;
 }
 
 QPixmap IconManager::getPixmap(const QString& path, const QSize& size) {
+    ensureInitialized();
+
     QString cacheKey = generatePixmapCacheKey(path, size);
 
-    QMutexLocker locker(&s_pixmapMutex);
+    QMutexLocker locker(s_iconMutex);
 
     // Проверяем кэш
-    if (s_pixmapCache.contains(cacheKey)) {
-        return s_pixmapCache.value(cacheKey);
+    if (s_pixmapCache->contains(cacheKey)) {
+        return s_pixmapCache->value(cacheKey);
     }
 
     // Загружаем пиксмап
@@ -123,7 +119,7 @@ QPixmap IconManager::getPixmap(const QString& path, const QSize& size) {
     }
 
     // Кэшируем
-    s_pixmapCache.insert(cacheKey, pixmap);
+    s_pixmapCache->insert(cacheKey, pixmap);
 
     return pixmap;
 }
@@ -201,15 +197,17 @@ void IconManager::preloadAllStandardIcons() {
 }
 
 void IconManager::clearPixmapCache() {
-    QMutexLocker locker(&s_pixmapMutex);
-    s_pixmapCache.clear();
+    ensureInitialized();
+    QMutexLocker locker(s_pixmapMutex);
+    s_pixmapCache->clear();
     // Также очищаем системный кэш Qt
     QPixmapCache::clear();
 }
 
 void IconManager::clearIconCache() {
-    QMutexLocker locker(&s_iconMutex);
-    s_iconCache.clear();
+    ensureInitialized();
+    QMutexLocker locker(s_iconMutex);
+    s_iconCache->clear();
 }
 
 void IconManager::clearAllCaches() {
@@ -218,21 +216,22 @@ void IconManager::clearAllCaches() {
 }
 
 QString IconManager::cacheStatistics() {
-    QMutexLocker iconLocker(&s_iconMutex);
-    QMutexLocker pixmapLocker(&s_pixmapMutex);
+    ensureInitialized();
+    QMutexLocker iconLocker(s_iconMutex);
+    QMutexLocker pixmapLocker(s_pixmapMutex);
 
     // Оценка использования памяти (очень приблизительная)
-    qint64 iconMemory = 0;
+    //qint64 iconMemory = 0;
     qint64 pixmapMemory = 0;
 
-    for (const QPixmap& pixmap : s_pixmapCache) {
+    for (const QPixmap& pixmap : *s_pixmapCache) {
         pixmapMemory += pixmap.width() * pixmap.height() * 4; // ARGB = 4 байта
     }
 
     QString stats;
     stats += QString("Icon Manager Cache Statistics:\n");
-    stats += QString("  Icons cached: %1\n").arg(s_iconCache.size());
-    stats += QString("  Pixmaps cached: %1\n").arg(s_pixmapCache.size());
+    stats += QString("  Icons cached: %1\n").arg(s_iconCache->size());
+    stats += QString("  Pixmaps cached: %1\n").arg(s_pixmapCache->size());
     stats += QString("  Estimated pixmap memory: %1 MB\n").arg(pixmapMemory / 1024 / 1024);
     stats += QString("  Qt pixmap cache limit: %1 KB\n").arg(QPixmapCache::cacheLimit());
     stats += QString("  Default icon size: %1x%2").arg(m_defaultIconSize.width()).arg(m_defaultIconSize.height());

@@ -52,17 +52,12 @@ private:
     IconManager() = delete;
     ~IconManager() = delete;
 
-    inline static QMap<QString, QIcon> s_iconCache = {};
-    inline static QMap<QString, QPixmap> s_pixmapCache = {};
-    inline static QMutex s_iconMutex;
-    inline static QMutex s_pixmapMutex;
+    inline static QMap<QString, QIcon>* s_iconCache = nullptr;
+    inline static QMap<QString, QPixmap>* s_pixmapCache = nullptr;
+    inline static QMutex* s_iconMutex = nullptr;
+    inline static QMutex* s_pixmapMutex = nullptr;
 
-    // static QMap<QString, QIcon> iconCache();
-    // static QMap<QString, QPixmap> pixmapCache();
-
-    // static QMutex& iconMutex();
-    // static QMutex& pixmapMutex();
-
+    static void ensureInitialized();
     static QString generatePixmapCacheKey(const QString& path, const QSize& size);
 
     //static QIcon createScalableIconFromSvg(const QString& path);
