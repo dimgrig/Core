@@ -24,6 +24,7 @@ public:
     ModbusRegisterDataType dataType() const { return m_dataType; }
     void setDataType(ModbusRegisterDataType type) { m_dataType = type; }
 
+    int value() const;
 private slots:
     void onValueChanged(int value);
 

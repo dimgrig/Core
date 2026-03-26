@@ -91,3 +91,11 @@ int CheckBoxBinding::bitPosition() const
 {
     return m_bitPosition;
 }
+
+bool CheckBoxBinding::isChecked() const {
+    return m_checkBox->isChecked();
+}
+
+void CheckBoxBinding::setChecked(bool checked) {
+    return m_checkBox->setChecked(checked);
+}

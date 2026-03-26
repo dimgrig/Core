@@ -63,3 +63,7 @@ void SpinBoxBinding::onValueChanged(int value)
         emit registerValueRequested(registerName(), getRegisterData());
     }
 }
+
+int SpinBoxBinding::value() const {
+    return m_spinBox->value();
+}

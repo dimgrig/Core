@@ -24,7 +24,8 @@ public:
     QVector<quint16> getRegisterDataWithMask(quint16 currentValue) const;
 
     int bitPosition() const;
-
+    bool isChecked() const;
+    void setChecked(bool checked);
 private slots:
     void onStateChanged(int state);
 
