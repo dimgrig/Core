@@ -36,6 +36,8 @@ enum TableType {
     TableType_ModbusReg,
 
     //upkd
+    TableType_StaticPressureCalibration,
+    TableType_StaticPressure,
     TableType_StaticPressureResult
 };
 

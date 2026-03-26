@@ -2,7 +2,7 @@
 
 RegisterBinding::RegisterBinding(const QString& registerName,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : QObject(parent)
     , m_registerName(registerName)
@@ -51,7 +51,7 @@ void RegisterBinding::setDirection(BindingDirection direction)
     }
 }
 
-void RegisterBinding::setModbusFormat(ModbusFormat modbus_format)
+void RegisterBinding::setBytesFormat(BytesFormat modbus_format)
 {
     if (m_modbus_format != modbus_format) {
         m_modbus_format = modbus_format;

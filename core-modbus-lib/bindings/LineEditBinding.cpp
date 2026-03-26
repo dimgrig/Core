@@ -10,7 +10,7 @@ LineEditBinding::LineEditBinding(QLineEdit* lineEdit,
                                  StringFormat format,
                                  QString encoding,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)  // Для строк обычно BigEndian
     , m_lineEdit(lineEdit)

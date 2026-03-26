@@ -17,7 +17,9 @@
 
 #include "ScpiTransport.h"
 
-class ScpiDevice : public QObject, NoCopyNoMoveBase {
+#include "core-io-lib-global.h"
+
+class CORE_IO_LIB_EXPORT ScpiDevice : public QObject, NoCopyNoMoveBase {
 Q_OBJECT
 public:
     // A general device error (unable to connect, invalid IP, etc.)

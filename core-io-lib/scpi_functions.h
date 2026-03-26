@@ -4,6 +4,8 @@
 #include <QByteArray>
 #include <QVector>
 
-void parse_float_array(QByteArray &ba, QVector<double> &res_v);
+#include "core-io-lib-global.h"
+
+void CORE_IO_LIB_EXPORT parse_float_array(QByteArray &ba, QVector<double> &res_v);
 
 #endif // SCPI_FUNCTIONS_H

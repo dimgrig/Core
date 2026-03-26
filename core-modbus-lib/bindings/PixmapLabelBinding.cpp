@@ -8,7 +8,7 @@ PixmapLabelBinding::PixmapLabelBinding(QLabel* label,
                                        const QPixmap& pixmapOn,
                                        const QPixmap& pixmapOff,
                                        BindingDirection direction,
-                                       ModbusFormat modbus_format,
+                                       BytesFormat modbus_format,
                                        QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_label(label)
@@ -23,7 +23,7 @@ PixmapLabelBinding::PixmapLabelBinding(QLabel* label,
                                        const QString& registerName,
                                        const QMap<quint16, QPixmap>& statePixmaps,
                                        BindingDirection direction,
-                                       ModbusFormat modbus_format,
+                                       BytesFormat modbus_format,
                                        QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_label(label)
@@ -38,7 +38,7 @@ PixmapLabelBinding::PixmapLabelBinding(QLabel* label,
                                        const QMap<quint16, QPixmap>& valuePixmaps,
                                        bool useBit,
                                        BindingDirection direction,
-                                       ModbusFormat modbus_format,
+                                       BytesFormat modbus_format,
                                        QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_label(label)

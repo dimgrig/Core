@@ -30,7 +30,7 @@ public:
                     StringFormat format = NullTerminated,
                     QString encoding = "ASCII",  // ASCII, Latin1, UTF-8, UTF-16
                     BindingDirection direction = ReadWrite,
-                    ModbusFormat modbus_format = BigEndian,
+                    BytesFormat modbus_format = BigEndian,
                     QObject* parent = nullptr);
 
     void updateFromRegister(const QVector<quint16>& data) override;

@@ -30,7 +30,7 @@ T make_value(const uint8_t* bytes) {
 }
 
 // Преобразование байтов между форматами для 32-битных значений
-void convert_32bit_format(const uint8_t* src, uint8_t* dst, ModbusFormat from, ModbusFormat to) {
+void convert_32bit_format(const uint8_t* src, uint8_t* dst, BytesFormat from, BytesFormat to) {
     if (from == to) {
         memcpy(dst, src, 4);
         return;
@@ -75,7 +75,7 @@ void convert_32bit_format(const uint8_t* src, uint8_t* dst, ModbusFormat from, M
 }
 
 // Преобразование байтов между форматами для 64-битных значений
-void convert_64bit_format(const uint8_t* src, uint8_t* dst, ModbusFormat from, ModbusFormat to) {
+void convert_64bit_format(const uint8_t* src, uint8_t* dst, BytesFormat from, BytesFormat to) {
     if (from == to) {
         memcpy(dst, src, 8);
         return;
@@ -144,7 +144,7 @@ double invert_double_order(double value) {
 
 // ========== Преобразование значений в регистры Modbus ==========
 
-void uint_to_usa(unsigned int value, unsigned short *data, ModbusFormat format) {
+void uint_to_usa(unsigned int value, unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[4];
     uint8_t dst_bytes[4];
 
@@ -162,11 +162,11 @@ void uint_to_usa(unsigned int value, unsigned short *data, ModbusFormat format) 
     data[1] = (dst_bytes[2] << 8) | dst_bytes[3];
 }
 
-void int_to_usa(int value, unsigned short *data, ModbusFormat format) {
+void int_to_usa(int value, unsigned short *data, BytesFormat format) {
     uint_to_usa(static_cast<unsigned int>(value), data, format);
 }
 
-void ulong_to_usa(unsigned long long value, unsigned short *data, ModbusFormat format) {
+void ulong_to_usa(unsigned long long value, unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[8];
     uint8_t dst_bytes[8];
 
@@ -185,11 +185,11 @@ void ulong_to_usa(unsigned long long value, unsigned short *data, ModbusFormat f
     }
 }
 
-void long_to_usa(long long value, unsigned short *data, ModbusFormat format) {
+void long_to_usa(long long value, unsigned short *data, BytesFormat format) {
     ulong_to_usa(static_cast<unsigned long long>(value), data, format);
 }
 
-void float_to_usa(float value, unsigned short *data, ModbusFormat format) {
+void float_to_usa(float value, unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[4];
     uint8_t dst_bytes[4];
 
@@ -207,7 +207,7 @@ void float_to_usa(float value, unsigned short *data, ModbusFormat format) {
     data[1] = (dst_bytes[2] << 8) | dst_bytes[3];
 }
 
-void double_to_usa(double value, unsigned short *data, ModbusFormat format) {
+void double_to_usa(double value, unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[8];
     uint8_t dst_bytes[8];
 
@@ -228,7 +228,7 @@ void double_to_usa(double value, unsigned short *data, ModbusFormat format) {
 
 // ========== Преобразование регистров Modbus в значения ==========
 
-unsigned int usa_to_uint(const unsigned short *data, ModbusFormat format) {
+unsigned int usa_to_uint(const unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[4];
     uint8_t dst_bytes[4];
 
@@ -248,11 +248,11 @@ unsigned int usa_to_uint(const unsigned short *data, ModbusFormat format) {
     return make_value<unsigned int>(dst_bytes);
 }
 
-int usa_to_int(const unsigned short *data, ModbusFormat format) {
+int usa_to_int(const unsigned short *data, BytesFormat format) {
     return static_cast<int>(usa_to_uint(data, format));
 }
 
-unsigned long long usa_to_ulong(const unsigned short *data, ModbusFormat format) {
+unsigned long long usa_to_ulong(const unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[8];
     uint8_t dst_bytes[8];
 
@@ -272,11 +272,11 @@ unsigned long long usa_to_ulong(const unsigned short *data, ModbusFormat format)
     return make_value<unsigned long long>(dst_bytes);
 }
 
-long long usa_to_long(const unsigned short *data, ModbusFormat format) {
+long long usa_to_long(const unsigned short *data, BytesFormat format) {
     return static_cast<long long>(usa_to_ulong(data, format));
 }
 
-float usa_to_float(const unsigned short *data, ModbusFormat format) {
+float usa_to_float(const unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[4];
     uint8_t dst_bytes[4];
 
@@ -296,7 +296,7 @@ float usa_to_float(const unsigned short *data, ModbusFormat format) {
     return make_value<float>(dst_bytes);
 }
 
-double usa_to_double(const unsigned short *data, ModbusFormat format) {
+double usa_to_double(const unsigned short *data, BytesFormat format) {
     uint8_t src_bytes[8];
     uint8_t dst_bytes[8];
 
@@ -319,7 +319,7 @@ double usa_to_double(const unsigned short *data, ModbusFormat format) {
 // ========== Конвертация между форматами ==========
 
 template<typename T>
-T convert_modbus_format(T value, ModbusFormat from_format, ModbusFormat to_format) {
+T convert_modbus_format(T value, BytesFormat from_format, BytesFormat to_format) {
     if (from_format == to_format) {
         return value;
     }
@@ -342,12 +342,12 @@ T convert_modbus_format(T value, ModbusFormat from_format, ModbusFormat to_forma
 }
 
 // Явные инстанциации шаблона для удобства
-template float convert_modbus_format<float>(float, ModbusFormat, ModbusFormat);
-template double convert_modbus_format<double>(double, ModbusFormat, ModbusFormat);
-template unsigned int convert_modbus_format<unsigned int>(unsigned int, ModbusFormat, ModbusFormat);
-template int convert_modbus_format<int>(int, ModbusFormat, ModbusFormat);
-template unsigned long long convert_modbus_format<unsigned long long>(unsigned long long, ModbusFormat, ModbusFormat);
-template long long convert_modbus_format<long long>(long long, ModbusFormat, ModbusFormat);
+template float convert_modbus_format<float>(float, BytesFormat, BytesFormat);
+template double convert_modbus_format<double>(double, BytesFormat, BytesFormat);
+template unsigned int convert_modbus_format<unsigned int>(unsigned int, BytesFormat, BytesFormat);
+template int convert_modbus_format<int>(int, BytesFormat, BytesFormat);
+template unsigned long long convert_modbus_format<unsigned long long>(unsigned long long, BytesFormat, BytesFormat);
+template long long convert_modbus_format<long long>(long long, BytesFormat, BytesFormat);
 
 
 // Вспомогательная функция для сравнения чисел с плавающей точкой с допуском
@@ -358,7 +358,7 @@ bool approx_equal(T a, T b, T epsilon = std::numeric_limits<T>::epsilon() * 100)
 
 // Тест симметричности преобразования для заданного типа и формата
 template<typename T>
-void testRoundTrip(T originalValue, ModbusFormat format, const std::string& typeName) {
+void testRoundTrip(T originalValue, BytesFormat format, const std::string& typeName) {
     Q_UNUSED(typeName);
     const size_t regCount = sizeof(T) / sizeof(uint16_t);
     uint16_t registers[regCount];
@@ -405,7 +405,7 @@ void testRoundTrip(T originalValue, ModbusFormat format, const std::string& type
 // Тест для всех форматов одного типа
 template<typename T>
 void testAllFormats(T testValue, const std::string& typeName) {
-    std::vector<ModbusFormat> formats = {BigEndian, BigEndianByteSwap, LittleEndianByteSwap, LittleEndian};
+    std::vector<BytesFormat> formats = {BigEndian, BigEndianByteSwap, LittleEndianByteSwap, LittleEndian};
     for (auto fmt : formats) {
         testRoundTrip(testValue, fmt, typeName);
     }

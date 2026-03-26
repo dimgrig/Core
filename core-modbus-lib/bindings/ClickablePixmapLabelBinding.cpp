@@ -12,7 +12,7 @@ ClickablePixmapLabelBinding::ClickablePixmapLabelBinding(QLabel* label,
                                                          const QPixmap& pixmapOn,
                                                          const QPixmap& pixmapOff,
                                                          BindingDirection direction,
-                                                         ModbusFormat modbus_format,
+                                                         BytesFormat modbus_format,
                                                          QObject* parent)
     : PixmapLabelBinding(label, registerName, bitPosition, pixmapOn, pixmapOff, direction, modbus_format, parent)
     , m_clickable(true)
@@ -30,7 +30,7 @@ ClickablePixmapLabelBinding::ClickablePixmapLabelBinding(QLabel* label,
                                                          const QString& registerName,
                                                          const QMap<quint16, QPixmap>& statePixmaps,
                                                          BindingDirection direction,
-                                                         ModbusFormat modbus_format,
+                                                         BytesFormat modbus_format,
                                                          QObject* parent)
     : PixmapLabelBinding(label, registerName, statePixmaps, direction, modbus_format, parent)
     , m_clickable(true)

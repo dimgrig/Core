@@ -5,7 +5,7 @@
 ComboBoxBinding::ComboBoxBinding(QComboBox* comboBox,
                                  const QString& registerName,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_comboBox(comboBox)
@@ -27,7 +27,7 @@ ComboBoxBinding::ComboBoxBinding(QComboBox* comboBox,
                                  const QString& registerName,
                                  const QMap<quint16, int>& valueToIndexMap,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_comboBox(comboBox)
@@ -50,7 +50,7 @@ ComboBoxBinding::ComboBoxBinding(QComboBox* comboBox,
                                  const QString& registerName,
                                  int bitPosition,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_comboBox(comboBox)

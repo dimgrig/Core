@@ -1,8 +1,14 @@
 #include "Auth.h"
 #include "ui_Auth.h"
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+//TODO
+#else
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
+#include <QScreen>
+#else
 #include <QDesktopWidget>
+#endif
 #endif
 
 #include "Categories.h"

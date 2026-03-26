@@ -7,7 +7,7 @@ LabelBinding::LabelBinding(QLabel* label,
                            DisplayFormat format,
                            const QString& customFormat,
                            int precision,
-                           ModbusFormat modbus_format,
+                           BytesFormat modbus_format,
                            QObject* parent)
     : RegisterBinding(registerName, ReadOnly, modbus_format, parent) // Label всегда только для чтения
     , m_label(label)

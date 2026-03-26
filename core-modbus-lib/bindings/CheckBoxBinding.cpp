@@ -6,7 +6,7 @@ CheckBoxBinding::CheckBoxBinding(QCheckBox* checkBox,
                                  const QString& registerName,
                                  int bitPosition,
                                  BindingDirection direction,
-                                 ModbusFormat modbus_format,
+                                 BytesFormat modbus_format,
                                  QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_checkBox(checkBox)

@@ -2,8 +2,9 @@
 #define CORECONFIG_H
 
 #include <QColor>
-
 #include <qnamespace.h>
+
+#include "enum_macro.h"
 
 #if (QT_VERSION > 0x050F00)
 #define QT_HEX Qt::hex
@@ -106,5 +107,48 @@
 #define COLOR_Aquamarine	"#7FFFD4"
 #define COLOR_PaleGreen	    "#98FB98"
 #define COLOR_Violet	    "#EE82EE"
+
+ENUM_MACRO2(ConnectionType, ConnectionTypeSerial, ConnectionTypeTCP,
+            Serial, TCP,
+            Serial, TCP,
+            0, 1);
+
+ENUM_MACRO8(SerialBaudRate, SerialBaud1200 = 1200, SerialBaud2400 = 2400, SerialBaud4800 = 4800, SerialBaud9600 = 9600,
+            SerialBaud19200 = 19200, SerialBaud38400 = 38400, SerialBaud57600 = 57600, SerialBaud115200 = 115200,
+            1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200,
+            1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200,
+            1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200);
+
+ENUM_MACRO4(SerialDataBits, SerialDataBits5 = 5, SerialDataBits6 = 6, SerialDataBits7 = 7, SerialDataBits8 = 8,
+            5, 6, 7, 8,
+            5, 6, 7, 8,
+            5, 6, 7, 8);
+
+ENUM_MACRO3(SerialStopBits, SerialStopBits_OneStop = 1, SerialStopBits_TwoStop = 2, SerialStopBits_OneAndHalfStop = 3,
+            1, 2, 1.5,
+            1, 2, 1.5,
+            1, 2, 3);
+
+ENUM_MACRO5(SerialParity, SerialParity_NoParity = 0, SerialParity_EvenParity = 2, SerialParity_OddParity = 3,
+            SerialParity_SpaceParity = 4, SerialParity_MarkParity = 5,
+            NoParity, EvenParity, OddParity, SpaceParity, MarkParity,
+            NoParity, EvenParity, OddParity, SpaceParity, MarkParity,
+            0, 2, 3, 4, 5);
+
+// big-endian
+// big-endian слова, но байты в словах переставлены
+// little-endian слова, но байты в словах не переставлены
+// little-endian
+ENUM_MACRO4(BytesFormat, BigEndian, BigEndianByteSwap, LittleEndianByteSwap, LittleEndian,
+            ABCD, BADC, CDAB, DCBA,
+            ABCD, BADC, CDAB, DCBA,
+            0, 1, 2, 3);
+
+extern const QStringList ConnectionType_sl;
+extern const QStringList SerialBaudRate_sl;
+extern const QStringList SerialDataBits_sl;
+extern const QStringList SerialStopBits_sl;
+extern const QStringList SerialParity_sl;
+extern const QStringList BytesFormat_sl;
 
 #endif // CORECONFIG_H

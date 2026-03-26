@@ -61,9 +61,9 @@ QModbusDataUnit::RegisterType ModbusBase::getRegisterType(const QString regName)
 void ModbusBase::set_modbus_settings(ModbusSettings modbus_settings) {
     _modbus_settings = modbus_settings;
 
-    this->on_connect_type(static_cast<int>(ModbusConnection_from_text(modbus_settings.MODBUS_TYPE.toStdString().c_str())));
+    this->on_connect_type(static_cast<int>(ConnectionType_from_text(modbus_settings.MODBUS_TYPE.toStdString().c_str())));
 
-    // if (_connection_type == ModbusSerial) {
+    // if (_connection_type == ConnectionTypeSerial) {
     //     _portCheckTimer->start(1000); // Проверка каждую секунду
     // }
 };
@@ -345,7 +345,7 @@ bool ModbusBase::isSerialPortAvailable(const QString &portName) {
 }
 
 void ModbusBase::checkSerialPorts() {
-    if (_connection_type != ModbusSerial) {
+    if (_connection_type != ConnectionTypeSerial) {
         _portCheckTimer->stop();
         return;
     }

@@ -8,7 +8,7 @@
 QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
                                                  const QString& regName,
                                                  const QString& dataType,
-                                                 ModbusFormat format)
+                                                 BytesFormat format)
 {
     QVariant value = QVariant();
     if (data.isEmpty())
@@ -60,7 +60,7 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
 QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
                                                          const QString& regName,
                                                          const QString& dataType,
-                                                         ModbusFormat format,
+                                                         BytesFormat format,
                                                          int expectedSize)
 {
 #ifdef ENABLE_CONVERTION
@@ -117,32 +117,32 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
 }
 
 // Реализации специфических методов, использующих modbus_functions
-float ModbusDataConverter::toFloat(const QVector<quint16>& data, ModbusFormat format) {
+float ModbusDataConverter::toFloat(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 2) return 0.0f;
     return usa_to_float(data.data(), format);
 }
 
-double ModbusDataConverter::toDouble(const QVector<quint16>& data, ModbusFormat format) {
+double ModbusDataConverter::toDouble(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 4) return 0.0;
     return usa_to_double(data.data(), format);
 }
 
-quint32 ModbusDataConverter::toUInt32(const QVector<quint16>& data, ModbusFormat format) {
+quint32 ModbusDataConverter::toUInt32(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 2) return 0;
     return usa_to_uint(data.data(), format);
 }
 
-qint32 ModbusDataConverter::toInt32(const QVector<quint16>& data, ModbusFormat format) {
+qint32 ModbusDataConverter::toInt32(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 2) return 0;
     return usa_to_int(data.data(), format);
 }
 
-quint64 ModbusDataConverter::toUInt64(const QVector<quint16>& data, ModbusFormat format) {
+quint64 ModbusDataConverter::toUInt64(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 4) return 0;
     return usa_to_ulong(data.data(), format);
 }
 
-qint64 ModbusDataConverter::toInt64(const QVector<quint16>& data, ModbusFormat format) {
+qint64 ModbusDataConverter::toInt64(const QVector<quint16>& data, BytesFormat format) {
     if (data.size() < 4) return 0;
     return usa_to_long(data.data(), format);
 }
@@ -164,37 +164,37 @@ bool ModbusDataConverter::toBool(const QVector<quint16>& data, int bit) {
     return (data[0] >> bit) & 1;
 }
 
-QVector<quint16> ModbusDataConverter::fromFloat(float value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromFloat(float value, BytesFormat format) {
     QVector<quint16> res(2);
     float_to_usa(value, res.data(), format);
     return res;
 }
 
-QVector<quint16> ModbusDataConverter::fromDouble(double value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromDouble(double value, BytesFormat format) {
     QVector<quint16> res(4);
     double_to_usa(value, res.data(), format);
     return res;
 }
 
-QVector<quint16> ModbusDataConverter::fromUInt32(quint32 value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromUInt32(quint32 value, BytesFormat format) {
     QVector<quint16> res(2);
     uint_to_usa(value, res.data(), format);
     return res;
 }
 
-QVector<quint16> ModbusDataConverter::fromInt32(qint32 value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromInt32(qint32 value, BytesFormat format) {
     QVector<quint16> res(2);
     int_to_usa(value, res.data(), format);
     return res;
 }
 
-QVector<quint16> ModbusDataConverter::fromUInt64(quint64 value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromUInt64(quint64 value, BytesFormat format) {
     QVector<quint16> res(4);
     ulong_to_usa(value, res.data(), format);
     return res;
 }
 
-QVector<quint16> ModbusDataConverter::fromInt64(qint64 value, ModbusFormat format) {
+QVector<quint16> ModbusDataConverter::fromInt64(qint64 value, BytesFormat format) {
     QVector<quint16> res(4);
     long_to_usa(value, res.data(), format);
     return res;

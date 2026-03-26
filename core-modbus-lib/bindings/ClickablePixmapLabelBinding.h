@@ -14,14 +14,14 @@ public:
                                 const QPixmap& pixmapOn,
                                 const QPixmap& pixmapOff,
                                 BindingDirection direction = ReadWrite,
-                                ModbusFormat modbus_format = BigEndian,
+                                BytesFormat modbus_format = BigEndian,
                                 QObject* parent = nullptr);
 
     ClickablePixmapLabelBinding(QLabel* label,
                                 const QString& registerName,
                                 const QMap<quint16, QPixmap>& statePixmaps,
                                 BindingDirection direction = ReadWrite,
-                                ModbusFormat modbus_format = BigEndian,
+                                BytesFormat modbus_format = BigEndian,
                                 QObject* parent = nullptr);
 
     // Включает/выключает возможность клика

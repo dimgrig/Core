@@ -7,6 +7,7 @@
 #include <QToolButton>
 #include <QSettings>
 
+#include "CoreConfig.h"
 #include "ModbusBase.h"
 
 int ModbusSettingsConverter::modbus_state_from_str(QString state_str) {
@@ -163,7 +164,7 @@ ModbusSettingsUI::ModbusSettingsUI(QWidget *parent)
 {
     ui->setupUi(this);
 
-    this->initializeModbusComboboxes();
+    this->initializeComboboxes();
 
     connect(this->ui->cb_connect_type, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ModbusSettingsUI::settings_changed);
     connect(this->ui->le_address, &QLineEdit::editingFinished, this, &ModbusSettingsUI::settings_changed);
@@ -179,7 +180,7 @@ ModbusSettingsUI::ModbusSettingsUI(QWidget *parent)
         emit poll_timer_changed(value);
     });
 
-    connect(this->ui->tb_modbus_config, &QToolButton::clicked, this, &ModbusSettingsUI::load_modbus_config);
+    connect(this->ui->tb_modbus_config, &QToolButton::clicked, this, &ModbusSettingsUI::load_config);
 
     this->set_reconfig();
 
@@ -228,18 +229,18 @@ void ModbusSettingsUI::onModbusStateChanged(int state) {
 }
 
 
-void ModbusSettingsUI::initializeModbusComboboxes() {
-    this->ui->cb_connect_type->addItems(ModbusConnection_sl);
-    this->ui->cb_baudrate->addItems(ModbusBaudRate_sl);
-    this->ui->cb_data_bits->addItems(ModbusDataBits_sl);
-    this->ui->cb_stop_bits->addItems(ModbusStopBits_sl);
-    this->ui->cb_parity->addItems(ModbusParity_sl);
-    this->ui->cb_format->addItems(ModbusFormat_sl);
+void ModbusSettingsUI::initializeComboboxes() {
+    this->ui->cb_connect_type->addItems(ConnectionType_sl);
+    this->ui->cb_baudrate->addItems(SerialBaudRate_sl);
+    this->ui->cb_data_bits->addItems(SerialDataBits_sl);
+    this->ui->cb_stop_bits->addItems(SerialStopBits_sl);
+    this->ui->cb_parity->addItems(SerialParity_sl);
+    this->ui->cb_format->addItems(BytesFormat_sl);
 }
 
 void ModbusSettingsUI::type_changed(const QString &type) {
-    auto connection_type = ModbusConnection_from_text(type.toStdString().c_str());
-    if (connection_type == ModbusTCP) {
+    auto connection_type = ConnectionType_from_text(type.toStdString().c_str());
+    if (connection_type == ConnectionTypeTCP) {
         this->ui->l_ip->show();
         this->ui->le_ip->show();
         this->ui->l_port->show();
@@ -280,16 +281,16 @@ ModbusSettings ModbusSettingsUI::getSettingsFromUi() {
     settings.MODBUS_POLL_TIMER = ui->sb_poll_timer->value();
     settings.MODBUS_ADDRESS = ui->le_address->text().toInt();
 
-    settings.MODBUS_TYPE = ModbusConnection_to_text(ui->cb_connect_type->currentIndex());
+    settings.MODBUS_TYPE = ConnectionType_to_text(ui->cb_connect_type->currentIndex());
 
     settings.MODBUS_IP = ui->le_ip->text();
     settings.MODBUS_PORT = ui->le_port->text().toInt();
 
     settings.MODBUS_SERIAL_PORT = ui->le_com_port->text();
-    settings.MODBUS_BAUDRATE =  ModbusBaudRate_from_text(this->ui->cb_baudrate->currentText().toStdString().c_str());
-    settings.MODBUS_DATA_BITS = ModbusDataBits_from_text(this->ui->cb_data_bits->currentText().toStdString().c_str());
-    settings.MODBUS_STOP_BITS = ModbusStopBits_from_text(this->ui->cb_stop_bits->currentText().toStdString().c_str());
-    settings.MODBUS_PARITY = ModbusParity_to_text(this->ui->cb_parity->currentIndex());
+    settings.MODBUS_BAUDRATE =  SerialBaudRate_from_text(this->ui->cb_baudrate->currentText().toStdString().c_str());
+    settings.MODBUS_DATA_BITS = SerialDataBits_from_text(this->ui->cb_data_bits->currentText().toStdString().c_str());
+    settings.MODBUS_STOP_BITS = SerialStopBits_from_text(this->ui->cb_stop_bits->currentText().toStdString().c_str());
+    settings.MODBUS_PARITY = SerialParity_to_text(this->ui->cb_parity->currentIndex());
     settings.MODBUS_FORMAT = this->ui->cb_format->currentText();
 
     return settings;
@@ -299,21 +300,21 @@ void ModbusSettingsUI::setSettingsToUi(const ModbusSettings& settings) {
     ui->sb_poll_timer->setValue(settings.MODBUS_POLL_TIMER);
     ui->le_address->setText(QString::number(settings.MODBUS_ADDRESS));
 
-    ui->cb_connect_type->setCurrentIndex(static_cast<int>(ModbusConnection_from_text(settings.MODBUS_TYPE.toStdString().c_str())));
+    ui->cb_connect_type->setCurrentIndex(static_cast<int>(ConnectionType_from_text(settings.MODBUS_TYPE.toStdString().c_str())));
 
     ui->le_ip->setText(settings.MODBUS_IP);
     ui->le_port->setText(QString::number(settings.MODBUS_PORT));
 
     ui->le_com_port->setText(settings.MODBUS_SERIAL_PORT);
-    ui->cb_baudrate->setCurrentText(ModbusBaudRate_to_text(static_cast<ModbusBaudRate>(settings.MODBUS_BAUDRATE)));
-    ui->cb_data_bits->setCurrentText(ModbusDataBits_to_text(static_cast<ModbusDataBits>(settings.MODBUS_DATA_BITS)));
-    ui->cb_stop_bits->setCurrentText(ModbusStopBits_to_text(static_cast<ModbusStopBits>(settings.MODBUS_STOP_BITS)));
-    ui->cb_parity->setCurrentText(ModbusParity_to_text(ModbusParity_from_text(settings.MODBUS_PARITY.toStdString().c_str())));
+    ui->cb_baudrate->setCurrentText(SerialBaudRate_to_text(static_cast<SerialBaudRate>(settings.MODBUS_BAUDRATE)));
+    ui->cb_data_bits->setCurrentText(SerialDataBits_to_text(static_cast<SerialDataBits>(settings.MODBUS_DATA_BITS)));
+    ui->cb_stop_bits->setCurrentText(SerialStopBits_to_text(static_cast<SerialStopBits>(settings.MODBUS_STOP_BITS)));
+    ui->cb_parity->setCurrentText(SerialParity_to_text(SerialParity_from_text(settings.MODBUS_PARITY.toStdString().c_str())));
     ui->cb_format->setCurrentText(settings.MODBUS_FORMAT);
 }
 
-void ModbusSettingsUI::read_config(ModbusSettings modbus_settings){
-    this->setSettingsToUi(modbus_settings);
+void ModbusSettingsUI::read_config(ModbusSettings settings){
+    this->setSettingsToUi(settings);
 }
 
 ModbusSettings ModbusSettingsUI::write_config(){
@@ -342,7 +343,7 @@ ModbusSettings ModbusSettingsUI::write_config(){
     return modbus_settings;
 }
 
-void ModbusSettingsUI::load_modbus_config() {
+void ModbusSettingsUI::load_config() {
     auto path = this->ui->le_config->text();
     QDir dir;
     QFileInfo fileinfo(path);

@@ -146,8 +146,14 @@ std::ostream& operator<<(std::ostream &os, const Calibration_c &r) {
 #endif
 
 bool operator==(const Calibration_c &lhs, const Calibration_c &rhs) {
-    return ((lhs._max_settings_nbr == rhs._max_settings_nbr) &&
-            (lhs._current_settings_nbr == rhs._current_settings_nbr) &&
-            (lhs._settings == rhs._settings)
-            );
+    if (lhs._max_settings_nbr != rhs._max_settings_nbr ||
+        lhs._current_settings_nbr != rhs._current_settings_nbr)
+        return false;
+
+    // Сравниваем только актуальные элементы (до _current_settings_nbr)
+    for (unsigned int i = 0; i < lhs._current_settings_nbr; ++i) {
+        if (!(lhs._settings[i] == rhs._settings[i]))
+            return false;
+    }
+    return true;
 }

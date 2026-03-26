@@ -19,7 +19,7 @@ ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbu
 {
 //    ui->setupUi(this);
 
-    // this->ui->cb_connect_type->addItems(ModbusConnection_sl);
+    // this->ui->cb_connect_type->addItems(ConnectionType_sl);
     // this->ui->cb_baudrate->addItems(ModbusBaudRate_sl);
     // this->ui->cb_data_bits->addItems(ModbusDataBits_sl);
     // this->ui->cb_stop_bits->addItems(ModbusStopBits_sl);
@@ -38,7 +38,7 @@ ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbu
     //     emit poll_timer_changed(value);
     // });
 
-    this->on_connect_type(static_cast<int>(ModbusConnection_from_text(modbus_settings.MODBUS_TYPE.toStdString().c_str())));
+    this->on_connect_type(static_cast<int>(ConnectionType_from_text(modbus_settings.MODBUS_TYPE.toStdString().c_str())));
 
     _reconnectTimer = new QTimer(this);
     _reconnectTimer->setSingleShot(true);
@@ -47,7 +47,7 @@ ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbu
     _portCheckTimer = new QTimer(this);
     connect(_portCheckTimer, &QTimer::timeout, this, &ModbusClient::checkSerialPorts);
 
-    // if (_connection_type == ModbusSerial) {
+    // if (_connection_type == ConnectionTypeSerial) {
     //     _portCheckTimer->start(1000); // Проверка каждую секунду
     // }
 }
@@ -141,16 +141,16 @@ void ModbusClient::clearQueue()
 }
 
 void ModbusClient::on_connect_type(int index) {
-    _connection_type = static_cast<ModbusConnection>(index);
+    _connection_type = static_cast<ConnectionType>(index);
 
     if (modbusDevice) {
         modbusDevice->disconnectDevice();
         modbusDevice.reset();  // shared_ptr автоматически удалит объект
     }
 
-    if (_connection_type == ModbusSerial) {
+    if (_connection_type == ConnectionTypeSerial) {
         modbusDevice = std::make_shared<QModbusRtuSerialMaster>();
-    } else if (_connection_type == ModbusTCP) {
+    } else if (_connection_type == ConnectionTypeTCP) {
         modbusDevice = std::make_shared<QModbusTcpClient>();
     }
 
@@ -162,9 +162,9 @@ void ModbusClient::on_connect_type(int index) {
     // });
 
     if (!modbusDevice) {
-        if (_connection_type == ModbusSerial) {
+        if (_connection_type == ConnectionTypeSerial) {
             qCDebug(logDebug) << (tr("Could not create Modbus master."));
-        } else if (_connection_type == ModbusTCP) {
+        } else if (_connection_type == ConnectionTypeTCP) {
             qCDebug(logDebug) << (tr("Could not create Modbus client."));
         }
     } else {
@@ -184,7 +184,7 @@ void ModbusClient::on_connect() {
     }
     _processingQueue = false;
 
-    if (_connection_type == ModbusSerial) {
+    if (_connection_type == ConnectionTypeSerial) {
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
 
         // Проверяем наличие порта в системе
@@ -204,13 +204,13 @@ void ModbusClient::on_connect() {
     }
 
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
-        if (_connection_type == ModbusSerial) {
+        if (_connection_type == ConnectionTypeSerial) {
             modbusDevice->setConnectionParameter(QModbusDevice::SerialPortNameParameter, _modbus_settings.MODBUS_SERIAL_PORT);
             modbusDevice->setConnectionParameter(QModbusDevice::SerialBaudRateParameter, _modbus_settings.MODBUS_BAUDRATE); //QSerialPort::Baud19200
             modbusDevice->setConnectionParameter(QModbusDevice::SerialDataBitsParameter, _modbus_settings.MODBUS_DATA_BITS); //QSerialPort::Data8
             modbusDevice->setConnectionParameter(QModbusDevice::SerialStopBitsParameter, _modbus_settings.MODBUS_STOP_BITS); //QSerialPort::OneStop
             modbusDevice->setConnectionParameter(QModbusDevice::SerialParityParameter, _modbus_settings.MODBUS_PARITY); //QSerialPort::EvenParity
-        } else if (_connection_type == ModbusTCP) {
+        } else if (_connection_type == ConnectionTypeTCP) {
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, _modbus_settings.MODBUS_IP);
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, _modbus_settings.MODBUS_PORT);
         }
@@ -223,9 +223,9 @@ void ModbusClient::on_connect() {
         if (!modbusDevice->connectDevice()) {
             qCDebug(logDebug) << tr("ModbusClient Connect failed: ") + modbusDevice->errorString();
         } else {
-            if (_connection_type == ModbusSerial) {
+            if (_connection_type == ConnectionTypeSerial) {
                 qCDebug(logDebug) << tr("ModbusClient Connected: ") + _modbus_settings.MODBUS_SERIAL_PORT << modbusDevice->state();
-            } else if (_connection_type == ModbusTCP) {
+            } else if (_connection_type == ConnectionTypeTCP) {
                 qCDebug(logDebug) << tr("ModbusClient Connected: ") + _modbus_settings.MODBUS_IP << modbusDevice->state();
             }
             this->setupDeviceData();
@@ -259,9 +259,9 @@ void ModbusClient::onModbusStateChanged(int state) {
     } else if (state == QModbusDevice::ConnectedState) {
         emit on_connected();
         emit host_connected();
-        if (_connection_type == ModbusSerial) {
+        if (_connection_type == ConnectionTypeSerial) {
             qCDebug(logDebug) << tr("ModbusClient Connected: ") + _modbus_settings.MODBUS_SERIAL_PORT << modbusDevice->state();
-        } else if (_connection_type == ModbusTCP) {
+        } else if (_connection_type == ConnectionTypeTCP) {
             qCDebug(logDebug) << tr("ModbusClient Connected: ") + _modbus_settings.MODBUS_IP << modbusDevice->state();
         }
     }
@@ -472,7 +472,7 @@ void ModbusClient::setRegisterString(QModbusDataUnit::RegisterType table, const 
 }
 
 void ModbusClient::scheduleReconnect() {
-    if (_connection_type == ModbusSerial) {
+    if (_connection_type == ConnectionTypeSerial) {
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
 
         if (!isSerialPortAvailable(portName)) {

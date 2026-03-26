@@ -67,15 +67,15 @@ public slots:
 
     void onModbusStateChanged(int state);
 
-    void read_config(ModbusSettings modbus_settings);
+    void read_config(ModbusSettings settings);
     ModbusSettings write_config();
 
-    void load_modbus_config();
+    void load_config();
     void set_config(QString config);
 private slots:
 
 private:
-    void initializeModbusComboboxes();
+    void initializeComboboxes();
 
     Ui::fmodbus_settings *ui;
 

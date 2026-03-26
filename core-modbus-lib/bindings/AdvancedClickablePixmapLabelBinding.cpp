@@ -9,7 +9,7 @@ AdvancedClickablePixmapLabelBinding::AdvancedClickablePixmapLabelBinding(QLabel*
                                                                          const QPixmap& pixmapOn,
                                                                          const QPixmap& pixmapOff,
                                                                          BindingDirection direction,
-                                                                         ModbusFormat modbus_format,
+                                                                         BytesFormat modbus_format,
                                                                          QObject* parent)
     : ClickablePixmapLabelBinding(label, registerName, bitPosition, pixmapOn, pixmapOff, direction, modbus_format, parent)
     , m_bindingManager(bindingManager)

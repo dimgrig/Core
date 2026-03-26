@@ -20,7 +20,7 @@ DoubleSpinBoxBinding::DoubleSpinBoxBinding(QDoubleSpinBox* spinBox,
                                            const QString& registerName,
                                            ModbusRegisterDataType dataType,
                                            BindingDirection direction,
-                                           ModbusFormat modbus_format,
+                                           BytesFormat modbus_format,
                                            QObject* parent)
     : RegisterBinding(registerName, direction, modbus_format, parent)
     , m_spinBox(spinBox)

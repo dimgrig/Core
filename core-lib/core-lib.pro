@@ -31,6 +31,7 @@ DEFINES += NOUSER
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 SOURCES += \
+    CoreConfig.cpp \
     Logger.cpp \
     TestRunner.cpp \
     enum_macro.cpp \

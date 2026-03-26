@@ -90,6 +90,7 @@ HEADERS += \
     HTTPClient.h \
     MQTTClient.h \
     ResourceManager.h \
+    SCPISettings.h \
     ScpiDevice.h \
     ScpiTransport.h \
     SerialClient.h \
@@ -104,6 +105,7 @@ SOURCES += \
     HTTPClient.cpp \
     MQTTClient.cpp \
     ResourceManager.cpp \
+    SCPISettings.cpp \
     ScpiDevice.cpp \
     ScpiTransport.cpp \
     SerialClient.cpp \
@@ -112,3 +114,6 @@ SOURCES += \
     UDPClient.cpp \
     UDPServer.cpp \
     scpi_functions.cpp
+
+FORMS += \
+    uis/scpi_settings.ui

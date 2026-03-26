@@ -12,7 +12,9 @@
 #include <QTcpSocket>
 #include <QTimer>
 
-class ScpiTransport : public QObject
+#include "core-io-lib-global.h"
+
+class CORE_IO_LIB_EXPORT ScpiTransport : public QObject
 {
     Q_OBJECT
 public:
@@ -37,7 +39,7 @@ signals:
     void errorOccurred(const QString &errorString);
 };
 
-class TcpTransport : public ScpiTransport
+class CORE_IO_LIB_EXPORT TcpTransport : public ScpiTransport
 {
     Q_OBJECT
 public:
@@ -65,7 +67,7 @@ private:
     int m_timeoutMs;
 };
 
-class SerialTransport : public ScpiTransport
+class CORE_IO_LIB_EXPORT SerialTransport : public ScpiTransport
 {
     Q_OBJECT
 public:

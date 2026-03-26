@@ -15,13 +15,13 @@ public:
                                                                      int bitPosition,
                                                                      const QSize& size = QSize(16, 16),
                                                                      RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
-                                                                     ModbusFormat modbus_format = BigEndian);
+                                                                     BytesFormat modbus_format = BigEndian);
     std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableRedLedIndicator(QLabel* label,
                                                                           const QString& registerName,
                                                                           int bitPosition,
                                                                           const QSize& size = QSize(16, 16),
                                                                           RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
-                                                                          ModbusFormat modbus_format = BigEndian);
+                                                                          BytesFormat modbus_format = BigEndian);
 
     // Создает кликабельный индикатор насоса
     std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickablePumpIndicator(QLabel* label,
@@ -29,7 +29,7 @@ public:
                                                                       int bitPosition,
                                                                       const QSize& size = QSize(32, 32),
                                                                       RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
-                                                                      ModbusFormat modbus_format = BigEndian);
+                                                                      BytesFormat modbus_format = BigEndian);
 
     // Создает кликабельный индикатор вентиля
     std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableValveIndicator(QLabel* label,
@@ -37,7 +37,7 @@ public:
                                                                        int bitPosition,
                                                                        const QSize& size = QSize(64, 32),
                                                                        RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
-                                                                       ModbusFormat modbus_format = BigEndian);
+                                                                       BytesFormat modbus_format = BigEndian);
 
 private:
     std::shared_ptr<BindingManager> m_bindingManager;

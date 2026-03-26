@@ -17,7 +17,7 @@ public:
                        const QPixmap& pixmapOn,
                        const QPixmap& pixmapOff,
                        BindingDirection direction = ReadOnly,
-                       ModbusFormat modbus_format = BigEndian,
+                       BytesFormat modbus_format = BigEndian,
                        QObject* parent = nullptr);
 
     // Конструктор для множества состояний (значение -> pixmap)
@@ -25,7 +25,7 @@ public:
                        const QString& registerName,
                        const QMap<quint16, QPixmap>& statePixmaps,
                        BindingDirection direction = ReadOnly,
-                       ModbusFormat modbus_format = BigEndian,
+                       BytesFormat modbus_format = BigEndian,
                        QObject* parent = nullptr);
 
     // Конструктор для работы с целым значением регистра
@@ -34,7 +34,7 @@ public:
                        const QMap<quint16, QPixmap>& valuePixmaps,
                        bool useBit = false,
                        BindingDirection direction = ReadOnly,
-                       ModbusFormat modbus_format = BigEndian,
+                       BytesFormat modbus_format = BigEndian,
                        QObject* parent = nullptr);
 
     void updateFromRegister(const QVector<quint16>& data) override;

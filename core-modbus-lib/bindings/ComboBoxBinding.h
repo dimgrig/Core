@@ -14,7 +14,7 @@ public:
     ComboBoxBinding(QComboBox* comboBox,
                     const QString& registerName,
                     BindingDirection direction = ReadWrite,
-                    ModbusFormat modbus_format = BigEndian,
+                    BytesFormat modbus_format = BigEndian,
                     QObject* parent = nullptr);
 
     // Конструктор с пользовательским отображением значений
@@ -22,7 +22,7 @@ public:
                     const QString& registerName,
                     const QMap<quint16, int>& valueToIndexMap, // значение регистра -> индекс комбобокса
                     BindingDirection direction = ReadWrite,
-                    ModbusFormat modbus_format = BigEndian,
+                    BytesFormat modbus_format = BigEndian,
                     QObject* parent = nullptr);
 
     // Конструктор для работы с битовыми полями
@@ -30,7 +30,7 @@ public:
                     const QString& registerName,
                     int bitPosition,
                     BindingDirection direction = ReadWrite,
-                    ModbusFormat modbus_format = BigEndian,
+                    BytesFormat modbus_format = BigEndian,
                     QObject* parent = nullptr);
 
     void updateFromRegister(const QVector<quint16>& data) override;

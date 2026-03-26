@@ -21,7 +21,7 @@ std::shared_ptr<AdvancedClickablePixmapLabelBinding> BindingFactory::createClick
                                                                  int bitPosition,
                                                                  const QSize& size,
                                                                  RegisterBinding::BindingDirection direction,
-                                                                 ModbusFormat modbus_format) {
+                                                                 BytesFormat modbus_format) {
     Q_UNUSED(size);
     return std::make_shared<AdvancedClickablePixmapLabelBinding>(
         label,
@@ -40,7 +40,7 @@ std::shared_ptr<AdvancedClickablePixmapLabelBinding> BindingFactory::createClick
                                                                                       int bitPosition,
                                                                                       const QSize& size,
                                                                                       RegisterBinding::BindingDirection direction,
-                                                                                      ModbusFormat modbus_format) {
+                                                                                      BytesFormat modbus_format) {
     Q_UNUSED(size);
     return std::make_shared<AdvancedClickablePixmapLabelBinding>(
         label,
@@ -60,7 +60,7 @@ std::shared_ptr<AdvancedClickablePixmapLabelBinding> BindingFactory::createClick
                                                                   int bitPosition,
                                                                   const QSize& size,
                                                                   RegisterBinding::BindingDirection direction,
-                                                                  ModbusFormat modbus_format) {
+                                                                  BytesFormat modbus_format) {
     Q_UNUSED(size);
     return std::make_shared<AdvancedClickablePixmapLabelBinding>(
         label,
@@ -80,7 +80,7 @@ std::shared_ptr<AdvancedClickablePixmapLabelBinding> BindingFactory::createClick
                                                                    int bitPosition,
                                                                    const QSize& size,
                                                                    RegisterBinding::BindingDirection direction,
-                                                                   ModbusFormat modbus_format) {
+                                                                   BytesFormat modbus_format) {
     Q_UNUSED(size);
     return std::make_shared<AdvancedClickablePixmapLabelBinding>(
         label,

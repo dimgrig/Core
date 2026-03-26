@@ -46,7 +46,7 @@ public:
 
     explicit RegisterBinding(const QString& registerName,
                              BindingDirection direction = ReadWrite,
-                             ModbusFormat modbus_format = BigEndian,
+                             BytesFormat modbus_format = BigEndian,
                              QObject* parent = nullptr);
 
     virtual ~RegisterBinding();
@@ -59,12 +59,12 @@ public:
     // Геттеры
     QString registerName() const { return m_registerName; }
     BindingDirection direction() const { return m_direction; }
-    ModbusFormat modbus_format() const { return m_modbus_format; }
+    BytesFormat modbus_format() const { return m_modbus_format; }
 
     // Сеттеры
     void setRegisterName(const QString& name);
     void setDirection(BindingDirection direction);
-    void setModbusFormat(ModbusFormat modbus_format);
+    void setBytesFormat(BytesFormat modbus_format);
 
     // Метод для принудительного чтения
     void requestRead();
@@ -86,7 +86,7 @@ signals:
 protected:
     QString m_registerName;
     BindingDirection m_direction;
-    ModbusFormat m_modbus_format;
+    BytesFormat m_modbus_format;
 };
 
 #endif // REGISTERBINDING_H

@@ -15,7 +15,7 @@ public:
                                         const QPixmap& pixmapOn,
                                         const QPixmap& pixmapOff,
                                         BindingDirection direction = ReadWrite,
-                                        ModbusFormat modbus_format = BigEndian,
+                                        BytesFormat modbus_format = BigEndian,
                                         QObject* parent = nullptr);
 
 protected:
