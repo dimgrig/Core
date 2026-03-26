@@ -90,19 +90,25 @@ HEADERS += \
     HTTPClient.h \
     MQTTClient.h \
     ResourceManager.h \
+    ScpiDevice.h \
+    ScpiTransport.h \
     SerialClient.h \
     TCPClient.h \
     TCPServer.h \
     UDPClient.h \
     UDPServer.h \
-    core-io-lib-global.h
+    core-io-lib-global.h \
+    scpi_functions.h
 
 SOURCES += \
     HTTPClient.cpp \
     MQTTClient.cpp \
     ResourceManager.cpp \
+    ScpiDevice.cpp \
+    ScpiTransport.cpp \
     SerialClient.cpp \
     TCPClient.cpp \
     TCPServer.cpp \
     UDPClient.cpp \
-    UDPServer.cpp
+    UDPServer.cpp \
+    scpi_functions.cpp

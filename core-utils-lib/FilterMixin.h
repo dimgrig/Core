@@ -21,7 +21,7 @@ public:
     //void apply_filter_impl(double& value) = delete;
 
     virtual void apply_filter_impl(double& value) {
-        ;
+        Q_UNUSED(value);
     }
 
     void apply_filter(double& value) {
