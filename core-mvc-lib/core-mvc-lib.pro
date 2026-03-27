@@ -109,6 +109,7 @@ HEADERS += \
     TemplateEditRelationalTableModel.hpp \
     TemplateEditTableModel.h \
     TemplateEditTableModel.hpp \
+    ValueListDelegate.h \
     core-mvc-lib-global.h \
 
 SOURCES += \
@@ -131,4 +132,5 @@ SOURCES += \
     StringIdProxyModel.cpp \
     TableShortcutHandler.cpp \
     TemplateEditRelationalTableModel.cpp \
-    TemplateEditTableModel.cpp
+    TemplateEditTableModel.cpp \
+    ValueListDelegate.cpp

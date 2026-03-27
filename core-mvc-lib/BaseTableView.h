@@ -37,6 +37,7 @@ enum TableType {
 
     //upkd
     TableType_StaticPressureCalibration,
+    TableType_StaticPressureTolerance,
     TableType_StaticPressure,
     TableType_StaticPressureResult
 };
