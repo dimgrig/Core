@@ -39,7 +39,14 @@ enum TableType {
     TableType_StaticPressureCalibration,
     TableType_StaticPressureTolerance,
     TableType_StaticPressure,
-    TableType_StaticPressureResult
+    TableType_StaticPressureResult,
+
+    //himik
+    TableType_Controllers,
+    TableType_Sensors,
+    TableType_Clients,
+    TableType_Models,
+    TableType_Users
 };
 
 class BaseTableView;

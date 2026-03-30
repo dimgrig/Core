@@ -283,7 +283,7 @@ void Users::onSetDefault() {
 
     setDefaultUser(QString::fromStdString(user.name), password);
     this->ui->l_defaultUser->setText(user.name);
-    AQP::information(this, tr("Информация"), tr("Пользователь %1 сохранен как пользователь по умолчанию сохранён").arg(user.name));
+    AQP::information(this, tr("Информация"), tr("Пользователь %1 сохранён как пользователь по умолчанию").arg(user.name));
 }
 
 void Users::onClearDefault() {
