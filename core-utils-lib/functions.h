@@ -53,6 +53,8 @@ CORE_UTILS_LIB_EXPORT int bit3(int x);
 CORE_UTILS_LIB_EXPORT std::string TRANSLATION_EN_RU(std::string EN);
 CORE_UTILS_LIB_EXPORT std::string TRANSLATION_RU_EN(std::string RU);
 
+QString getPlatformSpecificIP();
+
 CORE_UTILS_LIB_EXPORT void delegate_selection_paint(QPainter *painter,
                               const QStyleOptionViewItem &option,
                               QStyleOptionViewItem &opt,

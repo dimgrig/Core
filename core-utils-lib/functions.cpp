@@ -4,6 +4,7 @@
 #include <sstream>
 #include <regex>
 
+#include <QNetworkInterface>
 #include <QScreen>
 #include <QTableView>
 
@@ -110,6 +111,51 @@ std::string TRANSLATION_RU_EN(std::string RU) {
     //qCDebug(logDebug()) << "RU_EN" << RU << res;
 
     return res;
+}
+
+QString getPlatformSpecificIP() {
+    QString ip;
+
+#ifdef Q_OS_WIN
+//    // Windows-specific code
+//    #ifdef Q_OS_WIN
+//    #include <winsock2.h>
+//    #include <iphlpapi.h>
+//    #pragma comment(lib, "iphlpapi.lib")
+//    #endif
+
+//    PMIB_IPADDRTABLE pIPAddrTable = NULL;
+//    DWORD dwSize = 0;
+
+//    if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER) {
+//        pIPAddrTable = (MIB_IPADDRTABLE*)malloc(dwSize);
+//        if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) == NO_ERROR) {
+//            for (DWORD i = 0; i < pIPAddrTable->dwNumEntries; i++) {
+//                in_addr addr;
+//                addr.S_un.S_addr = (u_long)pIPAddrTable->table[i].dwAddr;
+//                QString currentIP = QString(inet_ntoa(addr));
+
+//                if (currentIP != "127.0.0.1" && !currentIP.startsWith("169.254")) {
+//                    ip = currentIP;
+//                    break;
+//                }
+//            }
+//        }
+//        free(pIPAddrTable);
+//    }
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MAC)
+    // Unix/Linux/Mac - используем стандартный Qt подход
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+    for (const QHostAddress &address : ipAddressesList) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol &&
+            address != QHostAddress(QHostAddress::LocalHost) &&
+            address.toString().startsWith("192.168.")) {
+            ip = address.toString();
+        }
+    }
+#endif
+
+    return ip;
 }
 
 bool startsWith(std::string mainStr, std::string toMatch) {
