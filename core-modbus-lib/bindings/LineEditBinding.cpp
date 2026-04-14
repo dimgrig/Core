@@ -45,6 +45,10 @@ void LineEditBinding::updateFromRegister(const QVector<quint16>& data)
 {
     if (!m_lineEdit) return;
 
+    // Не обновляем, пока пользователь редактирует поле
+    if (m_lineEdit->hasFocus())
+        return;
+
     QString text = decodeString(data);
 
     // Блокируем сигналы чтобы избежать рекурсии

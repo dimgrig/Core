@@ -28,6 +28,10 @@ void SpinBoxBinding::updateFromRegister(const QVector<quint16>& data)
 {
     if (!m_spinBox || data.isEmpty()) return;
 
+    // Не обновляем, пока пользователь редактирует поле
+    if (m_spinBox->hasFocus())
+        return;
+
     QVariant v = ModbusDataConverter::registersToVariant(data, m_registerName, ModbusRegisterDataType_to_text(m_dataType), m_modbus_format);
     long long value = v.toLongLong();
 

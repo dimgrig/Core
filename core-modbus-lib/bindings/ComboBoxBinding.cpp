@@ -72,6 +72,10 @@ void ComboBoxBinding::updateFromRegister(const QVector<quint16>& data)
 {
     if (!m_comboBox || data.isEmpty()) return;
 
+    // Не обновляем, пока пользователь редактирует поле
+    if (m_comboBox->hasFocus())
+        return;
+
     quint16 registerValue = data.first();
     int index = 0;
 
