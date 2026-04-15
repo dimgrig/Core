@@ -8,10 +8,12 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-QList<double> str_parse_to_list(const QString &value_str);
-QString join_list_to_string(const QList<double> &values);
+#include "core-mvc-lib-global.h"
 
-class ValueListDialog : public QDialog
+CORE_MVC_LIB_EXPORT QList<double> str_parse_to_list(const QString &value_str);
+CORE_MVC_LIB_EXPORT QString join_list_to_string(const QList<double> &values);
+
+class CORE_MVC_LIB_EXPORT ValueListDialog : public QDialog
 {
     Q_OBJECT
 public:
