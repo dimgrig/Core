@@ -1,6 +1,8 @@
 #include "AboutPanel.h"
 #include "ui_about.h"
 
+#include "IconManager.h"
+
 AboutPanel::AboutPanel(QWidget *parent,
                        QPixmap pixmap,
                        QString organizationName,
@@ -18,6 +20,7 @@ AboutPanel::AboutPanel(QWidget *parent,
 
     this->setWindowFlags(Qt::Window);
 
+    this->ui->l_organization_pixmap->setPixmap(PIXMAP_ORGANIZATION);
     this->ui->l_application_pixmap->setPixmap(_pixmap);
 }
 
@@ -27,9 +30,9 @@ AboutPanel::~AboutPanel()
 }
 
 void AboutPanel::read_settings() {
-    this->ui->le_ORGANIZATION_NAME->setText(_organizationName);
-    this->ui->le_APPLICATION_NAME->setText(_applicationName);
-    this->ui->le_VERSION->setText(_version);
+    this->ui->pte_ORGANIZATION_NAME->setPlainText(_organizationName);
+    this->ui->pte_APPLICATION_NAME->setPlainText(_applicationName);
+    this->ui->pte_VERSION->setPlainText(_version);
 }
 
 void AboutPanel::showEvent(QShowEvent *event) {

@@ -118,6 +118,7 @@ private:
 #define ICON_HISTOGRAM              IconManager::getIcon(":/icons/histogram.svg")
 
 
+#define PIXMAP_ORGANIZATION         IconManager::getPixmap(":/icons/ACS_LOGO.svg")
 #define PIXMAP_APP                  IconManager::getPixmap(":/icons/app.svg")
 
 #define PIXMAP_TEST_SEQUENCE_32x32  IconManager::getPixmap(":/icons/test_sequence_32x32.png", ICON_SIZE_32)
