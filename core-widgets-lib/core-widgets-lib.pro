@@ -91,6 +91,7 @@ HEADERS += \
     ConnectionButton.h \
     DateTimeRangeWidget.h \
     DoubleSpinBoxDialog.h \
+    DynamicListWidget.h \
     FocusWatcher.h \
     IUserRoleManager.h \
     IconManager.h \
@@ -113,6 +114,7 @@ SOURCES += \
     ConnectionButton.cpp \
     DateTimeRangeWidget.cpp \
     DoubleSpinBoxDialog.cpp \
+    DynamicListWidget.cpp \
     FocusWatcher.cpp \
     IUserRoleManager.cpp \
     IconManager.cpp \

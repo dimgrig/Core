@@ -40,6 +40,11 @@ enum TableType {
     TableType_StaticPressureTolerance,
     TableType_StaticPressure,
     TableType_StaticPressureResult,
+    TableType_VerificationTable,
+    TableType_BPMTable,
+    TableType_MITable,
+    TableType_TestsTable,
+    TableType_UsersTable,
 
     //himik
     TableType_Controllers,

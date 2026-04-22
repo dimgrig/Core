@@ -81,7 +81,16 @@ QVariant BaseEditTableView::getDefaultValueForColumn(int column) {
 }
 
 void BaseEditTableView::fetch_model() const {
+    if (!model()) return;
+
+    int previousRowCount = -1;
     while (this->model()->canFetchMore(QModelIndex())) {
+        int currentRowCount = model()->rowCount();
+        // Break if row count doesn't increase (prevents infinite loop)
+        if (currentRowCount == previousRowCount) {
+            break;
+        }
+        previousRowCount = currentRowCount;
         model()->fetchMore(QModelIndex());
     }
 }
