@@ -49,11 +49,13 @@ bool ModbusBase::isConnected() const {
     }
 }
 
-QModbusDataUnit::RegisterType ModbusBase::getRegisterType(const QString regName) const {
+QModbusDataUnit::RegisterType ModbusBase::getRegisterType(int serverAddress, const QString regName) const {
     QModbusDataUnit::RegisterType res = QModbusDataUnit::Invalid;
-    if (_mdum.count(regName) > 0) {
-        QModbusDataUnit mdu = this->_mdum.at(regName);
-        res = mdu.registerType();
+    if (_mdum.count(serverAddress) > 0) {
+        if (_mdum.at(serverAddress).count(regName) > 0) {
+            QModbusDataUnit mdu = this->_mdum.at(serverAddress).at(regName);
+            res = mdu.registerType();
+        }
     }
     return res;
 }
@@ -72,136 +74,161 @@ void ModbusBase::set_modbus_config(QString config) {
     this->on_read_json(config);
 }
 
-void ModbusBase::setupDeviceData() {
-    QModbusDataUnitMap reg;
+QModbusDataUnitMap ModbusBase::get_reg(int serverAddress) const {
+    if (this->_reg.count(serverAddress)) {
+        return this->_reg.at(serverAddress);
+    }
+    return QModbusDataUnitMap();
+}
+std::vector<QModbusDataUnitMap> ModbusBase::get_reg_v(int serverAddress) const {
+    if (this->_reg_v.count(serverAddress)) {
+        return this->_reg_v.at(serverAddress);
+    }
+    return {};
+}
 
-    for (const auto &value : this->_mdum) {
-        if (reg.count(value.second.registerType()) == 0) {
-            reg.insert(value.second.registerType(), value.second);
-            reg[value.second.registerType()].setStartAddress(reg[value.second.registerType()].startAddress()); // + 1
-        } else {
-            if (reg[value.second.registerType()].startAddress() > value.second.startAddress()) {
-                reg[value.second.registerType()].setValueCount(reg[value.second.registerType()].startAddress() -
-                                                               value.second.startAddress() +
-                                                               reg[value.second.registerType()].valueCount());
-                reg[value.second.registerType()].setStartAddress(value.second.startAddress()); // + 1
+void ModbusBase::setupDeviceData() {
+
+    for (const auto &[serverAddress, mdum] : this->_mdum) {
+        QModbusDataUnitMap reg;
+        for (const auto &value : mdum) {
+            if (reg.count(value.second.registerType()) == 0) {
+                reg.insert(value.second.registerType(), value.second);
+                reg[value.second.registerType()].setStartAddress(reg[value.second.registerType()].startAddress()); // + 1
             } else {
-                if ((reg[value.second.registerType()].startAddress() +
-                     reg[value.second.registerType()].valueCount()) >=
-                    (value.second.startAddress() + value.second.valueCount())) {
-                    ; //reg[value.second.registerType()].setValueCount(value.second.startAddress());
+                if (reg[value.second.registerType()].startAddress() > value.second.startAddress()) {
+                    reg[value.second.registerType()].setValueCount(reg[value.second.registerType()].startAddress() -
+                                                                   value.second.startAddress() +
+                                                                   reg[value.second.registerType()].valueCount());
+                    reg[value.second.registerType()].setStartAddress(value.second.startAddress()); // + 1
                 } else {
-                    reg[value.second.registerType()].setValueCount(value.second.startAddress() -
-                                                                   reg[value.second.registerType()].startAddress() +
-                                                                   value.second.valueCount());
+                    if ((reg[value.second.registerType()].startAddress() +
+                         reg[value.second.registerType()].valueCount()) >=
+                        (value.second.startAddress() + value.second.valueCount())) {
+                        ; //reg[value.second.registerType()].setValueCount(value.second.startAddress());
+                    } else {
+                        reg[value.second.registerType()].setValueCount(value.second.startAddress() -
+                                                                       reg[value.second.registerType()].startAddress() +
+                                                                       value.second.valueCount());
+                    }
                 }
             }
         }
-    }
-    {
-        //size fix
-        for (const auto &r : reg) {
-            QModbusDataUnit mdu = QModbusDataUnit(r.registerType(), r.startAddress(), r.valueCount());
-            reg.insert(r.registerType(), mdu);
+
+        {
+            //size fix
+            for (const auto &r : reg) {
+                QModbusDataUnit mdu = QModbusDataUnit(r.registerType(), r.startAddress(), r.valueCount());
+                reg.insert(r.registerType(), mdu);
+            }
         }
+
+        //manually - not calculated from json
+        //reg.insert(QModbusDataUnit::HoldingRegisters, { QModbusDataUnit::HoldingRegisters, 0, 28 });
+
+        //    qCDebug(logDebug()) << "QModbusDataUnitMap" << reg.size();
+        //    for (const auto &r : reg) {
+        //        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+        //    }
+
+        this->_reg[serverAddress] = reg;
     }
-    //manually - not calculated from json
-    //reg.insert(QModbusDataUnit::HoldingRegisters, { QModbusDataUnit::HoldingRegisters, 0, 28 });
-
-//    qCDebug(logDebug()) << "QModbusDataUnitMap" << reg.size();
-//    for (const auto &r : reg) {
-//        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//    }
-
-    this->_reg = reg;
 
     ////*************************
+    auto mdum_m = this->get_sort_by_start_address_mdum_v();
+    for (const auto &[serverAddress, mdum_v] : mdum_m) {
+        std::vector<QModbusDataUnitMap> reg_di_v;
+        std::vector<QModbusDataUnitMap> reg_coil_v;
+        std::vector<QModbusDataUnitMap> reg_ir_v;
+        std::vector<QModbusDataUnitMap> reg_hr_v;
 
-    std::vector<QModbusDataUnitMap> reg_di_v;
-    std::vector<QModbusDataUnitMap> reg_coil_v;
-    std::vector<QModbusDataUnitMap> reg_ir_v;
-    std::vector<QModbusDataUnitMap> reg_hr_v;
+        std::vector<std::pair<QString, QModbusDataUnit>> mdum_di_v;
+        std::vector<std::pair<QString, QModbusDataUnit>> mdum_coil_v;
+        std::vector<std::pair<QString, QModbusDataUnit>> mdum_ir_v;
+        std::vector<std::pair<QString, QModbusDataUnit>> mdum_hr_v;
 
-    auto mdum_v = this->get_sort_by_start_address_mdum_v();
-    std::vector<std::pair<QString, QModbusDataUnit>> mdum_di_v;
-    std::vector<std::pair<QString, QModbusDataUnit>> mdum_coil_v;
-    std::vector<std::pair<QString, QModbusDataUnit>> mdum_ir_v;
-    std::vector<std::pair<QString, QModbusDataUnit>> mdum_hr_v;
+        for (const auto &_mdu : mdum_v) {
+            auto mdu = _mdu.second;
+            switch (mdu.registerType()) {
+                case QModbusDataUnit::DiscreteInputs:
+                    mdum_di_v.push_back(_mdu);
+                break;
+                case QModbusDataUnit::Coils:
+                    mdum_coil_v.push_back(_mdu);
+                break;
+                case QModbusDataUnit::InputRegisters:
+                    mdum_ir_v.push_back(_mdu);
+                break;
+                case QModbusDataUnit::HoldingRegisters:
+                    mdum_hr_v.push_back(_mdu);
+                break;
+                default:
 
-    for (const auto &_mdu : mdum_v) {
-        auto mdu = _mdu.second;
-        switch (mdu.registerType()) {
-            case QModbusDataUnit::DiscreteInputs:
-                mdum_di_v.push_back(_mdu);
-            break;
-            case QModbusDataUnit::Coils:
-                mdum_coil_v.push_back(_mdu);
-            break;
-            case QModbusDataUnit::InputRegisters:
-                mdum_ir_v.push_back(_mdu);
-            break;
-            case QModbusDataUnit::HoldingRegisters:
-                mdum_hr_v.push_back(_mdu);
-            break;
-            default:
-
-            break;
-        }
-    }
-
-//    qCDebug(logDebug()) << "mdum_di_v";
-//    for (const auto &mdum : mdum_di_v) {
-//        auto r = mdum.second;
-//        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//    }
-//    qCDebug(logDebug()) << "mdum_coil_v";
-//    for (const auto &mdum : mdum_coil_v) {
-//        auto r = mdum.second;
-//        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//    }
-//    qCDebug(logDebug()) << "mdum_ir_v";
-//    for (const auto &mdum : mdum_ir_v) {
-//        auto r = mdum.second;
-//        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//    }
-//    qCDebug(logDebug()) << "mdum_hr_v";
-//    for (const auto &mdum : mdum_hr_v) {
-//        auto r = mdum.second;
-//        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//    }
-
-    mdum_v_to_reg_v(mdum_di_v, reg_di_v);
-    mdum_v_to_reg_v(mdum_coil_v, reg_coil_v);
-    mdum_v_to_reg_v(mdum_ir_v, reg_ir_v);
-    mdum_v_to_reg_v(mdum_hr_v, reg_hr_v);
-
-    _reg_v.clear();
-    _reg_v.insert(_reg_v.end(), reg_di_v.begin(), reg_di_v.end());
-    _reg_v.insert(_reg_v.end(), reg_coil_v.begin(), reg_coil_v.end());
-    _reg_v.insert(_reg_v.end(), reg_ir_v.begin(), reg_ir_v.end());
-    _reg_v.insert(_reg_v.end(), reg_hr_v.begin(), reg_hr_v.end());
-
-//    qCDebug(logDebug()) << "std::vector<QModbusDataUnitMap>" << _reg_v.size() << reg_di_v.size() << reg_coil_v.size() << reg_ir_v.size() << reg_hr_v.size();
-//    for (const auto &reg : _reg_v) {
-//        for (const auto &r : reg) {
-//            qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
-//        }
-//    }
-}
-
-std::map<QString, QModbusDataUnit> ModbusBase::update_mdu(QModbusDataUnit::RegisterType table, unsigned int address, unsigned int size,
-                                                          std::map<QString, QModbusDataUnit> &mdum) {
-    std::map<QString, QModbusDataUnit> res;
-    for (const auto & mdu : mdum) {
-        if (mdu.second.registerType() == table) {
-            if ((static_cast<unsigned int>(mdu.second.startAddress()) <= address) &&
-                ((static_cast<unsigned int>(mdu.second.startAddress()) + mdu.second.valueCount()) > address)) {
-                res[mdu.first] = mdu.second;
                 break;
             }
-            if ((static_cast<unsigned int>(mdu.second.startAddress()) >= address) &&
-                (static_cast<unsigned int>(mdu.second.startAddress()) < (address + size))) {
-                res[mdu.first] = mdu.second;
+        }
+
+    //    qCDebug(logDebug()) << "mdum_di_v";
+    //    for (const auto &mdum : mdum_di_v) {
+    //        auto r = mdum.second;
+    //        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+    //    }
+    //    qCDebug(logDebug()) << "mdum_coil_v";
+    //    for (const auto &mdum : mdum_coil_v) {
+    //        auto r = mdum.second;
+    //        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+    //    }
+    //    qCDebug(logDebug()) << "mdum_ir_v";
+    //    for (const auto &mdum : mdum_ir_v) {
+    //        auto r = mdum.second;
+    //        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+    //    }
+    //    qCDebug(logDebug()) << "mdum_hr_v";
+    //    for (const auto &mdum : mdum_hr_v) {
+    //        auto r = mdum.second;
+    //        qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+    //    }
+
+        mdum_v_to_reg_v(mdum_di_v, reg_di_v);
+        mdum_v_to_reg_v(mdum_coil_v, reg_coil_v);
+        mdum_v_to_reg_v(mdum_ir_v, reg_ir_v);
+        mdum_v_to_reg_v(mdum_hr_v, reg_hr_v);
+
+        _reg_v[serverAddress].clear();
+        _reg_v[serverAddress].insert(_reg_v[serverAddress].end(), reg_di_v.begin(), reg_di_v.end());
+        _reg_v[serverAddress].insert(_reg_v[serverAddress].end(), reg_coil_v.begin(), reg_coil_v.end());
+        _reg_v[serverAddress].insert(_reg_v[serverAddress].end(), reg_ir_v.begin(), reg_ir_v.end());
+        _reg_v[serverAddress].insert(_reg_v[serverAddress].end(), reg_hr_v.begin(), reg_hr_v.end());
+
+    //    qCDebug(logDebug()) << "std::vector<QModbusDataUnitMap>" << _reg_v.size() << reg_di_v.size() << reg_coil_v.size() << reg_ir_v.size() << reg_hr_v.size();
+    //    for (const auto &reg : _reg_v) {
+    //        for (const auto &r : reg) {
+    //            qCDebug(logDebug()) << r.registerType() << r.startAddress() << r.valueCount() << r.values();
+    //        }
+    //    }
+    }
+}
+
+std::map<int, std::map<QString, QModbusDataUnit>> ModbusBase::update_mdu(int serverAddress,
+                                                          QModbusDataUnit::RegisterType table,
+                                                          unsigned int address,
+                                                          unsigned int size,
+                                                          std::map<int, std::map<QString, QModbusDataUnit>> &mdum) {
+    std::map<int, std::map<QString, QModbusDataUnit>> res;
+    for (const auto &[_serverAddress, _mdum] : mdum) {
+        if (_serverAddress == serverAddress) {
+            for (const auto &mdu : _mdum) {
+                if (mdu.second.registerType() == table) {
+                    if ((static_cast<unsigned int>(mdu.second.startAddress()) <= address) &&
+                        ((static_cast<unsigned int>(mdu.second.startAddress()) + mdu.second.valueCount()) > address)) {
+                        res[_serverAddress][mdu.first] = mdu.second;
+                        break;
+                    }
+                    if ((static_cast<unsigned int>(mdu.second.startAddress()) >= address) &&
+                        (static_cast<unsigned int>(mdu.second.startAddress()) < (address + size))) {
+                        res[_serverAddress][mdu.first] = mdu.second;
+                    }
+                }
             }
         }
     }
@@ -287,34 +314,41 @@ void ModbusBase::on_read_json(QString config) {
     // }
 }
 
-std::vector<std::pair<QString, QModbusDataUnit>> ModbusBase::get_sort_by_start_address_mdum_v() const {
-    std::vector<std::pair<QString, QModbusDataUnit>> mdum_v;
-    for (const auto &_mdu : this->_mdum) {
-        mdum_v.push_back({_mdu.first, _mdu.second});
+std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> ModbusBase::get_sort_by_start_address_mdum_v() const {
+    std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> res;
+    for (const auto &[serverAddress, _mdu] : this->_mdum) {
+        std::vector<std::pair<QString, QModbusDataUnit>> mdum_v;
+        for (const auto &__mdu : _mdu) {
+            mdum_v.push_back({__mdu.first, __mdu.second});
+        }
+        std::sort(mdum_v.begin(), mdum_v.end(), [](const std::pair<QString, QModbusDataUnit> &l, const std::pair<QString, QModbusDataUnit> &r){
+            return l.second.startAddress() < r.second.startAddress();
+        });
+        //    for (const auto &_mdu : mdum_v) {
+        //        qCDebug(logDebug()) << _mdu.first;
+        //    }
+        res[serverAddress] = mdum_v;
     }
-    std::sort(mdum_v.begin(), mdum_v.end(), [](const std::pair<QString, QModbusDataUnit> &l, const std::pair<QString, QModbusDataUnit> &r){
-        return l.second.startAddress() < r.second.startAddress();
-    });
-//    for (const auto &_mdu : mdum_v) {
-//        qCDebug(logDebug()) << _mdu.first;
-//    }
-    return mdum_v;
+
+    return res;
 }
 
-void ModbusBase::set_mdu_reg_data_type(std::map<QString, QModbusDataUnit> mdum, std::map<QString, QString> reg_data_type_m) {
-    this->_mdum = mdum;
-    this->_reg_data_type_m = reg_data_type_m;
+void ModbusBase::set_mdu_reg_data_type(int serverAddress, std::map<int, std::map<QString, QModbusDataUnit>> mdum, std::map<int, std::map<QString, QString>> reg_data_type_m) {
+    this->_mdum[serverAddress] = mdum[serverAddress];
+    this->_reg_data_type_m[serverAddress] = reg_data_type_m[serverAddress];
 
     this->setupDeviceData();
     this->updateDeviceMap();
+    this->updatePollingGroups();
 }
 
-void ModbusBase::add_mdu_reg_data_type(QString reg_name, QModbusDataUnit mdu, QString reg_data_type) {
-    this->_mdum[reg_name] = mdu;
-    this->_reg_data_type_m[reg_name] = reg_data_type;
+void ModbusBase::add_mdu_reg_data_type(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type) {
+    this->_mdum[serverAddress][reg_name] = mdu;
+    this->_reg_data_type_m[serverAddress][reg_name] = reg_data_type;
 
     this->setupDeviceData();
     this->updateDeviceMap();
+    this->updatePollingGroups();
 }
 
 bool ModbusBase::isSerialPortAvailable(const QString &portName) {

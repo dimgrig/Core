@@ -56,6 +56,7 @@ public:
     ModbusBase(QWidget *parent = nullptr, QString config = "", ModbusSettings modbus_settings = ModbusSettings());
 
     virtual void updateDeviceMap() = 0;
+    virtual void updatePollingGroups() = 0;
 
     bool isConnected() const;
 
@@ -63,20 +64,20 @@ public:
 
     BytesFormat modbus_format() const {return BytesFormat_from_text(this->_modbus_settings.MODBUS_FORMAT.toStdString().c_str());};
 
-    QModbusDataUnit::RegisterType getRegisterType(const QString regName) const;
+    QModbusDataUnit::RegisterType getRegisterType(int serverAddress, const QString regName) const;
 
     void set_modbus_settings(ModbusSettings modbus_settings);
     void set_modbus_config(QString config);
 
-    std::map<QString, QModbusDataUnit> get_mdum() const {return _mdum;};
-    QModbusDataUnitMap get_reg() const {return _reg;};
-    std::vector<QModbusDataUnitMap> get_reg_v() const {return _reg_v;};
+    QModbusDataUnitMap get_reg(int serverAddress) const;
+    std::vector<QModbusDataUnitMap> get_reg_v(int serverAddress) const;
 
-    std::vector<std::pair<QString, QModbusDataUnit>> get_sort_by_start_address_mdum_v() const;
-    std::map<QString, QString> get_reg_data_type_m() const {return _reg_data_type_m;};
+    std::map<int, std::map<QString, QModbusDataUnit>> get_mdum() const {return _mdum;};
+    std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> get_sort_by_start_address_mdum_v() const;
+    std::map<int, std::map<QString, QString>> get_reg_data_type_m() const {return _reg_data_type_m;};
 
-    void set_mdu_reg_data_type(std::map<QString, QModbusDataUnit> mdum, std::map<QString, QString> reg_data_type_m);
-    void add_mdu_reg_data_type(QString reg_name, QModbusDataUnit mdu, QString reg_data_type);
+    void set_mdu_reg_data_type(int serverAddress, std::map<int, std::map<QString, QModbusDataUnit>> mdum, std::map<int, std::map<QString, QString>> reg_data_type_m);
+    void add_mdu_reg_data_type(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type);
 signals:
     void host_error(QString error);
     void host_connected();
@@ -108,7 +109,11 @@ protected slots:
 protected:
     void setupDeviceData();
 
-    std::map<QString, QModbusDataUnit> update_mdu(QModbusDataUnit::RegisterType table, unsigned int address, unsigned int size, std::map<QString, QModbusDataUnit> &mdum);
+    std::map<int, std::map<QString, QModbusDataUnit>> update_mdu(int serverAddress,
+                                                  QModbusDataUnit::RegisterType table,
+                                                  unsigned int address,
+                                                  unsigned int size,
+                                                  std::map<int, std::map<QString, QModbusDataUnit>> &mdum);
 
     void on_read_json(QString config);
 
@@ -116,10 +121,10 @@ protected:
 
     QString _config = "";
 
-    std::map<QString, QModbusDataUnit> _mdum;
-    QModbusDataUnitMap _reg; //no blanc space between registers
-    std::vector<QModbusDataUnitMap> _reg_v; //vector for splitting blanc space between registers
-    std::map<QString, QString> _reg_data_type_m; //map reg_name to type
+    std::map<int, QModbusDataUnitMap> _reg; //no blanc space between registers
+    std::map<int, std::vector<QModbusDataUnitMap>> _reg_v; //vector for splitting blanc space between registers
+    std::map<int, std::map<QString, QModbusDataUnit>> _mdum;
+    std::map<int, std::map<QString, QString>> _reg_data_type_m; //map reg_name to type
 
     ModbusSettings _modbus_settings;
     ConnectionType _connection_type = ConnectionTypeTCP;

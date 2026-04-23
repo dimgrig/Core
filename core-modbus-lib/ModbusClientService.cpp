@@ -46,9 +46,9 @@ void ModbusClientService::disconnectFromHost() {
     _modbusClient->disconnectFromHost();
 }
 
-void ModbusClientService::readRegister(const QString& registerName) {
+void ModbusClientService::readRegister(int serverAddress, const QString& registerName) {
     QModbusDataUnit mdu;
-    if (!findMduByName(registerName, mdu)) {
+    if (!findMduByName(serverAddress, registerName, mdu)) {
         emit errorOccurred(QStringLiteral("Register mapping not found: %1").arg(registerName));
         return;
     }
@@ -57,12 +57,12 @@ void ModbusClientService::readRegister(const QString& registerName) {
         return;
     }
     // использовать существующий ModbusClient API для отправки запроса
-    _modbusClient->sendSingleRequest(mdu);
+    _modbusClient->sendSingleRequest(serverAddress, mdu);
 }
 
-void ModbusClientService::writeRegister(const QString& registerName, const QVariant& value) {
+void ModbusClientService::writeRegister(int serverAddress, const QString& registerName, const QVariant& value) {
     QModbusDataUnit mdu;
-    if (!findMduByName(registerName, mdu)) {
+    if (!findMduByName(serverAddress, registerName, mdu)) {
         emit errorOccurred(QStringLiteral("Register mapping not found: %1").arg(registerName));
         return;
     }
@@ -97,7 +97,7 @@ void ModbusClientService::writeRegister(const QString& registerName, const QVari
     QModbusDataUnit writeUnit(mdu.registerType(), mdu.startAddress(), static_cast<quint16>(vals.size()));
     writeUnit.setValue(0, vals.isEmpty() ? 0 : vals.at(0)); // minimal
     // В ModbusClient есть on_write(QModbusDataUnit), используем его
-    _modbusClient->on_write(writeUnit);
+    _modbusClient->on_write(serverAddress, writeUnit);
 }
 
 void ModbusClientService::setDeviceUniqueId(const QString& uniqueId) {
@@ -110,42 +110,48 @@ QString ModbusClientService::deviceUniqueId() const {
     return _deviceUniqueId;
 }
 
-bool ModbusClientService::findMduByName(const QString& name, QModbusDataUnit& outMdu) const {
+bool ModbusClientService::findMduByName(int serverAddress, const QString& name, QModbusDataUnit& outMdu) const {
     if (!_modbusClient) return false;
     // ModbusBase содержит метод get_mdum() returning std::map<QString, QModbusDataUnit>
     auto mdum = _modbusClient->get_mdum(); // std::map<QString, QModbusDataUnit>
-    auto it = mdum.find(name);
-    if (it != mdum.end()) {
-        outMdu = it->second;
-        return true;
+    if (mdum.count(serverAddress)) {
+        auto it = mdum[serverAddress].find(name);
+        if (it != mdum[serverAddress].end()) {
+            outMdu = it->second;
+            return true;
+        }
     }
     return false;
 }
 
-void ModbusClientService::onReadReady(const QModbusDataUnit& mdu) {
+void ModbusClientService::onReadReady(int serverAddress, const QModbusDataUnit& mdu) {
     // Обработка входящего mdu: пытаемся найти соответствующие именованные записи и эмитить значения
-    handleIncomingMdu(mdu);
+    handleIncomingMdu(serverAddress, mdu);
 }
 
-void ModbusClientService::handleIncomingMdu(const QModbusDataUnit& incoming) {
+void ModbusClientService::handleIncomingMdu(int serverAddress, const QModbusDataUnit& incoming) {
     if (!_modbusClient) return;
 
     auto mdum = _modbusClient->get_mdum();
-    for (const auto &kv : mdum) {
-        const QString regName = kv.first;
-        const QModbusDataUnit& mapped = kv.second;
+    for (const auto &[_serverAddress, _mdum] : mdum) {
+        if (serverAddress == _serverAddress) {
+            for (const auto &kv : _mdum) {
+                const QString regName = kv.first;
+                const QModbusDataUnit& mapped = kv.second;
 
-        // Сопоставляем тип таблицы и адреса (простая стратегия)
-        if (mapped.registerType() == incoming.registerType() &&
-            mapped.startAddress() == incoming.startAddress()) {
+                // Сопоставляем тип таблицы и адреса (простая стратегия)
+                if (mapped.registerType() == incoming.registerType() &&
+                    mapped.startAddress() == incoming.startAddress()) {
 
-            // Получаем значения из incoming
-            QVariantList values;
-            const auto vals = incoming.values(); // QVector<quint16>
-            for (auto v : vals) values << QVariant(static_cast<int>(v));
+                    // Получаем значения из incoming
+                    QVariantList values;
+                    const auto vals = incoming.values(); // QVector<quint16>
+                    for (auto v : vals) values << QVariant(static_cast<int>(v));
 
-            // эмитим сигнал с именем регистра и списком значений
-            emit registerValueRead(regName, values);
+                    // эмитим сигнал с именем регистра и списком значений
+                    emit registerValueRead(regName, values);
+                }
+            }
         }
     }
 }

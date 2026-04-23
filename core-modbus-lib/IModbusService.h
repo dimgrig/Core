@@ -22,10 +22,10 @@ public slots:
     virtual void disconnectFromHost() = 0;
 
     // Выполнить чтение регистра (registerName — имя регистра, как задано в mapping)
-    virtual void readRegister(const QString& registerName) = 0;
+    virtual void readRegister(int serverAddress, const QString& registerName) = 0;
 
     // Записать значение в регистр (value — тип зависит от регистра)
-    virtual void writeRegister(const QString& registerName, const QVariant& value) = 0;
+    virtual void writeRegister(int serverAddress, const QString& registerName, const QVariant& value) = 0;
 
     // Немного управления
     virtual void setDeviceUniqueId(const QString& uniqueId) = 0;

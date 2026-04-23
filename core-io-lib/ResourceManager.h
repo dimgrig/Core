@@ -24,9 +24,16 @@ struct ModbusSettings;
 
 #define rm ResourceManager::instance()
 
+[[maybe_unused]]
+static QString CORE_IO_LIB_EXPORT makeModbusClientKey(const ModbusSettings& settings);
+
 class CORE_IO_LIB_EXPORT ResourceManager {
 public:
     static ResourceManager& instance();
+
+    std::shared_ptr<ModbusClient> getModbusClient(const QString &config,
+                                                  const ModbusSettings& settings,
+                                                  QWidget* parent = nullptr);
 
     // Основной шаблонный метод для получения любого клиента
     template<typename ClientType, typename... Args>
@@ -102,6 +109,44 @@ public:
         return ids;
     }
 
+    template<typename ClientType, typename... Args>
+    std::shared_ptr<ClientType> acquire_client(const QString& resource_id, Args&&... args) {
+        auto& clients_map = get_clients_map<ClientType>();
+        auto& refcounts_map = get_refcounts_map<ClientType>();
+
+        std::lock_guard<std::mutex> lock(get_mutex<ClientType>());
+
+        auto it = clients_map.find(resource_id);
+        if (it != clients_map.end()) {
+            // Увеличиваем счётчик
+            refcounts_map[resource_id]++;
+            return std::static_pointer_cast<ClientType>(it->second);
+        }
+
+        // Создаём новый клиент
+        auto client = std::make_shared<ClientType>(std::forward<Args>(args)...);
+        clients_map[resource_id] = client;
+        refcounts_map[resource_id] = 1;
+        return client;
+    }
+
+    // Освободить клиент (уменьшает счётчик, при 0 удаляет)
+    template<typename ClientType>
+    void release_client(const QString& resource_id) {
+        auto& clients_map = get_clients_map<ClientType>();
+        auto& refcounts_map = get_refcounts_map<ClientType>();
+
+        std::lock_guard<std::mutex> lock(get_mutex<ClientType>());
+
+        auto ref_it = refcounts_map.find(resource_id);
+        if (ref_it == refcounts_map.end()) return;
+
+        ref_it->second--;
+        if (ref_it->second == 0) {
+            clients_map.erase(resource_id);
+            refcounts_map.erase(ref_it);
+        }
+    }
 private:
     ResourceManager();
     ResourceManager(const ResourceManager&) = delete;
@@ -117,6 +162,9 @@ private:
 
     // Главный мьютекс для изменения контейнеров
     mutable std::mutex main_mutex_;
+
+    // Карта счётчиков
+    mutable std::map<std::type_index, std::unordered_map<QString, int>> refcounts_maps_;
 
     // Получение карты клиентов для типа (создает при необходимости)
     template<typename ClientType>
@@ -148,6 +196,20 @@ private:
 
         auto type_idx = std::type_index(typeid(ClientType));
         return mutexes_[type_idx];
+    }
+
+    template<typename ClientType>
+    struct ResourceEntry {
+        std::shared_ptr<ClientType> client;
+        int refCount;
+        ResourceEntry(std::shared_ptr<ClientType> c) : client(c), refCount(0) {}
+    };
+
+    template<typename ClientType>
+    std::unordered_map<QString, int>& get_refcounts_map() {
+        std::lock_guard<std::mutex> lock(main_mutex_);
+        auto type_idx = std::type_index(typeid(ClientType));
+        return refcounts_maps_[type_idx];
     }
 };
 

@@ -28,8 +28,8 @@ public slots:
     void connectToHost() override;
     void disconnectFromHost() override;
 
-    void readRegister(const QString& registerName) override;
-    void writeRegister(const QString& registerName, const QVariant& value) override;
+    void readRegister(int serverAddress, const QString& registerName) override;
+    void writeRegister(int serverAddress, const QString& registerName, const QVariant& value) override;
 
     void setDeviceUniqueId(const QString& uniqueId) override;
     QString deviceUniqueId() const override;
@@ -39,17 +39,17 @@ public slots:
 
 private slots:
     // slot для приема QModbusDataUnit от ModbusClient
-    void onReadReady(const QModbusDataUnit& mdu);
+    void onReadReady(int serverAddress, const QModbusDataUnit& mdu);
     void onHostConnected();
     void onHostDisconnected();
     void onHostError(const QString& error);
 
 private:
     // найдет mdu mapping по registerName
-    bool findMduByName(const QString& name, QModbusDataUnit& outMdu) const;
+    bool findMduByName(int serverAddress, const QString& name, QModbusDataUnit& outMdu) const;
 
     // пробует сопоставить incoming mdu с записью в mdum и эмитить значение
-    void handleIncomingMdu(const QModbusDataUnit& incoming);
+    void handleIncomingMdu(int serverAddress, const QModbusDataUnit& incoming);
 
     ModbusClient* _modbusClient = nullptr;
     QString _deviceUniqueId;

@@ -67,8 +67,12 @@ ModbusServer::~ModbusServer() {
 void ModbusServer::updateDeviceMap()
 {
     if (modbusDevice) {
-        modbusDevice->setMap(this->_reg);
+        modbusDevice->setMap(this->get_reg(_modbus_settings.MODBUS_ADDRESS));
     }
+}
+
+void ModbusServer::updatePollingGroups() {
+
 }
 
 void ModbusServer::on_connect_type(int index) {
@@ -157,9 +161,14 @@ void ModbusServer::on_connect() {
             }
             this->setupDeviceData();
             this->updateDeviceMap();
-            for (const auto &value : this->_mdum) {
-                this->modbusDevice->setData(value.second);
-                //qCDebug(logDebug()) << value.first << value.second.startAddress() << value.second.valueCount() << value.second.values();
+            this->updatePollingGroups();
+            for (const auto &[serverAddress, __mdum] : this->_mdum) {
+                if (serverAddress == _modbus_settings.MODBUS_ADDRESS) {
+                    for (const auto &value : __mdum) {
+                        this->modbusDevice->setData(value.second);
+                        //qCDebug(logDebug()) << value.first << value.second.startAddress() << value.second.valueCount() << value.second.values();
+                    }
+                }
             }
         }
     } else {
@@ -218,72 +227,76 @@ void ModbusServer::settings_change() {
     }
 }
 
-void ModbusServer::setRegister(const QString &reg_name, double value) {
-    auto regType = this->getRegisterType(reg_name);
+void ModbusServer::setRegister(int serverAddress, const QString &reg_name, double value) {
+    auto regType = this->getRegisterType(serverAddress, reg_name);
     if (regType != QModbusDataUnit::Invalid) {
-        this->setRegister(regType, reg_name, value);
+        this->setRegister(serverAddress, regType, reg_name, value);
     } else {
         qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
     }
 }
 
-void ModbusServer::setRegisterString(const QString &reg_name, const QString &value) {
-    auto regType = this->getRegisterType(reg_name);
+void ModbusServer::setRegisterString(int serverAddress, const QString &reg_name, const QString &value) {
+    auto regType = this->getRegisterType(serverAddress, reg_name);
     if (regType != QModbusDataUnit::Invalid) {
-        this->setRegisterString(regType, reg_name, value);
+        this->setRegisterString(serverAddress, regType, reg_name, value);
     } else {
         qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
     }
 }
 
-void ModbusServer::setRegister(QModbusDataUnit::RegisterType table, const QString &regName, double value) {
+void ModbusServer::setRegister(int serverAddress, QModbusDataUnit::RegisterType table, const QString &regName, double value) {
     if (!modbusDevice)
         return;
 
-    if (_mdum.count(regName) > 0) {
-        bool ok = true;
-        Q_UNUSED(ok);
+    if (_mdum.count(serverAddress) > 0) {
+        if (_mdum.at(serverAddress).count(regName) > 0) {
+            bool ok = true;
+            Q_UNUSED(ok);
 
-        int address = _mdum.at(regName).startAddress(); // + 1
-        int size = _mdum.at(regName).valueCount();
-        Q_UNUSED(size);
+            int address = _mdum.at(serverAddress).at(regName).startAddress(); // + 1
+            int size = _mdum.at(serverAddress).at(regName).valueCount();
+            Q_UNUSED(size);
 
-        //qCDebug(logDebug) << "setRegister" << "reg_name" << reg_name << "registerType" << table  << "value" << value << "startAddress" << address;
+            //qCDebug(logDebug) << "setRegister" << "reg_name" << reg_name << "registerType" << table  << "value" << value << "startAddress" << address;
 
-        switch (table) {
-            case QModbusDataUnit::Coils:
-            {
-                ok = modbusDevice->setData(table, address, value);
-            }
-            break;
-            case QModbusDataUnit::DiscreteInputs:
-            {
-                ok = modbusDevice->setData(table, address, value);
-            }
-            break;
-            case QModbusDataUnit::InputRegisters:
-            case QModbusDataUnit::HoldingRegisters:
-            {
-                auto reg_data_type_m = this->get_reg_data_type_m();
-                QString dataType = "double";
-                if (reg_data_type_m.count(regName) > 0) {
-                    dataType = reg_data_type_m[regName];
+            switch (table) {
+                case QModbusDataUnit::Coils:
+                {
+                    ok = modbusDevice->setData(table, address, value);
                 }
+                break;
+                case QModbusDataUnit::DiscreteInputs:
+                {
+                    ok = modbusDevice->setData(table, address, value);
+                }
+                break;
+                case QModbusDataUnit::InputRegisters:
+                case QModbusDataUnit::HoldingRegisters:
+                {
+                    auto reg_data_type_m = this->get_reg_data_type_m();
+                    QString dataType = "double";
+                    if (reg_data_type_m.count(serverAddress) > 0) {
+                        if (reg_data_type_m.at(serverAddress).count(regName) > 0) {
+                            dataType = reg_data_type_m.at(serverAddress).at(regName);
+                        }
+                    }
 
-                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
-                _mdum[regName].setValues(values);
-                ok = modbusDevice->setData(_mdum[regName]);
+                    QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                    _mdum[serverAddress][regName].setValues(values);
+                    ok = modbusDevice->setData(_mdum[serverAddress][regName]);
+                }
+                break;
+                default:
+
+                break;
             }
-            break;
-            default:
-
-            break;
+            if (!ok) {
+                qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
+            }
+    //        if (!ok)
+    //            statusBar()->showMessage(tr("Could not set register: ") + modbusDevice->errorString());
         }
-        if (!ok) {
-            qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
-        }
-//        if (!ok)
-//            statusBar()->showMessage(tr("Could not set register: ") + modbusDevice->errorString());
     }
 
     // qCDebug(logDebug()) << _mdum.size();
@@ -292,32 +305,43 @@ void ModbusServer::setRegister(QModbusDataUnit::RegisterType table, const QStrin
     // }
 }
 
-void ModbusServer::setRegisterString(QModbusDataUnit::RegisterType table, const QString &regName, const QString &value) {
+void ModbusServer::setRegisterString(int serverAddress, QModbusDataUnit::RegisterType table, const QString &regName, const QString &value) {
     if (!modbusDevice)
         return;
 
-    if (_mdum.count(regName) > 0) {
-        //qCDebug(logDebug) << "setRegisterString" << "reg_name" << reg_name << "registerType" << table << "value" << value << "startAddress" << address;
+    if (_mdum.count(serverAddress) > 0) {
+        if (_mdum.at(serverAddress).count(regName) > 0) {
+            //qCDebug(logDebug) << "setRegisterString" << "reg_name" << reg_name << "registerType" << table << "value" << value << "startAddress" << address;
 
-        switch (table) {
-        case QModbusDataUnit::InputRegisters:
-        case QModbusDataUnit::HoldingRegisters:
-        {           
-            auto reg_data_type_m = this->get_reg_data_type_m();
-            QString dataType = "double";
-            if (reg_data_type_m.count(regName) > 0) {
-                dataType = reg_data_type_m[regName];
+            bool ok = true;
+            Q_UNUSED(ok);
+
+            switch (table) {
+            case QModbusDataUnit::InputRegisters:
+            case QModbusDataUnit::HoldingRegisters:
+            {
+                auto reg_data_type_m = this->get_reg_data_type_m();
+                QString dataType = "double";
+                if (reg_data_type_m.count(serverAddress) > 0) {
+                    if (reg_data_type_m.at(serverAddress).count(regName) > 0) {
+                        dataType = reg_data_type_m.at(serverAddress).at(regName);
+                    }
+                }
+
+                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                _mdum[serverAddress][regName].setValues(values);
+                ok = modbusDevice->setData(_mdum[serverAddress][regName]);
+                //qCDebug(logDebug) << "setRegisterString" << reg_name << value << "as" << values;
+            }
+            break;
+            default:
+                qCDebug(logWarning) << "String write not supported for register type:" << table;
+                break;
             }
 
-            QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
-            _mdum[regName].setValues(values);
-            modbusDevice->setData(_mdum[regName]);
-            //qCDebug(logDebug) << "setRegisterString" << reg_name << value << "as" << values;
-        }
-        break;
-        default:
-            qCDebug(logWarning) << "String write not supported for register type:" << table;
-            break;
+            if (!ok) {
+                qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
+            }
         }
     }
 }
@@ -326,42 +350,44 @@ void ModbusServer::updateRegisters(QModbusDataUnit::RegisterType table, int addr
     //qCDebug(logDebug()) << "updateRegisters" << "registerType" << table << "startAddress" << address << "valueCount" << size;
     QModbusDataUnit mdu(table, address, size);
 
-    auto mdum = this->update_mdu(table, address, size, this->_mdum);
+    auto mdum = this->update_mdu(_modbus_settings.MODBUS_ADDRESS, table, address, size, this->_mdum);
 
 //    qCDebug(logDebug()) << "mdum" <<  mdum.size();
 //    for (const auto &value : mdum) {
 //        qCDebug(logDebug()) << value.first << value.second.startAddress() << value.second.valueCount() << value.second.values();
 //    }
 
-    for (auto &mdu : mdum) {
-        quint16 value;
-        switch (table) {
-            case QModbusDataUnit::Coils:
-            {
-                QVector<quint16> values;
-                for (unsigned int i = 0; i < mdu.second.valueCount(); ++i) {
-                    modbusDevice->data(mdu.second.registerType(), quint16(mdu.second.startAddress() + i), &value);
-                    values.push_back(value);
+    for (auto &[_serverAddress, _mdum] : mdum) {
+        for (auto &mdu : _mdum) {
+            quint16 value;
+            switch (table) {
+                case QModbusDataUnit::Coils:
+                {
+                    QVector<quint16> values;
+                    for (unsigned int i = 0; i < mdu.second.valueCount(); ++i) {
+                        modbusDevice->data(mdu.second.registerType(), quint16(mdu.second.startAddress() + i), &value);
+                        values.push_back(value);
+                    }
+                    mdu.second.setValues(values);
                 }
-                mdu.second.setValues(values);
-            }
-            break;
-            case QModbusDataUnit::HoldingRegisters:
-            {
-                QVector<quint16> values;
-                for (unsigned int i = 0; i < mdu.second.valueCount(); ++i) {
-                    modbusDevice->data(mdu.second.registerType(), quint16(mdu.second.startAddress() + i), &value);
-                    values.push_back(value);
+                break;
+                case QModbusDataUnit::HoldingRegisters:
+                {
+                    QVector<quint16> values;
+                    for (unsigned int i = 0; i < mdu.second.valueCount(); ++i) {
+                        modbusDevice->data(mdu.second.registerType(), quint16(mdu.second.startAddress() + i), &value);
+                        values.push_back(value);
+                    }
+                    mdu.second.setValues(values);
                 }
-                mdu.second.setValues(values);
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
-        }
 
-//        qCDebug(logDebug()) << "updateRegisters" << "reg_name" << mdu.first << "registerType" << mdu.second.registerType() << "startAddress" << mdu.second.startAddress() <<
-//                               "valueCount" << mdu.second.valueCount() << "values" << mdu.second.values();
-        emit read_ready(mdu.first, mdu.second);
+    //        qCDebug(logDebug()) << "updateRegisters" << "reg_name" << mdu.first << "registerType" << mdu.second.registerType() << "startAddress" << mdu.second.startAddress() <<
+    //                               "valueCount" << mdu.second.valueCount() << "values" << mdu.second.values();
+            emit read_ready(this->_modbus_settings.MODBUS_ADDRESS, mdu.first, mdu.second);
+        }
     }
 }

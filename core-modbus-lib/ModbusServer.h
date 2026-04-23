@@ -28,9 +28,10 @@ public:
     ~ModbusServer();
 
     void updateDeviceMap() override;
+    void updatePollingGroups() override;
 
 signals:
-    void read_ready(QString reg_name, QModbusDataUnit mdu);
+    void read_ready(int serverAddress, QString reg_name, QModbusDataUnit mdu);
 public slots:
     std::shared_ptr<QModbusDevice> device() const override {
         return std::static_pointer_cast<QModbusDevice>(modbusDevice);
@@ -40,11 +41,11 @@ public slots:
     void on_connect() override;
     void disconnectFromHost() override;
 
-    void setRegister(const QString &reg_name, double value);
-    void setRegisterString(const QString &reg_name, const QString &value);
+    void setRegister(int serverAddress, const QString &reg_name, double value);
+    void setRegisterString(int serverAddress, const QString &reg_name, const QString &value);
 
-    void setRegister(QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
-    void setRegisterString(QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
+    void setRegister(int serverAddress, QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
+    void setRegisterString(int serverAddress, QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
 private slots:
     void onModbusStateChanged(int state);
     void onModbusErrorOccurred(QModbusDevice::Error error);

@@ -28,6 +28,7 @@ public:
     ~ModbusClient();
 
     void updateDeviceMap() override;
+    void updatePollingGroups() override;
 
     void set_async(bool async);
     // bool isReadable() {return this->_socket->isReadable();};
@@ -36,16 +37,21 @@ public:
     bool reset() {return false;};
 
     bool getServerResponsive() const {return _lastResponsiveState;};
+    bool getPollingCycleActive() const {return _pollingCycleActive;};
 
-    void enqueueReadRequest(const QModbusDataUnit& mdu, bool isPolling = false);
-    void enqueueWriteRequest(const QModbusDataUnit& mdu, bool highPriority = false);
+    void enqueueReadRequest(int serverAddress, const QModbusDataUnit& mdu, bool isPolling = false);
+    void enqueueWriteRequest(int serverAddress, const QModbusDataUnit& mdu, bool highPriority = false);
     void startPolling();
     void stopPolling();
     void clearQueue();
 
     bool processingQueue() const {return _processingQueue;};
+
+    void addPollingGroup(int serverAddress, const QModbusDataUnit& unit);
+    void removePollingGroupsForAddress(int serverAddress);
+    void clearPollingGroups();
 signals:
-    void read_ready(QModbusDataUnit mdu);
+    void read_ready(int serverAddress, QModbusDataUnit mdu);
 
     void serverHealthChanged(bool responsive);
 public slots:
@@ -57,15 +63,15 @@ public slots:
     void on_connect() override;
     void disconnectFromHost() override;
 
-    void sendSingleRequest(QModbusDataUnit mdu);
+    void sendSingleRequest(int serverAddress, QModbusDataUnit mdu);
 
-    void on_read(QModbusDataUnit mdu);
-    void on_write(QModbusDataUnit mdu);
-    void on_read(QModbusDataUnit::RegisterType type, int startAddress, quint16 numberOfEntries);
-    void on_write(QModbusDataUnit::RegisterType type, int startAddress, quint16 numberOfEntries);
+    void on_read(int serverAddress, QModbusDataUnit mdu);
+    void on_write(int serverAddress, QModbusDataUnit mdu);
+    void on_read(int serverAddress, QModbusDataUnit::RegisterType type, int startAddress, quint16 numberOfEntries);
+    void on_write(int serverAddress, QModbusDataUnit::RegisterType type, int startAddress, quint16 numberOfEntries);
 
-    void setRegister(const QString &reg_name, double value);
-    void setRegisterString(const QString &reg_name, const QString &value);
+    void setRegister(int serverAddress, const QString &reg_name, double value);
+    void setRegisterString(int serverAddress, const QString &reg_name, const QString &value);
 
     QModbusDataUnit getLastReadUnit() const {return _lastReadUnit;};
     QModbusDataUnit getLastWriteUnit()  const {return _lastWriteUnit;};
@@ -81,13 +87,19 @@ private slots:
 private:
     struct Request {
         QModbusDataUnit unit;
+        int serverAddress;
         bool isWrite;
         bool highPriority;
         bool isPolling; // true, если запрос является частью циклического опроса
     };
 
-    void setRegister(QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
-    void setRegisterString(QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
+    struct PollingGroup {
+        int serverAddress;
+        QModbusDataUnit unit;
+    };
+
+    void setRegister(int serverAddress, QModbusDataUnit::RegisterType table, const QString &reg_name, double value);
+    void setRegisterString(int serverAddress, QModbusDataUnit::RegisterType table, const QString &reg_name, const QString &value);
     void scheduleReconnect();
 
     QModbusReply *lastRequest = nullptr;
@@ -103,7 +115,7 @@ private:
     const int MAX_QUEUE_SIZE = 100;
 
     QTimer *_pollTimer = nullptr;
-    std::vector<QModbusDataUnit> _pollingGroups; // группы регистров для периодического чтения
+    std::vector<PollingGroup> _pollingGroups; // группы регистров для периодического чтения
     int _currentPollGroupIndex = 0;
     int _pendingPollCount = 0;
     bool _pollingCycleActive = false;

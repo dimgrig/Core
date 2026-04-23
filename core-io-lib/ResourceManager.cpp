@@ -1,5 +1,8 @@
 #include "ResourceManager.h"
 
+#include "ModbusSettings.h"
+#include "ModbusClient.h"
+
 ResourceManager::ResourceManager() {
 
 }
@@ -7,6 +10,11 @@ ResourceManager::ResourceManager() {
 ResourceManager& ResourceManager::instance() {
     static ResourceManager instance;
     return instance;
+}
+
+std::shared_ptr<ModbusClient> ResourceManager::getModbusClient(const QString &config, const ModbusSettings& settings, QWidget* parent) {
+    QString key = makeModbusClientKey(settings);
+    return acquire_client<ModbusClient>(key, parent, config, settings);
 }
 
 // // Реализация упрощенного метода для ModbusClient

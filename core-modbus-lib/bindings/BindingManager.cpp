@@ -12,8 +12,12 @@
 #include "LineEditBinding.h"
 #include "SpinBoxBinding.h"
 
-BindingManager::BindingManager(std::shared_ptr<ModbusClient> modbusClient, QObject* parent)
-    : QObject(parent), m_modbusClient(modbusClient) {
+BindingManager::BindingManager(int serverAddress,
+                               std::shared_ptr<ModbusClient> modbusClient,
+                               QObject* parent)
+    : QObject(parent)
+    , m_serverAddress(serverAddress)
+    , m_modbusClient(modbusClient) {
 
 }
 
@@ -88,51 +92,57 @@ QList<std::shared_ptr<RegisterBinding>> BindingManager::get_bindings(const QStri
     }
 }
 
-void BindingManager::processModbusData(const QModbusDataUnit& unit) {
+void BindingManager::processModbusData(int serverAddress, const QModbusDataUnit& unit) {
+    if (serverAddress != m_serverAddress) return;
+
     auto mdum = m_modbusClient->get_mdum();
 
-    for (const auto& regPair : mdum) {
-        const QString& regName = regPair.first;
-        const QModbusDataUnit& regUnit = regPair.second;
+    for (const auto& [_serverAddress, _mdum] : mdum) {
+        if (_serverAddress == serverAddress) {
+            for (const auto& regPair : _mdum) {
+                const QString& regName = regPair.first;
+                const QModbusDataUnit& regUnit = regPair.second;
 
-        if (regUnit.registerType() == unit.registerType()) {
-            unsigned int start = regUnit.startAddress();
-            unsigned int count = regUnit.valueCount();
+                if (regUnit.registerType() == unit.registerType()) {
+                    unsigned int start = regUnit.startAddress();
+                    unsigned int count = regUnit.valueCount();
 
-            if ((start + count) > static_cast<unsigned int>(unit.startAddress()) &&
-                start < (static_cast<unsigned int>(unit.startAddress()) + unit.valueCount())) {
+                    if ((start + count) > static_cast<unsigned int>(unit.startAddress()) &&
+                        start < (static_cast<unsigned int>(unit.startAddress()) + unit.valueCount())) {
 
-                unsigned int offset = qMax((unsigned int)0, start - static_cast<unsigned int>(unit.startAddress()));
-                unsigned int copyCount = qMin(count, (unit.valueCount() - offset));
+                        unsigned int offset = qMax((unsigned int)0, start - static_cast<unsigned int>(unit.startAddress()));
+                        unsigned int copyCount = qMin(count, (unit.valueCount() - offset));
 
-                if (copyCount > 0) {
-                    QVector<quint16> data(copyCount);
-                    for (unsigned int i = 0; i < copyCount; ++i) {
-                        data[i] = unit.values().at(offset + i);
-                    }
-
-                    // Обновляем кэш
-                    updateRegisterCache(regName, data);
-
-                    // Обновляем все привязанные элементы UI
-                    if (m_bindings.contains(regName)) {
-                        for (auto& binding : m_bindings[regName]) {
-                            if (!binding) {
-                                qCDebug(logWarning()) << "Binding is null for register:" << regName;
-                                continue;
+                        if (copyCount > 0) {
+                            QVector<quint16> data(copyCount);
+                            for (unsigned int i = 0; i < copyCount; ++i) {
+                                data[i] = unit.values().at(offset + i);
                             }
 
-                            // Проверяем, что привязка валидна
-                            if (!binding->isValid()) {
-                                qCDebug(logWarning()) << "Binding is invalid for register:" << regName;
-                                continue;
-                            }
+                            // Обновляем кэш
+                            updateRegisterCache(regName, data);
 
-                            if (binding->direction() != RegisterBinding::WriteOnly) {
-                                // Помечаем привязку как обновляемую, чтобы избежать рекурсии
-                                m_updatingBindings.insert(binding.get());
-                                binding->updateFromRegister(data);
-                                m_updatingBindings.remove(binding.get());
+                            // Обновляем все привязанные элементы UI
+                            if (m_bindings.contains(regName)) {
+                                for (auto& binding : m_bindings[regName]) {
+                                    if (!binding) {
+                                        qCDebug(logWarning()) << "Binding is null for register:" << regName;
+                                        continue;
+                                    }
+
+                                    // Проверяем, что привязка валидна
+                                    if (!binding->isValid()) {
+                                        qCDebug(logWarning()) << "Binding is invalid for register:" << regName;
+                                        continue;
+                                    }
+
+                                    if (binding->direction() != RegisterBinding::WriteOnly) {
+                                        // Помечаем привязку как обновляемую, чтобы избежать рекурсии
+                                        m_updatingBindings.insert(binding.get());
+                                        binding->updateFromRegister(data);
+                                        m_updatingBindings.remove(binding.get());
+                                    }
+                                }
                             }
                         }
                     }
@@ -153,6 +163,12 @@ void BindingManager::onBindingValueChanged() {
 
     QString regName = sourceBinding->registerName();
     QVector<quint16> newData = sourceBinding->getRegisterData();
+
+    auto regType = m_modbusClient->getRegisterType(m_serverAddress, regName);
+    if (regType == QModbusDataUnit::DiscreteInputs || regType == QModbusDataUnit::InputRegisters) {
+        qCWarning(logWarning) << "Cannot write to read-only register" << regName;
+        return;
+    }
 
     // Обновляем кэш
     updateRegisterCache(regName, newData);
@@ -178,10 +194,12 @@ void BindingManager::onBindingValueChanged() {
 
     // Отправляем запрос на запись в Modbus
     auto mdum = m_modbusClient->get_mdum();
-    if (mdum.count(regName) > 0) {
-        QModbusDataUnit unit = mdum.at(regName);
-        unit.setValues(newData);
-        m_modbusClient->on_write(unit);
+    if (mdum.count(m_serverAddress) > 0) {
+        if (mdum.at(m_serverAddress).count(regName) > 0) {
+            QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
+            unit.setValues(newData);
+            m_modbusClient->on_write(m_serverAddress, unit);
+        }
     }
 }
 
@@ -190,21 +208,23 @@ void BindingManager::onRegisterValueRequested(const QString& registerName, const
 
     // Прямой запрос на запись регистра
     auto mdum = m_modbusClient->get_mdum();
-    if (mdum.count(registerName) > 0) {
-        QModbusDataUnit unit = mdum.at(registerName);
-        unit.setValues(data);
-        m_modbusClient->on_write(unit);
+    if (mdum.count(m_serverAddress) > 0) {
+        if (mdum.at(m_serverAddress).count(registerName) > 0) {
+            QModbusDataUnit unit = mdum.at(m_serverAddress).at(registerName);
+            unit.setValues(data);
+            m_modbusClient->on_write(m_serverAddress, unit);
 
-        // Также обновляем кэш и другие привязки
-        updateRegisterCache(registerName, data);
+            // Также обновляем кэш и другие привязки
+            updateRegisterCache(registerName, data);
 
-        if (m_bindings.contains(registerName)) {
-            auto* sourceBinding = qobject_cast<RegisterBinding*>(sender());
-            for (auto& binding : m_bindings[registerName]) {
-                if (binding.get() != sourceBinding && binding->direction() != RegisterBinding::WriteOnly) {
-                    m_updatingBindings.insert(binding.get());
-                    binding->updateFromRegister(data);
-                    m_updatingBindings.remove(binding.get());
+            if (m_bindings.contains(registerName)) {
+                auto* sourceBinding = qobject_cast<RegisterBinding*>(sender());
+                for (auto& binding : m_bindings[registerName]) {
+                    if (binding.get() != sourceBinding && binding->direction() != RegisterBinding::WriteOnly) {
+                        m_updatingBindings.insert(binding.get());
+                        binding->updateFromRegister(data);
+                        m_updatingBindings.remove(binding.get());
+                    }
                 }
             }
         }
@@ -220,7 +240,7 @@ void BindingManager::onReadRequested(const QString& registerName) {
 QList<QModbusDataUnit> BindingManager::getPollingUnits() const {
     QList<QModbusDataUnit> units;
 
-    auto reg_v = m_modbusClient->get_reg_v();
+    auto reg_v = m_modbusClient->get_reg_v(m_serverAddress);
     for (const auto& regMap : reg_v) {
         for (const auto& unit : regMap) {
             units.append(unit);
@@ -245,7 +265,7 @@ bool BindingManager::hasRegisterCache(const QString& registerName) const {
 void BindingManager::requestRegisterRead(const QString& registerName) {
     QModbusDataUnit pollingUnit = findPollingUnitForRegister(registerName);
     if (pollingUnit.isValid()) {
-        m_modbusClient->sendSingleRequest(pollingUnit);
+        m_modbusClient->sendSingleRequest(m_serverAddress, pollingUnit);
     }
 }
 
@@ -263,16 +283,17 @@ void BindingManager::registerWidgetsFromContainer(QWidget* container) {
 
 QModbusDataUnit BindingManager::findPollingUnitForRegister(const QString& registerName) const {
     // Получаем список всех блоков для опроса
-    auto pollingUnits = getPollingUnits();
+    //auto pollingUnits = getPollingUnits();
 
-    // Получаем информацию о конкретном регистре из ModbusClient
     auto mdum = m_modbusClient->get_mdum();
-    if (!mdum.count(registerName)) {
-        return QModbusDataUnit();
+    if (mdum.count(m_serverAddress) > 0) {
+        if (mdum.at(m_serverAddress).count(registerName) > 0) {
+            QModbusDataUnit unit = mdum.at(m_serverAddress).at(registerName);
+            return unit;
+        }
     }
 
-    QModbusDataUnit registerUnit = mdum.at(registerName);
-    return registerUnit;
+    return QModbusDataUnit();
 }
 
 void BindingManager::scanWidgetForBindings(QWidget* widget) {

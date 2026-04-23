@@ -27,15 +27,19 @@ exists(/etc/astra_version) {
 } else {
     unix {
         LIBS += -L/usr/lib/qt/ -lcore-lib
+        LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
     }
 
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
     win64 {
+        DEFINES += win64
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
 }
 
@@ -54,6 +58,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/httpserver"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/templateengine"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib"
 
 BUILD_DIR = $$PWD/../build/$${TARGET}-build/
 DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH

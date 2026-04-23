@@ -55,51 +55,51 @@ void TestModbusIntegration::testClientServerCommunication()
     QTRY_COMPARE_WITH_TIMEOUT(modbusServer->state(), QModbusDevice::ConnectedState, 100);
 
     // Устанавливаем регистры
-    modbusServer->setRegister("input1", true);
-    modbusServer->setRegister("input2", false);
-    modbusServer->setRegister("input3", true);
-    modbusServer->setRegister("input4", false);
-    modbusServer->setRegister("input5", true);
-    modbusServer->setRegister("input6", false);
-    modbusServer->setRegister("input7", true);
-    modbusServer->setRegister("input8", false);
-    modbusServer->setRegister("input9", true);
-    modbusServer->setRegister("input10", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input2", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input3", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input4", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input5", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input6", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input7", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input8", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input9", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input10", false);
 
-    modbusServer->setRegister("Coil1", true);
-    modbusServer->setRegister("Coil2", false);
-    modbusServer->setRegister("Coil3", true);
-    modbusServer->setRegister("Coil4", false);
-    modbusServer->setRegister("Coil5", true);
-    modbusServer->setRegister("Coil6", false);
-    modbusServer->setRegister("Coil7", true);
-    modbusServer->setRegister("Coil8", false);
-    modbusServer->setRegister("Coil9", true);
-    modbusServer->setRegister("Coil10", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil1", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil2", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil3", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil4", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil5", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil6", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil7", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil8", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil9", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil10", false);
 
-    modbusServer->setRegister("ir1", 1);
-    modbusServer->setRegister("ir2", -2);
-    modbusServer->setRegister("ir3", 1000000);
-    modbusServer->setRegister("ir4", -1000000);
-    modbusServer->setRegister("ir5", 5.5);
-    modbusServer->setRegister("ir6", -6.6);
-    modbusServer->setRegister("ir7", 7.7);
-    modbusServer->setRegister("ir8", -8.8);
-    modbusServer->setRegister("ir9", 10000000000);
-    modbusServer->setRegister("ir10", -10000000000);
-    modbusServer->setRegisterString("InputString", "InputString");
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir1", 1);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir2", -2);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir3", 1000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir4", -1000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir5", 5.5);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir6", -6.6);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir7", 7.7);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir8", -8.8);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir9", 10000000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir10", -10000000000);
+    modbusServer->setRegisterString(modbusSettings.MODBUS_ADDRESS, "InputString", "InputString");
 
-    modbusServer->setRegister("hr1", 1);
-    modbusServer->setRegister("hr2", -2);
-    modbusServer->setRegister("hr3", 1000000);
-    modbusServer->setRegister("hr4", -1000000);
-    modbusServer->setRegister("hr5", 5.5);
-    modbusServer->setRegister("hr6", -6.6);
-    modbusServer->setRegister("hr7", 7.7);
-    modbusServer->setRegister("hr8", -8.8);
-    modbusServer->setRegister("hr9", 10000000000);
-    modbusServer->setRegister("hr10", -10000000000);
-    modbusServer->setRegisterString("HoldingString", "HoldingString");
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr1", 1);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr2", -2);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr3", 1000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr4", -1000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr5", 5.5);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr6", -6.6);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr7", 7.7);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr8", -8.8);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr9", 10000000000);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr10", -10000000000);
+    modbusServer->setRegisterString(modbusSettings.MODBUS_ADDRESS, "HoldingString", "HoldingString");
 
     // qCDebug(logDebug()) << modbusServer->get_mdum().size();
     // for (const auto&[regName, mdu] : modbusServer->get_mdum()) {
@@ -117,9 +117,12 @@ void TestModbusIntegration::testClientServerCommunication()
 
     //--- Тест 1: чтение начальных значений ---
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 1);
@@ -135,9 +138,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 1);
@@ -153,9 +159,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 39));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 39));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 39);
         QCOMPARE(unit.value(0), 1);
@@ -200,9 +209,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 39));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 39));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 39);
         QCOMPARE(unit.value(0), 1);
@@ -247,56 +259,59 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     // --- Тест 2: обновление сервером ---
-    modbusServer->setRegister("input1", false);
-    modbusServer->setRegister("input2", true);
-    modbusServer->setRegister("input3", false);
-    modbusServer->setRegister("input4", true);
-    modbusServer->setRegister("input5", false);
-    modbusServer->setRegister("input6", true);
-    modbusServer->setRegister("input7", false);
-    modbusServer->setRegister("input8", true);
-    modbusServer->setRegister("input9", false);
-    modbusServer->setRegister("input10", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input2", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input3", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input4", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input5", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input6", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input7", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input8", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input9", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input10", true);
 
-    modbusServer->setRegister("Coil1", false);
-    modbusServer->setRegister("Coil2", true);
-    modbusServer->setRegister("Coil3", false);
-    modbusServer->setRegister("Coil4", true);
-    modbusServer->setRegister("Coil5", false);
-    modbusServer->setRegister("Coil6", true);
-    modbusServer->setRegister("Coil7", false);
-    modbusServer->setRegister("Coil8", true);
-    modbusServer->setRegister("Coil9", false);
-    modbusServer->setRegister("Coil10", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil1", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil2", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil3", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil4", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil5", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil6", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil7", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil8", true);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil9", false);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil10", true);
 
-    modbusServer->setRegister("ir1", 2);
-    modbusServer->setRegister("ir2", -3);
-    modbusServer->setRegister("ir3", 1000001);
-    modbusServer->setRegister("ir4", -1000001);
-    modbusServer->setRegister("ir5", 5.6);
-    modbusServer->setRegister("ir6", -6.7);
-    modbusServer->setRegister("ir7", 7.8);
-    modbusServer->setRegister("ir8", -8.9);
-    modbusServer->setRegister("ir9", 10000000001);
-    modbusServer->setRegister("ir10", -10000000001);
-    modbusServer->setRegisterString("InputString", "InputString123");
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir1", 2);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir2", -3);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir3", 1000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir4", -1000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir5", 5.6);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir6", -6.7);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir7", 7.8);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir8", -8.9);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir9", 10000000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "ir10", -10000000001);
+    modbusServer->setRegisterString(modbusSettings.MODBUS_ADDRESS, "InputString", "InputString123");
 
-    modbusServer->setRegister("hr1", 2);
-    modbusServer->setRegister("hr2", -3);
-    modbusServer->setRegister("hr3", 1000001);
-    modbusServer->setRegister("hr4", -1000001);
-    modbusServer->setRegister("hr5", 5.6);
-    modbusServer->setRegister("hr6", -6.7);
-    modbusServer->setRegister("hr7", 7.8);
-    modbusServer->setRegister("hr8", -8.9);
-    modbusServer->setRegister("hr9", 10000000001);
-    modbusServer->setRegister("hr10", -10000000001);
-    modbusServer->setRegisterString("HoldingString", "HoldingString123");
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr1", 2);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr2", -3);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr3", 1000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr4", -1000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr5", 5.6);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr6", -6.7);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr7", 7.8);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr8", -8.9);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr9", 10000000001);
+    modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "hr10", -10000000001);
+    modbusServer->setRegisterString(modbusSettings.MODBUS_ADDRESS, "HoldingString", "HoldingString123");
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 0);
@@ -312,9 +327,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 0);
@@ -330,9 +348,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 42));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 42));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 42);
         QCOMPARE(unit.value(0), 2);
@@ -380,9 +401,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 42));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 42));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 42);
         QCOMPARE(unit.value(0), 2);
@@ -430,56 +454,59 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     // --- Тест 3: запись клиентом ---
-    modbusClient->setRegister("input1", true);
-    modbusClient->setRegister("input2", false);
-    modbusClient->setRegister("input3", true);
-    modbusClient->setRegister("input4", false);
-    modbusClient->setRegister("input5", true);
-    modbusClient->setRegister("input6", false);
-    modbusClient->setRegister("input7", true);
-    modbusClient->setRegister("input8", false);
-    modbusClient->setRegister("input9", true);
-    modbusClient->setRegister("input10", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input2", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input3", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input4", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input5", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input6", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input7", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input8", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input9", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input10", false);
 
-    modbusClient->setRegister("Coil1", true);
-    modbusClient->setRegister("Coil2", false);
-    modbusClient->setRegister("Coil3", true);
-    modbusClient->setRegister("Coil4", false);
-    modbusClient->setRegister("Coil5", true);
-    modbusClient->setRegister("Coil6", false);
-    modbusClient->setRegister("Coil7", true);
-    modbusClient->setRegister("Coil8", false);
-    modbusClient->setRegister("Coil9", true);
-    modbusClient->setRegister("Coil10", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil1", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil2", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil3", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil4", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil5", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil6", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil7", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil8", false);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil9", true);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil10", false);
 
-    modbusClient->setRegister("ir1", 1);
-    modbusClient->setRegister("ir2", -2);
-    modbusClient->setRegister("ir3", 1000000);
-    modbusClient->setRegister("ir4", -1000000);
-    modbusClient->setRegister("ir5", 5.5);
-    modbusClient->setRegister("ir6", -6.6);
-    modbusClient->setRegister("ir7", 7.7);
-    modbusClient->setRegister("ir8", -8.8);
-    modbusClient->setRegister("ir9", 10000000000);
-    modbusClient->setRegister("ir10", -10000000000);
-    modbusClient->setRegisterString("InputString", "InputString456");
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir1", 1);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir2", -2);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir3", 1000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir4", -1000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir5", 5.5);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir6", -6.6);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir7", 7.7);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir8", -8.8);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir9", 10000000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir10", -10000000000);
+    modbusClient->setRegisterString(modbusSettings.MODBUS_ADDRESS, "InputString", "InputString456");
 
-    modbusClient->setRegister("hr1", 1);
-    modbusClient->setRegister("hr2", -2);
-    modbusClient->setRegister("hr3", 1000000);
-    modbusClient->setRegister("hr4", -1000000);
-    modbusClient->setRegister("hr5", 5.5);
-    modbusClient->setRegister("hr6", -6.6);
-    modbusClient->setRegister("hr7", 7.7);
-    modbusClient->setRegister("hr8", -8.8);
-    modbusClient->setRegister("hr9", 10000000000);
-    modbusClient->setRegister("hr10", -10000000000);
-    modbusClient->setRegisterString("HoldingString", "HoldingString456");
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr1", 1);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr2", -2);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr3", 1000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr4", -1000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr5", 5.5);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr6", -6.6);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr7", 7.7);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr8", -8.8);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr9", 10000000000);
+    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr10", -10000000000);
+    modbusClient->setRegisterString(modbusSettings.MODBUS_ADDRESS, "HoldingString", "HoldingString456");
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::DiscreteInputs, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 0);
@@ -495,9 +522,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::Coils, 0, 10));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
         QCOMPARE(unit.value(0), 1);
@@ -513,9 +543,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 42));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::InputRegisters, 0, 42));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 42);
         QCOMPARE(unit.value(0), 2);
@@ -563,9 +596,12 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 39));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 39));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 39);
         QCOMPARE(unit.value(0), 1);
@@ -618,8 +654,9 @@ void TestModbusIntegration::testClientServerCommunication()
 }
 
 void TestModbusIntegration::testAddBinding() {
+    int serverAddress = 1;
     auto modbusClient = std::make_shared<ModbusClient>();
-    BitAwareBindingManager manager(modbusClient);
+    BitAwareBindingManager manager(serverAddress, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>("testReg");
     manager.addBinding(binding);
 
@@ -628,15 +665,16 @@ void TestModbusIntegration::testAddBinding() {
 }
 
 void TestModbusIntegration::testProcessModbusDataUpdatesBindings() {
+    int serverAddress = 1;
     auto modbusClient = std::make_shared<ModbusClient>();
 
     // Настроим карту регистров клиента
     QString regName = "testReg";
     auto mdu = QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2);
     QString dataType = "Int32";
-    modbusClient->add_mdu_reg_data_type(regName, mdu, dataType);
+    modbusClient->add_mdu_reg_data_type(serverAddress, regName, mdu, dataType);
 
-    BitAwareBindingManager bindingManager(modbusClient);
+    BitAwareBindingManager bindingManager(serverAddress, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>(regName);
     bindingManager.addBinding(binding);
 
@@ -644,7 +682,7 @@ void TestModbusIntegration::testProcessModbusDataUpdatesBindings() {
     unit.setValue(0, 0x1234);
     unit.setValue(1, 0x5678);
 
-    bindingManager.processModbusData(unit);
+    bindingManager.processModbusData(serverAddress, unit);
 
     QCOMPARE(binding->lastData.size(), 2);
     QCOMPARE(binding->lastData[0], 0x1234);
@@ -652,6 +690,8 @@ void TestModbusIntegration::testProcessModbusDataUpdatesBindings() {
 }
 
 void TestModbusIntegration::testRegisterWidgetsFromContainer() {
+    int serverAddress = 1;
+
     QWidget *container = new QWidget();
 
     QCheckBox* cb = new QCheckBox("Check", container);
@@ -675,7 +715,7 @@ void TestModbusIntegration::testRegisterWidgetsFromContainer() {
 
     auto modbusClient = std::make_shared<ModbusClient>();
 
-    BitAwareBindingManager bindingManager(modbusClient);
+    BitAwareBindingManager bindingManager(serverAddress, modbusClient);
     bindingManager.registerWidgetsFromContainer(container);
 
     auto bindings_cb = bindingManager.get_bindings("Coil1");
@@ -722,16 +762,19 @@ void TestModbusIntegration::testBindingValueChangedTriggersWrite() {
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
 
-    BitAwareBindingManager bindingManager(modbusClient);
+    BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>("hr4");
     bindingManager.addBinding(binding);
 
     // Симулируем изменение значения через UI
     binding->simulateUserChange({0x1111, 0x2222});
 
-    modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 4, 2));
+    modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 4, 2));
     QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-    QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+    QList<QVariant> args = readSpy.takeFirst();
+    int serverAddress = args.at(0).value<int>();
+    QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+    QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
     QCOMPARE(unit.startAddress(), 4);
     QCOMPARE(unit.valueCount(), 2);
     QCOMPARE(unit.value(0), 0x1111);
@@ -795,7 +838,7 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
 
-    BitAwareBindingManager bindingManager(modbusClient);
+    BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     bindingManager.registerWidgetsFromContainer(container);
 
     auto bindings_cb = bindingManager.get_bindings("Coil1");
@@ -838,18 +881,24 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
     emit le->editingFinished();
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::Coils, 0, 1));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::Coils, 0, 1));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 1);
         QCOMPARE(unit.value(0), 1);
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 4, 2));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 4, 2));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 4);
         QCOMPARE(unit.valueCount(), 2);
         // QCOMPARE(unit.value(0), ModbusDataConverter::variantToRegisters(-1000000, "hr4", "int", BigEndian).value(0));
@@ -857,9 +906,12 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 10, 4));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 10, 4));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 10);
         QCOMPARE(unit.valueCount(), 4);
         QCOMPARE(unit.value(0), ModbusDataConverter::variantToRegisters(7.7, "hr7", "double", BigEndian).value(0));
@@ -869,9 +921,12 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
     }
 
     {
-        modbusClient->on_read(QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 26, 4));
+        modbusClient->on_read(modbusSettings.MODBUS_ADDRESS, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 26, 4));
         QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 1, 2000);
-        QModbusDataUnit unit = readSpy.takeFirst().at(0).value<QModbusDataUnit>();
+        QList<QVariant> args = readSpy.takeFirst();
+        int serverAddress = args.at(0).value<int>();
+        QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 26);
         QCOMPARE(unit.valueCount(), 4);
         QCOMPARE(unit.value(0), ModbusDataConverter::variantToRegisters("ABCD", "HoldingString", "string", BigEndian).value(0));

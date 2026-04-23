@@ -2,8 +2,10 @@
 
 #include "Logger.h"
 
-BitAwareBindingManager::BitAwareBindingManager(std::shared_ptr<ModbusClient> modbusClient, QObject* parent)
-    : BindingManager(modbusClient, parent) {
+BitAwareBindingManager::BitAwareBindingManager(int serverAddress,
+                                               std::shared_ptr<ModbusClient> modbusClient,
+                                               QObject* parent)
+    : BindingManager(serverAddress, modbusClient, parent) {
 }
 
 void BitAwareBindingManager::onBindingValueChanged() {
@@ -44,12 +46,13 @@ void BitAwareBindingManager::onBindingValueChanged() {
         }
     }
 
-    // Отправляем запрос на запись в Modbus
     auto mdum = m_modbusClient->get_mdum();
-    if (mdum.count(regName) > 0) {
-        QModbusDataUnit unit = mdum.at(regName);
-        unit.setValues(newData);
-        m_modbusClient->on_write(unit);
+    if (mdum.count(m_serverAddress) > 0) {
+        if (mdum.at(m_serverAddress).count(regName) > 0) {
+            QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
+            unit.setValues(newData);
+            m_modbusClient->on_write(m_serverAddress, unit);
+        }
     }
 }
 

@@ -14,7 +14,9 @@ class ModbusClient;
 class CORE_MODBUS_LIB_EXPORT BindingManager : public QObject {
     Q_OBJECT
 public:
-    explicit BindingManager(std::shared_ptr<ModbusClient> modbusClient, QObject* parent = nullptr);
+    explicit BindingManager(int serverAddress,
+                            std::shared_ptr<ModbusClient> modbusClient,
+                            QObject* parent = nullptr);
     ~BindingManager();
 
     void addBinding(std::shared_ptr<RegisterBinding> binding);
@@ -27,8 +29,11 @@ public:
 
     std::shared_ptr<ModbusClient> getModbusClient() const { return m_modbusClient; }
 
+    int getServerAddress() const {return m_serverAddress;};
+    void setServerAddress(int serverAddress) {m_serverAddress = serverAddress;};
+
     void updateBindingsFromRegisters();
-    void processModbusData(const QModbusDataUnit& unit);
+    void processModbusData(int serverAddress, const QModbusDataUnit& unit);
     QList<QModbusDataUnit> getPollingUnits() const;
 
     // Методы для управления кэшем регистров
@@ -50,6 +55,7 @@ protected slots:
     void onRegisterValueRequested(const QString& registerName, const QVector<quint16>& data);
     void onReadRequested(const QString& registerName);
 protected:
+    int m_serverAddress;
     std::shared_ptr<ModbusClient> m_modbusClient;
     QMap<QString, QList<std::shared_ptr<RegisterBinding>>> m_bindings; // registerName -> bindings
     QMap<QString, QVector<quint16>> m_registerCache; // Кэш значений регистров

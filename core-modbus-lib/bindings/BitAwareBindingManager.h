@@ -9,7 +9,9 @@
 class CORE_MODBUS_LIB_EXPORT BitAwareBindingManager : public BindingManager {
     Q_OBJECT
 public:
-    explicit BitAwareBindingManager(std::shared_ptr<ModbusClient> modbusClient, QObject* parent = nullptr);
+    explicit BitAwareBindingManager(int serverAddress,
+                                    std::shared_ptr<ModbusClient> modbusClient,
+                                    QObject* parent = nullptr);
 
     // Переопределяем обработчик для правильной работы с битовыми привязками
     void onBindingValueChanged() override;
