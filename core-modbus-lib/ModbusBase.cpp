@@ -241,7 +241,7 @@ bool ModbusBase::on_write_json(const QString& config) {
         return false;
     }
 
-    QString json = ModbusRegisterSerializer::serialize(this->_mdum, this->_reg_data_type_m);
+    QString json = ModbusRegisterSerializer::serialize(this->getServerAddress(), this->_mdum, this->_reg_data_type_m);
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -277,7 +277,7 @@ void ModbusBase::on_read_json(QString config) {
     QString json = mapFile.data()->readAll();
     mapFile.data()->close();
 
-    auto [mdum, reg_data_type_m] = ModbusRegisterSerializer::deserialize(json);
+    auto [mdum, reg_data_type_m] = ModbusRegisterSerializer::deserialize(this->getServerAddress(), json);
     this->_mdum.clear();
     this->_reg_data_type_m.clear();
     this->_mdum = mdum;

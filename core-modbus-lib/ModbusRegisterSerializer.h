@@ -14,17 +14,19 @@ CORE_MODBUS_LIB_EXPORT void ModbusRegisterSerializerTest();
 class CORE_MODBUS_LIB_EXPORT ModbusRegisterSerializer {
 public:
     // Сериализует карту регистров и типов данных в JSON строку
-    static QString serialize(const std::map <int, std::map<QString, QModbusDataUnit>>& mdum,
+    static QString serialize(int serverAddress,
+                             const std::map <int, std::map<QString, QModbusDataUnit>>& mdum,
                              const std::map <int, std::map<QString, QString>>& regDataTypes);
 
     // Десериализует JSON строку в пару (mdum, regDataTypes)
     static std::pair<std::map <int, std::map<QString, QModbusDataUnit>>,
-                     std::map <int, std::map<QString, QString>>> deserialize(const QString& json);
+                     std::map <int, std::map<QString, QString>>> deserialize(int serverAddress, const QString& json);
 
     // Вспомогательные методы для работы с QJsonObject
-    static QJsonObject toJsonObject(const std::map <int, std::map<QString, QModbusDataUnit>>& mdum,
+    static QJsonObject toJsonObject(int serverAddress,
+                                    const std::map <int, std::map<QString, QModbusDataUnit>>& mdum,
                                     const std::map <int, std::map<QString, QString>>& regDataTypes);
-    static void fromJsonObject(const QJsonObject& obj,
+    static void fromJsonObject(int serverAddress, const QJsonObject& obj,
                                std::map <int, std::map<QString, QModbusDataUnit>>& mdum,
                                std::map <int, std::map<QString, QString>>& regDataTypes);
 };

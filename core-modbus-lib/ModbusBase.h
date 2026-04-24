@@ -61,6 +61,7 @@ public:
     bool isConnected() const;
 
     QString get_config() const {return _config;};
+    int getServerAddress() const {return _modbus_settings.MODBUS_ADDRESS;};
 
     BytesFormat modbus_format() const {return BytesFormat_from_text(this->_modbus_settings.MODBUS_FORMAT.toStdString().c_str());};
 
