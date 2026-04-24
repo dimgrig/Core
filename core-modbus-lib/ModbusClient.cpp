@@ -279,26 +279,29 @@ void ModbusClient::onModbusStateChanged(int state) {
     }
 
     if (state == QModbusDevice::ConnectedState) {
-    }
-
-    if (state == QModbusDevice::ConnectedState) {
         _failedAttempts = 0;
 
-        _requestErrorCount = 0;
-        if (!_lastResponsiveState) {
-            _lastResponsiveState = true;
-            emit serverHealthChanged(true); // считаем, что сервер предположительно жив
-        }
-
-        //QTimer::singleShot(200, this, &ModbusClient::startPolling);
         startPolling();
     } else if (state == QModbusDevice::UnconnectedState) {
         stopPolling();
         clearQueue();
+    }
 
-        if (_lastResponsiveState) {
-            _lastResponsiveState = false;
-            emit serverHealthChanged(false); // соединение разорвано – сервер не отвечает
+    if (state == QModbusDevice::ConnectedState) {
+        // Сброс состояния для всех адресов, которые есть в _serverResponsiveState
+        for (auto& [addr, responsive] : _serverResponsiveState) {
+            if (!responsive) {
+                responsive = true;
+                emit serverHealthChanged(addr, true);
+            }
+            _serverRequestErrorCount[addr] = 0;
+        }
+    } else if (state == QModbusDevice::UnconnectedState) {
+        for (auto& [addr, responsive] : _serverResponsiveState) {
+            if (responsive) {
+                responsive = false;
+                emit serverHealthChanged(addr, false);
+            }
         }
     }
 }
@@ -551,59 +554,49 @@ void ModbusClient::processNextRequest()
     if (reply) {
         connect(reply, &QModbusReply::finished, this, [this, reply, req]() {
             bool success = (reply->error() == QModbusDevice::NoError);
-            if (!req.isWrite && success) {
-                emit read_ready(req.serverAddress, reply->result());
-            } else if (reply->error() != QModbusDevice::NoError) {
-                //qCDebug(logWarning) << "Request error:" << reply->errorString();
-            }
+                int addr = req.serverAddress;
 
-            // ----- Health check logic -----
-            if (success) {
-                // Успешный ответ
-                if (_requestErrorCount >= _requestErrorThreshold) {
-                    // Была проблема, а теперь всё хорошо
-                    _requestErrorCount = 0;
-                    if (!_lastResponsiveState) {
-                        _lastResponsiveState = true;
-                        emit serverHealthChanged(true);
+                if (success) {
+                    // Успешный ответ – сбрасываем счётчик ошибок для этого адреса
+                    _serverRequestErrorCount[addr] = 0;
+                    if (!_serverResponsiveState[addr]) {
+                        _serverResponsiveState[addr] = true;
+                        emit serverHealthChanged(addr, true);
                     }
                 } else {
-                    _requestErrorCount = 0; // сбрасываем счётчик
-                }
-            } else {
-                // Ошибка
-                _requestErrorCount++;
-                if (_requestErrorCount == _requestErrorThreshold) {
-                    // Достигнут порог – сервер перестал отвечать
-                    if (_lastResponsiveState) {
-                        _lastResponsiveState = false;
-                        emit serverHealthChanged(false);
+                    // Ошибка – увеличиваем счётчик
+                    _serverRequestErrorCount[addr]++;
+                    if (_serverRequestErrorCount[addr] >= _requestErrorThreshold) {
+                        if (_serverResponsiveState[addr]) {
+                            _serverResponsiveState[addr] = false;
+                            emit serverHealthChanged(addr, false);
+                        }
                     }
                 }
-            }
-            // -----------------------------
 
-            reply->deleteLater();
-            _requestInProgress = false;
-
-            if (req.isPolling) {
-                _pendingPollCount--;
-                if (_pendingPollCount == 0) {
-                    _pollingCycleActive = false; // цикл полностью завершён
+                if (!req.isWrite && success) {
+                    emit read_ready(req.serverAddress, reply->result());
                 }
-            }
 
-            processNextRequest(); // обрабатываем следующий запрос
+                reply->deleteLater();
+                _requestInProgress = false;
+
+                if (req.isPolling) {
+                    _pendingPollCount--;
+                    if (_pendingPollCount == 0) _pollingCycleActive = false;
+                }
+
+                processNextRequest();
         });
     } else {
-        qCDebug(logWarning) << "Failed to send request:" << modbusDevice->errorString();
+        //qCWarning(logWarning) << "Failed to send request:" << modbusDevice->errorString();
         _requestInProgress = false;
-        // Тоже считаем как ошибку, так как запрос не отправлен
-        _requestErrorCount++;
-        if (_requestErrorCount == _requestErrorThreshold) {
-            if (_lastResponsiveState) {
-                _lastResponsiveState = false;
-                emit serverHealthChanged(false);
+        int addr = req.serverAddress;
+        _serverRequestErrorCount[addr]++;
+        if (_serverRequestErrorCount[addr] >= _requestErrorThreshold) {
+            if (_serverResponsiveState[addr]) {
+                _serverResponsiveState[addr] = false;
+                emit serverHealthChanged(addr, false);
             }
         }
         if (req.isPolling) {

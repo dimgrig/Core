@@ -36,8 +36,8 @@ public:
     // bool waitForReadyRead(int msecs = 1000) {return this->_socket->waitForReadyRead(msecs);};
     bool reset() {return false;};
 
-    bool getServerResponsive() const {return _lastResponsiveState;};
-    bool getPollingCycleActive() const {return _pollingCycleActive;};
+    //bool getServerResponsive() const {return _lastResponsiveState;};
+    //bool getPollingCycleActive() const {return _pollingCycleActive;};
 
     void enqueueReadRequest(int serverAddress, const QModbusDataUnit& mdu, bool isPolling = false);
     void enqueueWriteRequest(int serverAddress, const QModbusDataUnit& mdu, bool highPriority = false);
@@ -53,7 +53,8 @@ public:
 signals:
     void read_ready(int serverAddress, QModbusDataUnit mdu);
 
-    void serverHealthChanged(bool responsive);
+    //void serverHealthChanged(bool responsive);
+    void serverHealthChanged(int serverAddress, bool responsive);
 public slots:
     std::shared_ptr<QModbusDevice> device() const override {
         return std::static_pointer_cast<QModbusDevice>(modbusDevice);
@@ -121,9 +122,11 @@ private:
     bool _pollingCycleActive = false;
 
     const int MAX_FAILED_REQUESTS = 5;
-    int _requestErrorCount = 0;
+    //int _requestErrorCount = 0;
     int _requestErrorThreshold = MAX_FAILED_REQUESTS; // порог можно сделать настраиваемым
-    bool _lastResponsiveState = true; // для избежания лишних сигналов
+    //bool _lastResponsiveState = true; // для избежания лишних сигналов
+    std::map<int, bool> _serverResponsiveState;
+    std::map<int, int> _serverRequestErrorCount;
 
     QModbusDataUnit _lastReadUnit = QModbusDataUnit();
     QModbusDataUnit _lastWriteUnit = QModbusDataUnit();
