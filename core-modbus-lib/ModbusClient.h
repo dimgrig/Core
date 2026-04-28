@@ -39,6 +39,8 @@ public:
     //bool getServerResponsive() const {return _lastResponsiveState;};
     //bool getPollingCycleActive() const {return _pollingCycleActive;};
 
+    bool isServerResponsive(int serverAddress) const;
+
     void enqueueReadRequest(int serverAddress, const QModbusDataUnit& mdu, bool isPolling = false);
     void enqueueWriteRequest(int serverAddress, const QModbusDataUnit& mdu, bool highPriority = false);
     void startPolling();

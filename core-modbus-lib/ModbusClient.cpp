@@ -71,6 +71,15 @@ ModbusClient::~ModbusClient() {
         modbusDevice->disconnectDevice();
 }
 
+
+bool ModbusClient::isServerResponsive(int serverAddress) const {
+    bool res = false;
+    if (_serverResponsiveState.count(serverAddress)) {
+        res = _serverResponsiveState.at(serverAddress);
+    }
+    return res;
+}
+
 void ModbusClient::updateDeviceMap()
 {
     if (modbusDevice) {
