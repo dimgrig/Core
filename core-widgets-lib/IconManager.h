@@ -48,6 +48,9 @@ public:
     // Оптимизация для SVG (если используется QtSvg)
     //static void setSvgRendererCacheSize(int size);
 
+    static void setupDesktopFile(const QString &appId);
+    static void cleanDesktopFile(const QString &appId);
+
 private:
     IconManager() = delete;
     ~IconManager() = delete;
@@ -65,7 +68,8 @@ private:
     inline static QSize m_defaultIconSize = ICON_SIZE_32;
 };
 
-#define ICON_APP                    IconManager::getIcon(":/icons/app.ico")
+#define ICON_APP_NAME               ":/icons/app.ico"
+#define ICON_APP                    IconManager::getIcon(ICON_APP_NAME)
 #define ICON_EXIT                   IconManager::getIcon(":/icons/exit.svg")
 #define ICON_SETTINGS               IconManager::getIcon(":/icons/settings.svg")
 #define ICON_PRINT                  IconManager::getIcon(":/icons/print.svg")

@@ -4,6 +4,8 @@
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgRenderer>
 
+QTemporaryFile *tempIconFile = nullptr;
+
 void IconManager::ensureInitialized() {
     if (!s_iconCache) {
         s_iconCache = new QMap<QString, QIcon>();
@@ -254,3 +256,40 @@ QSize IconManager::defaultIconSize() {
 //     qDebug() << "SVG renderer cache set to" << size << "KB";
 // #endif
 // }
+
+void IconManager::setupDesktopFile(const QString &appId) {
+    tempIconFile = new QTemporaryFile();
+    if (tempIconFile->open()) {
+        QIcon icon(ICON_APP_NAME);
+        // Лучше сохранить в PNG, так как он гарантированно поддерживается
+        QPixmap pixmap = icon.pixmap(128, 128); // Можно выбрать любой размер
+        pixmap.save(tempIconFile->fileName(), "PNG");
+    } else {
+        // Ошибка: не удалось создать временный файл
+        delete tempIconFile;
+        tempIconFile = nullptr;
+        return;
+    }
+
+    const QString desktopDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    QDir().mkpath(desktopDir);
+    const QString desktopFilePath = desktopDir + QLatin1Char('/') + appId + QLatin1String(".desktop");
+    if (QFile::exists(desktopFilePath))
+        return;
+    QFile desktopFile(desktopFilePath);
+    if (!desktopFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+    QTextStream stream(&desktopFile);
+    stream << "[Desktop Entry]\n"
+           << "Type=Application\n"
+           << "Name=" << QCoreApplication::applicationName() << "\n"
+           << "Exec=" << QCoreApplication::applicationFilePath() << "\n"
+           << "Icon=" << tempIconFile->fileName() << "\n"
+           << "NoDisplay=true\n";
+    desktopFile.close();
+}
+
+void IconManager::cleanDesktopFile(const QString &appId) {
+    QFile::remove(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)
+              + QLatin1Char('/') + appId + QLatin1String(".desktop"));
+}
