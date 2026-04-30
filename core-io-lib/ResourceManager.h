@@ -24,9 +24,6 @@ struct ModbusSettings;
 
 #define rm ResourceManager::instance()
 
-[[maybe_unused]]
-static QString CORE_IO_LIB_EXPORT makeModbusClientKey(const ModbusSettings& settings);
-
 class CORE_IO_LIB_EXPORT ResourceManager {
 public:
     static ResourceManager& instance();

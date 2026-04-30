@@ -10,6 +10,21 @@
 #include "CoreConfig.h"
 #include "ModbusBase.h"
 
+QString makeModbusClientKey(const ModbusSettings& settings) {
+   if (settings.MODBUS_TYPE == "TCP") {
+       return QString("ModbusClient_TCP_%1_%2")
+       .arg(settings.MODBUS_IP)
+           .arg(settings.MODBUS_PORT);
+   } else {
+       return QString("ModbusClient_Serial_%1_%2_%3_%4_%5")
+       .arg(settings.MODBUS_SERIAL_PORT)
+           .arg(settings.MODBUS_BAUDRATE)
+           .arg(settings.MODBUS_DATA_BITS)
+           .arg(settings.MODBUS_STOP_BITS)
+           .arg(settings.MODBUS_PARITY);
+   }
+}
+
 int ModbusSettingsConverter::modbus_state_from_str(QString state_str) {
     int state = QModbusDevice::UnconnectedState;
 
