@@ -110,6 +110,7 @@ HEADERS += \
     TemplateEditRelationalTableModel.hpp \
     TemplateEditTableModel.h \
     TemplateEditTableModel.hpp \
+    UniversalFormWidget.h \
     ValueListDelegate.h \
     core-mvc-lib-global.h \
 
@@ -135,4 +136,5 @@ SOURCES += \
     TableShortcutHandler.cpp \
     TemplateEditRelationalTableModel.cpp \
     TemplateEditTableModel.cpp \
+    UniversalFormWidget.cpp \
     ValueListDelegate.cpp
