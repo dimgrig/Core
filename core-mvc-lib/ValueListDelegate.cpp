@@ -61,6 +61,11 @@ ValueListDialog::ValueListDialog(QStringList header_sl, QWidget *parent)
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
+    QPushButton *okButton = buttonBox->button(QDialogButtonBox::Ok);
+    QPushButton *cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
+    if (okButton) okButton->setText("Ок");
+    if (cancelButton) cancelButton->setText("Отмена");
+
     mainLayout->addWidget(tableWidget);
     mainLayout->addLayout(buttonLayout);
     mainLayout->addWidget(buttonBox);

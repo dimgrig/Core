@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
+#include <QPushButton>
 
 #include "CoreConfig.h"
 #include "DynamicListWidget.h"
@@ -43,6 +44,11 @@ QWidget *ListEditDelegate::createEditor(QWidget *parent,
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, dialog);
     connect(buttonBox, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+
+    QPushButton *okButton = buttonBox->button(QDialogButtonBox::Ok);
+    QPushButton *cancelButton = buttonBox->button(QDialogButtonBox::Cancel);
+    if (okButton) okButton->setText("Ок");
+    if (cancelButton) cancelButton->setText("Отмена");
 
     QVBoxLayout *layout = new QVBoxLayout(dialog);
     layout->addWidget(listWidget);
