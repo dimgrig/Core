@@ -99,6 +99,7 @@ HEADERS += \
     EditBar.h \
     FilterHeader.h \
     LineEditDelegate.h \
+    ListEditDelegate.h \
     LogLevelDelegate.h \
     NumericIdProxyModel.h \
     ReadOnlyDelegate.h \
@@ -125,6 +126,7 @@ SOURCES += \
     EditBar.cpp \
     FilterHeader.cpp \
     LineEditDelegate.cpp \
+    ListEditDelegate.cpp \
     LogLevelDelegate.cpp \
     NumericIdProxyModel.cpp \
     ReadOnlyDelegate.cpp \
