@@ -13,7 +13,7 @@ class CORE_WIDGETS_LIB_EXPORT DetailListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DetailListWidget(QWidget *parent = nullptr);
+    explicit DetailListWidget(QString name, QWidget *parent = nullptr);
 
     // Установить модель для списка (отображается одна колонка)
     void setModel(QAbstractItemModel *model, int displayColumn = 0);
@@ -27,7 +27,9 @@ public:
 
     // Получить текущую страницу / индекс
     QWidget *currentPanel() const;
+
     int currentRow() const;
+    void setCurrentRow(int row);
 
 signals:
     void currentRowChanged(int row);
