@@ -10,7 +10,9 @@
 #include "BaseEditTableView.h"
 #include "BaseSqlRelationalTableModel.h"
 
-struct LookupConfig {
+#include "core-mvc-lib-global.h"
+
+struct CORE_MVC_LIB_EXPORT LookupConfig {
     // --- Таблица-справочник ---
     QString lookupTableName;                   // например "users"
     QString keyColumnName;                     // "id"
@@ -48,7 +50,7 @@ struct LookupConfig {
     std::function<void(QTableView*)> customViewSetup; // можно добавить настройку view извне
 };
 
-class LookupEditorContext : public QObject {
+class CORE_MVC_LIB_EXPORT LookupEditorContext : public QObject {
     Q_OBJECT
 public:
     explicit LookupEditorContext(QObject *parent = nullptr) : QObject(parent) {};
@@ -60,7 +62,7 @@ public:
     // ... другие нужные поля
 };
 
-class LookupDelegate : public QStyledItemDelegate {
+class CORE_MVC_LIB_EXPORT LookupDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
     explicit LookupDelegate(const LookupConfig &config, QObject *parent = nullptr);

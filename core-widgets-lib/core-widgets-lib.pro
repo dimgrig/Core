@@ -90,6 +90,7 @@ HEADERS += \
     ComboBoxDialog.h \
     ConnectionButton.h \
     DateTimeRangeWidget.h \
+    DetailListWidget.h \
     DoubleSpinBoxDialog.h \
     DynamicListWidget.h \
     FocusWatcher.h \
@@ -113,6 +114,7 @@ SOURCES += \
     ComboBoxDialog.cpp \
     ConnectionButton.cpp \
     DateTimeRangeWidget.cpp \
+    DetailListWidget.cpp \
     DoubleSpinBoxDialog.cpp \
     DynamicListWidget.cpp \
     FocusWatcher.cpp \

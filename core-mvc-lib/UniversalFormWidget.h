@@ -7,9 +7,11 @@
 #include <QVector>
 #include <QAbstractItemDelegate>
 
+#include "core-mvc-lib-global.h"
+
 class QTableView;
 
-class UniversalFormWidget : public QWidget
+class CORE_MVC_LIB_EXPORT UniversalFormWidget : public QWidget
 {
     Q_OBJECT
 public:

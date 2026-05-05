@@ -4,7 +4,9 @@
 #include <QStyledItemDelegate>
 #include <QStringList>
 
-class ListEditDelegate : public QStyledItemDelegate
+#include "core-mvc-lib-global.h"
+
+class CORE_MVC_LIB_EXPORT ListEditDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
