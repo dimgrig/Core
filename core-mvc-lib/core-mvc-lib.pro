@@ -101,6 +101,7 @@ HEADERS += \
     LineEditDelegate.h \
     ListEditDelegate.h \
     LogLevelDelegate.h \
+    LookupDelegate.h \
     NumericIdProxyModel.h \
     ReadOnlyDelegate.h \
     SpinBoxDelegate.h \
@@ -129,6 +130,7 @@ SOURCES += \
     LineEditDelegate.cpp \
     ListEditDelegate.cpp \
     LogLevelDelegate.cpp \
+    LookupDelegate.cpp \
     NumericIdProxyModel.cpp \
     ReadOnlyDelegate.cpp \
     SpinBoxDelegate.cpp \
