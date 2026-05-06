@@ -121,6 +121,10 @@ private:
 #define ICON_OSCILLOGRAM            IconManager::getIcon(":/icons/oscillogram.svg")
 #define ICON_HISTOGRAM              IconManager::getIcon(":/icons/histogram.svg")
 
+#define ICON_TESTS_RESULT_UNDEFINED IconManager::getIcon(":/icons/undefined.svg")
+#define ICON_TESTS_RESULT_PASSED    IconManager::getIcon(":/icons/mode_done.svg")
+#define ICON_TESTS_RESULT_FAILED    IconManager::getIcon(":/icons/error.svg")
+
 
 #define PIXMAP_ORGANIZATION         IconManager::getPixmap(":/icons/ACS_LOGO.svg")
 #define PIXMAP_APP                  IconManager::getPixmap(":/icons/app.svg")
