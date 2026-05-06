@@ -25,10 +25,13 @@ DetailListWidget::DetailListWidget(QString name, QWidget *parent)
     //layout->setContentsMargins(0, 0, 0, 0);
 }
 
-void DetailListWidget::setModel(QAbstractItemModel *model, int displayColumn)
+void DetailListWidget::setModel(QAbstractItemModel *model, DetailListWidgetPanelFactory factory, int idColumn, int displayColumn)
 {
     m_model = model;
+    m_factory = factory;
+    m_idColumn = idColumn;
     m_displayColumn = displayColumn;
+
     m_listView->setModel(model);
     m_listView->setModelColumn(displayColumn);
 
@@ -60,7 +63,7 @@ void DetailListWidget::removePanel(int row)
     if (row >= 0 && row < m_stack->count()) {
         QWidget *w = m_stack->widget(row);
         m_stack->removeWidget(w);
-        w->deleteLater();
+        //w->deleteLater();
     }
 }
 
@@ -69,7 +72,7 @@ void DetailListWidget::clearPanels()
     while (m_stack->count() > 0) {
         QWidget *w = m_stack->widget(0);
         m_stack->removeWidget(w);
-        w->deleteLater();
+        //w->deleteLater();
     }
 }
 
@@ -106,5 +109,54 @@ void DetailListWidget::onSelectionChanged()
     if (row >= 0 && row < m_stack->count()) {
         m_stack->setCurrentIndex(row);
         emit currentRowChanged(row);
+        emit currentRowIdChanged(currentId());
+    }
+}
+
+int DetailListWidget::currentId() const
+{
+    if (!m_model || m_stack->currentIndex() < 0)
+        return -1;                         // или другое значение "нет данных"
+
+    int row = m_stack->currentIndex();
+    QModelIndex idx = m_model->index(row, m_idColumn);
+    if (!idx.isValid())
+        return -1;
+
+    return m_model->data(idx, Qt::DisplayRole).toInt();  // предполагаем, что ID – число
+}
+
+void DetailListWidget::updatePanels()
+{
+    if (!m_model || !m_factory)
+        return;
+
+    // Запоминаем текущую выбранную строку (если есть)
+    int previousRow = m_stack->currentIndex();
+
+    // Очищаем старые панели
+    clearPanels();
+
+    // Создаём новые по текущим строкам модели
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QModelIndex index = m_model->index(row, m_idColumn); // любой валидный индекс
+        QWidget *panel = m_factory(row, index);
+        if (panel) {
+            m_stack->insertWidget(row, panel);
+        }
+    }
+
+    // Пытаемся восстановить выделение на ту же позицию, если возможно
+    if (previousRow >= 0 && previousRow < m_stack->count()) {
+        m_stack->setCurrentIndex(previousRow);
+        // и выделить в списке
+        QModelIndex idx = m_model->index(previousRow, m_displayColumn);
+        if (idx.isValid())
+            m_listView->setCurrentIndex(idx);
+    } else if (m_stack->count() > 0) {
+        // иначе выделяем первую
+        QModelIndex idx = m_model->index(0, m_displayColumn);
+        if (idx.isValid())
+            m_listView->setCurrentIndex(idx);
     }
 }

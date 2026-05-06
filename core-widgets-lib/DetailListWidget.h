@@ -9,6 +9,9 @@
 
 #include "core-widgets-lib-global.h"
 
+
+using DetailListWidgetPanelFactory = std::function<QWidget*(int row, const QModelIndex &index)>;
+
 class CORE_WIDGETS_LIB_EXPORT DetailListWidget : public QWidget
 {
     Q_OBJECT
@@ -16,7 +19,7 @@ public:
     explicit DetailListWidget(QString name, QWidget *parent = nullptr);
 
     // Установить модель для списка (отображается одна колонка)
-    void setModel(QAbstractItemModel *model, int displayColumn = 0);
+    void setModel(QAbstractItemModel *model, DetailListWidgetPanelFactory factory, int idColumn, int displayColumn);
 
     // Добавить страницу панели для определённой строки
     void insertPanel(int row, QWidget *panel);
@@ -31,16 +34,24 @@ public:
     int currentRow() const;
     void setCurrentRow(int row);
 
+    void updatePanels();                          // очищает и пересоздаёт панели
+
 signals:
     void currentRowChanged(int row);
+    void currentRowIdChanged(int id);
 
 private slots:
     void onSelectionChanged();
 
 private:
+    int currentId() const;
+
+    DetailListWidgetPanelFactory m_factory = nullptr;
+
     QListView *m_listView;
     QStackedWidget *m_stack;
     QAbstractItemModel *m_model = nullptr;
+    int m_idColumn = 0;
     int m_displayColumn = 0;
 };
 
