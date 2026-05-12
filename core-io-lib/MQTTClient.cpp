@@ -1,5 +1,9 @@
 #include "MQTTClient.h"
 
+// #include <netinet/in.h>
+// #include <netinet/tcp.h>
+// #include <sys/socket.h>
+
 #include "Logger.h"
 
 MQTTClient::MQTTClient(QObject *parent) :
@@ -13,7 +17,7 @@ MQTTClient::MQTTClient(QObject *parent) :
     // qCDebug(logDebug()) << this->_mqtt->connectionProperties().maximumTopicAlias();
 
     //this->_mqtt->setProtocolVersion(QMqttClient::MQTT_3_1_1);
-    this->_mqtt->setAutoKeepAlive(true);
+    this->_mqtt->setAutoKeepAlive(false);
     this->_mqtt->setKeepAlive(60);
     //qCDebug(logDebug()) << this->_mqtt->autoKeepAlive() << this->_mqtt->keepAlive();
 
@@ -28,26 +32,40 @@ MQTTClient::MQTTClient(QObject *parent) :
     connect(_mqtt, &QMqttClient::disconnected, [=](){
 
     });
-    connect(_mqtt, &QMqttClient::pingResponseReceived, [=]() {
-        //QLatin1String(" PingResponse")
-    });
     connect(_mqtt, &QMqttClient::messageReceived, this, &MQTTClient::onMessageReceived);
     connect(_mqtt, &QMqttClient::errorChanged, [=](QMqttClient::ClientError error){
         qCDebug(logInfo()) << "mqtt_client error" << error;
 
-        if (error != QMqttClient::NoError) {
-            // Можно попробовать исправить ошибку "на лету"
-            if (error == QMqttClient::TransportInvalid) {
-                // Сброс сокета и повторное подключение
-                _mqtt->disconnectFromHost();
-                QTimer::singleShot(100, this, [this]() {
-                    qCDebug(logDebug()) << "Reconnecting after TransportInvalid...";
-                    _mqtt->connectToHost();
+        // if (error != QMqttClient::NoError) {
+        //     // Можно попробовать исправить ошибку "на лету"
+        //     if (error == QMqttClient::TransportInvalid) {
+        //         // Сброс сокета и повторное подключение
+        //         _mqtt->disconnectFromHost();
+        //         QTimer::singleShot(100, this, [this]() {
+        //             qCDebug(logDebug()) << "Reconnecting after TransportInvalid...";
+        //             _mqtt->connectToHost();
+        //         });
+        //     } else {
+        //         // Для других ошибок - стандартное поведение
+        //         emit host_error(QString::number(error));
+        //     }
+        // }
+
+        if (error == QMqttClient::TransportInvalid) {
+            if (!_reconnecting) {
+                _reconnecting = true;
+                // Не вызываем disconnectFromHost() — клиент уже отключён
+                QTimer::singleShot(2000, this, [this]() {
+                    _reconnecting = false;
+                    if (_mqtt->state() == QMqttClient::Disconnected) {
+                        qCDebug(logDebug()) << "Reconnecting after delay...";
+                        // Используем ранее сохранённые хост/порт или задаём явно
+                        _mqtt->connectToHost(); // если setHostname/setPort уже были вызваны
+                    }
                 });
-            } else {
-                // Для других ошибок - стандартное поведение
-                emit host_error(QString::number(error));
             }
+        } else if (error != QMqttClient::NoError) {
+            emit host_error(QString::number(error));
         }
     });
 }
@@ -143,12 +161,186 @@ void MQTTClient::on_timer() {
 
     if (_mqtt->state() == QMqttClient::Connected) {
         // Проверяем связь
-        static int counter = 0;
-        if (++counter % 30 == 0) { // Каждые 30 секунд
+        if (++_timer_counter % 30 == 0) { // Каждые 30 секунд
+            //not working - leads mqtt_client error QMqttClient::TransportInvalid every 90 secs
             ping();
+
+            // // Вместо ping() отправляем keep-alive сообщение
+            // QByteArray payload = QByteArray::number(_timer_counter);
+            // // Используем системный топик, начинающийся с '$'
+            // if (_mqtt->publish(QStringLiteral("__mqtt_keepalive/"), payload, 1) == -1) {
+            //     qCWarning(logDebug()) << "Failed to send keep-alive publish";
+            // } else {
+            //     qCDebug(logDebug()) << "Keep-alive sent:" << payload;
+            // }
         }
     } else if (_mqtt->state() == QMqttClient::Disconnected) {
         // Автопереподключение (опционально)
         //_mqtt->connectToHost();
     }
 }
+
+// MQTTClient::MQTTClient(QObject *parent)
+//     : QObject(parent)
+// {
+//     mosquitto_lib_init();
+//     _timer.setInterval(100); // 10 раз в секунду – достаточно
+//     connect(&_timer, &QTimer::timeout, this, &MQTTClient::onTimer);
+// }
+
+// MQTTClient::~MQTTClient()
+// {
+//     disconnectFromHost();
+//     mosquitto_lib_cleanup();
+// }
+
+// void MQTTClient::connectToHost(const QString &host, int port)
+// {
+//     if (_mosq) {
+//         mosquitto_destroy(_mosq);
+//         _mosq = nullptr;
+//     }
+
+//     _host = host;
+//     _port = port;
+
+//     // Создаём новый экземпляр. ID можно сгенерировать или оставить nullptr для автоматического
+//     _mosq = mosquitto_new(nullptr, true, this);
+//     if (!_mosq) {
+//         emit host_error("Failed to create mosquitto instance");
+//         return;
+//     }
+
+//     // Регистрируем коллбэки
+//     mosquitto_connect_callback_set(_mosq, onConnectCallback);
+//     mosquitto_disconnect_callback_set(_mosq, onDisconnectCallback);
+//     mosquitto_message_callback_set(_mosq, onMessageCallback);
+//     mosquitto_log_callback_set(_mosq, onLogCallback);
+//     mosquitto_publish_callback_set(_mosq, onPublishCallback);
+
+//     // Устанавливаем keep-alive (стандартный механизм, который работает)
+//     mosquitto_int_option(_mosq, MOSQ_OPT_PROTOCOL_VERSION, MQTT_PROTOCOL_V311);
+//     //mosquitto_int_option(_mosq, MOSQ_OPT_KEEPALIVE, _keepAlive);
+
+//     // Подключаемся
+//     int rc = mosquitto_connect(_mosq, host.toUtf8().constData(), port, _keepAlive);
+//     if (rc != MOSQ_ERR_SUCCESS) {
+//         emit host_error(QString("Connect failed: %1").arg(mosquitto_strerror(rc)));
+//         mosquitto_destroy(_mosq);
+//         _mosq = nullptr;
+//         return;
+//     }
+
+//     _timer.start();
+//     //qCDebug(logDebug()) << "Mosquitto connecting to" << host << port;
+// }
+
+// void MQTTClient::disconnectFromHost()
+// {
+//     _timer.stop();
+//     if (_mosq) {
+//         mosquitto_disconnect(_mosq);
+//         // даём немного времени на отправку DISCONNECT перед уничтожением
+//         mosquitto_loop(_mosq, 100, 1);
+//         mosquitto_destroy(_mosq);
+//         _mosq = nullptr;
+//     }
+//     _connected = false;
+// }
+
+// void MQTTClient::subscribe(const QString &topic, int qos)
+// {
+//     if (_mosq) {
+//         int rc = mosquitto_subscribe(_mosq, nullptr, topic.toUtf8().constData(), qos);
+//         if (rc != MOSQ_ERR_SUCCESS)
+//             qCWarning(logDebug()) << "Subscribe failed:" << mosquitto_strerror(rc);
+//     }
+// }
+
+// void MQTTClient::unsubscribe(const QString &topic)
+// {
+//     if (_mosq)
+//         mosquitto_unsubscribe(_mosq, nullptr, topic.toUtf8().constData());
+// }
+
+// void MQTTClient::publish(const QString &topic, const QByteArray &message, int qos, bool retain)
+// {
+//     if (_mosq) {
+//         int rc = mosquitto_publish(_mosq, nullptr, topic.toUtf8().constData(),
+//                                    message.size(), message.constData(), qos, retain);
+//         if (rc != MOSQ_ERR_SUCCESS)
+//             qCWarning(logDebug()) << "Publish failed:" << mosquitto_strerror(rc);
+//     }
+// }
+
+// void MQTTClient::publish(const QString &topic, const QString &message, int qos, bool retain)
+// {
+//     publish(topic, message.toUtf8(), qos, retain);
+// }
+
+// void MQTTClient::publish(const QString &topic, const std::string &message, int qos, bool retain)
+// {
+//     publish(topic, QString(message.c_str()), qos, retain);
+// }
+
+// void MQTTClient::onTimer()
+// {
+//     if (_mosq) {
+//         int rc = mosquitto_loop(_mosq, 0, 1);
+//         if (rc != MOSQ_ERR_SUCCESS && rc != MOSQ_ERR_NO_CONN) {
+//             // ошибка, вероятно разрыв
+//             qCDebug(logDebug()) << "mosquitto_loop error:" << mosquitto_strerror(rc);
+//             if (_connected) {
+//                 _connected = false;
+//                 emit host_disconnected();
+//             }
+//             _timer.stop();
+//         }
+//     }
+// }
+
+// // Статические коллбэки
+// void MQTTClient::onConnectCallback(struct mosquitto *, void *obj, int rc)
+// {
+//     auto *self = static_cast<MQTTClient*>(obj);
+//     if (rc == MOSQ_ERR_SUCCESS) {
+//         self->_connected = true;
+//         emit self->host_connected();
+//         qCDebug(logDebug()) << "MQTTClient connected to" << self->_host;
+//     } else {
+//         self->_connected = false;
+//         emit self->host_error(QString("Connection refused: %1").arg(mosquitto_strerror(rc)));
+//     }
+// }
+
+// void MQTTClient::onDisconnectCallback(struct mosquitto *, void *obj, int rc)
+// {
+//     auto *self = static_cast<MQTTClient*>(obj);
+//     if (self->_connected) {
+//         self->_connected = false;
+//         emit self->host_disconnected();
+//         qCDebug(logDebug()) << "MQTTClient disconnected, rc=" << rc;
+//     }
+//     self->_timer.stop();
+// }
+
+// void MQTTClient::onMessageCallback(struct mosquitto *, void *obj, const struct mosquitto_message *msg)
+// {
+//     auto *self = static_cast<MQTTClient*>(obj);
+//     QString topic = QString::fromUtf8(msg->topic);
+//     QString payload = QString::fromUtf8(static_cast<const char*>(msg->payload), msg->payloadlen);
+//     emit self->messageReceived(topic, payload);
+// }
+
+// void MQTTClient::onLogCallback(struct mosquitto *, void *obj, int level, const char *str)
+// {
+//     Q_UNUSED(obj);
+//     // Перенаправляем в ваш логгер
+//     //qCDebug(logDebug()) << "mosquitto:" << str;
+// }
+
+// void MQTTClient::onPublishCallback(struct mosquitto *, void *obj, int mid)
+// {
+//     Q_UNUSED(obj);
+//     //qCDebug(logDebug()) << "Published message id:" << mid;
+// }

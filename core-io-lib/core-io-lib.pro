@@ -17,7 +17,9 @@ include(../qmake-target-platform.pri)
 include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
+    #LIBS += -lmosquitto
     LIBS += -L/usr/lib/qt/ -lcore-lib
+    LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
 
     DISTFILES += ../core-gcc10.pri
     include(../core-gcc10.pri)
@@ -26,6 +28,7 @@ exists(/etc/astra_version) {
     message($${ASTRA_QT_PATH})
 } else {
     unix {
+        #LIBS += -lmosquitto
         LIBS += -L/usr/lib/qt/ -lcore-lib
         LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
     }
@@ -33,11 +36,13 @@ exists(/etc/astra_version) {
     WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
     win32 {
         DEFINES += win32
+        #LIBS += -L$${WIN_LIBS_PATH} -lmosquitto
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
     win64 {
         DEFINES += win64
+        #LIBS += -L$${WIN_LIBS_PATH} -lmosquitto
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
