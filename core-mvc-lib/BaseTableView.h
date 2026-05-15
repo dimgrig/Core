@@ -17,12 +17,6 @@
 
 #include "core-mvc-lib-global.h"
 
-// enum TableType {
-//     TableType_Test,
-//     TableType_TestResult,
-//     TableType_TestsResult
-// };
-
 enum TableType {
     //saks
     TableType_MainTable,
@@ -51,7 +45,12 @@ enum TableType {
     TableType_Sensors,
     TableType_Clients,
     TableType_Models,
-    TableType_Users
+    TableType_Users,
+
+    //rv-led
+    TableType_Test,
+    TableType_TestResult,
+    TableType_TestsResult
 };
 
 class BaseTableView;

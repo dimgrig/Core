@@ -100,6 +100,7 @@ HEADERS += \
     MenuCornerWidget.h \
     MessageBox.h \
     MockUserRoleManager.h \
+    SpinBoxEditor.h \
     TabBarHorizontalText.h \
     User.h \
     aqp.h \
