@@ -263,4 +263,6 @@ bool check_renderable(T obj) {
         return false;
     }
 }
+
+
 #endif //TEMPLATES_H

@@ -97,6 +97,7 @@ win64 {
 #message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))
 
 HEADERS += \
+    ClientHelpers.h \
     HTTPClient.h \
     MQTTClient.h \
     ResourceManager.h \

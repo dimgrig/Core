@@ -1,9 +1,10 @@
 #include "HTTPClient.h"
-#include "qjsondocument.h"
-#include "qjsonobject.h"
 //#include "ui_authenticationdialog.h"
 
 #include <QAuthenticator>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTimer>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -34,19 +35,6 @@ HTTPClient::HTTPClient(QWidget *parent)
 
 HTTPClient::~HTTPClient() {
     _qnam.disconnect();
-}
-
-void HTTPClient::set_async(bool async) {
-    _async = async;
-    // if (_reply != nullptr) {
-    //     if (_async) {
-    //         connect(_reply, &QNetworkReply::finished, this, &HTTPClient::http_finished);
-    //         connect(_reply, &QIODevice::readyRead, this, &HTTPClient::readDataSlot);
-    //     } else {
-    //         disconnect(_reply, &QNetworkReply::finished, this, &HTTPClient::http_finished);
-    //         disconnect(_reply, &QIODevice::readyRead, this, &HTTPClient::readDataSlot);
-    //     }
-    // }
 }
 
 void HTTPClient::connectToHost(const QString url) {
@@ -127,6 +115,75 @@ void HTTPClient::request(const QUrl url, const QJsonObject *requestObject) {
             connect(reply, &QIODevice::readyRead, this, &HTTPClient::readDataSlot);
         // }
     //}
+}
+
+QByteArray HTTPClient::get(const QUrl &url, int timeoutMs, bool *ok) {
+    QNetworkRequest request(url);
+    QNetworkReply *reply = _qnam.get(request);
+
+    QEventLoop loop;
+    QTimer timer;
+    timer.setSingleShot(true);
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timer.start(timeoutMs);
+    loop.exec();
+
+    QByteArray data;
+    bool success = false;
+    if (timer.isActive()) {
+        timer.stop();
+        if (reply->error() == QNetworkReply::NoError) {
+            data = reply->readAll();
+            success = true;
+            //qCDebug(logDebug) << "HTTP GET success, size:" << data.size();
+        } else {
+            qCDebug(logDebug) << "HTTP GET error:" << reply->error();
+        }
+    } else {
+        // Таймаут
+        reply->abort();
+        qCDebug(logDebug) << "HTTP GET timeout after" << timeoutMs << "ms";
+    }
+    reply->deleteLater();
+
+    if (ok) *ok = success;
+    return data;
+}
+
+QByteArray HTTPClient::post(const QUrl &url, const QByteArray &body, int timeoutMs, bool *ok) {
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json"); // при необходимости можно вынести в параметр
+    QNetworkReply *reply = _qnam.post(request, body);
+
+    QEventLoop loop;
+    QTimer timer;
+    timer.setSingleShot(true);
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timer.start(timeoutMs);
+    loop.exec();
+
+    QByteArray data;
+    bool success = false;
+    if (timer.isActive()) {
+        timer.stop();
+        if (reply->error() == QNetworkReply::NoError) {
+            data = reply->readAll();
+            success = true;
+            //qCDebug(logDebug) << "HTTP POST success, size:" << data.size();
+        } else {
+            qCDebug(logDebug) << "HTTP POST error:" << reply->error();
+        }
+    } else {
+        // Таймаут
+        reply->abort();
+        qCDebug(logDebug) << "HTTP POST timeout after" << timeoutMs << "ms";
+    }
+    reply->deleteLater();
+
+    if (ok) *ok = success;
+    return data;
 }
 
 void HTTPClient::readDataSlot() {

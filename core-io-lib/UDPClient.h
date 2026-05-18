@@ -13,7 +13,6 @@ public:
     UDPClient(QWidget *parent = nullptr);
     virtual ~UDPClient();
 
-    void set_async(bool async);
     bool isConnected() {return this->_socket->isOpen();};
     bool isReadable() {return this->_socket->isReadable();};
     int bytesAvailable() {return this->_socket->bytesAvailable();};
@@ -31,18 +30,16 @@ public slots:
     //void close();
     void writeData(const char *buffer_tx, uint16_t length);
     void writeData(const QByteArray &txBuff);
-    std::string readData();
+    QByteArray readData(int timeoutMs = 3000);
 private:
-    //void readData();
 #if QT_VERSION > QT_VERSION_CHECK(5, 13, 0)
     void handleError(QAbstractSocket::SocketError error);
 #endif
-    void readDataSlot();
-//    void on_timer();
 private:
     void setSockOpt();
 
-    bool _async = false;
+    QString _host;
+    int _port = 0;
 
     QUdpSocket *_socket = new QUdpSocket(this);
 

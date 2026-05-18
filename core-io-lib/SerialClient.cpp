@@ -1,5 +1,6 @@
 #include "SerialClient.h"
 
+#include "ClientHelpers.h"
 #include "Logger.h"
 
 SerialClient::SerialClient(QObject *parent) :
@@ -7,10 +8,8 @@ SerialClient::SerialClient(QObject *parent) :
 {
     this->_serial->setReadBufferSize(64); //PACKET_MAX_LENGTH
 
-    //qCDebug(logDebug()) << cfg.UART_PORT;
     connect(this->_serial, &QSerialPort::errorOccurred, this, &SerialClient::handleError);
-    //connect(this->serial, &QSerialPort::readyRead, this, &SerialClient::readDataSlot);
-    //connect(this->timer, &QTimer::timeout, this, &SerialClient::on_timer);
+    connect(this->_serial, &QSerialPort::readyRead, this, &SerialClient::ready_read);
 }
 
 SerialClient::~SerialClient()
@@ -21,9 +20,9 @@ SerialClient::~SerialClient()
 void SerialClient::set_async(bool async) {
     _async = async;
     if (async) {
-        connect(this->_serial, &QSerialPort::readyRead, this, &SerialClient::readDataSlot);
+        connect(_serial, &QSerialPort::readyRead, this, &SerialClient::readDataSlot);
     } else {
-        disconnect(this->_serial, &QSerialPort::readyRead, this, &SerialClient::readDataSlot);
+        disconnect(_serial, &QSerialPort::readyRead, this, &SerialClient::readDataSlot);
     }
 }
 
@@ -53,7 +52,6 @@ void SerialClient::openSerialPort(QString port, int speed)
         qCDebug(logInfo()) << "SERIAL: " << "connected" << port;
         emit port_opened();
         _serial->clear();
-        //timer->start(this->TIMER_MS);
     } else {
         emit port_error("Serial: " + _serial->errorString());
         volatile QString str = _serial->errorString();
@@ -66,7 +64,6 @@ void SerialClient::closeSerialPort()
     if (this->isConnected()) {
         _serial->clear();
         _serial->close();
-        //timer->stop();
         qCDebug(logInfo()) << "SERIAL: " << "disconnected";
     }
     emit port_closed();
@@ -99,56 +96,26 @@ void SerialClient::writeData(const QByteArray &txBuff) {
 #endif
 }
 
-std::string SerialClient::readData() {
-    QByteArray rxBuff = _serial->readAll();
+QByteArray SerialClient::readData(int timeoutMs) {
+    QByteArray rxBuff = readDataWithTimeout(_serial, timeoutMs);
 
 #ifdef DEBUG_MSG_INTERFACES
-        qCDebug(logDebug()) << QT_HEX << "SERIAL: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
+    qCDebug(logDebug()) << QT_HEX << "SERIAL: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
 #endif
 
-    return rxBuff.toStdString();
-}
-
-void SerialClient::readDataSlot() {
-    //serial->readyRead()
-//    Sleeper sl;
-//    sl.usleep(50000);
-
-//    if (cfg.UART_DEBUG_MSG) {
-//        qCDebug(logDebug()) << QT_HEX << "SERIAL: rx - " << serial->readBufferSize();
-//    }
-
-    QByteArray rxBuff = _serial->readAll();
-
-#ifdef DEBUG_MSG_INTERFACES
-        qCDebug(logDebug()) << QT_HEX << "SERIAL: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
-#endif
-
-    //rv
     emit read_data(rxBuff);
 
-    //rmo
-//    //fix only 32 byte rx error with CH340
-//    if ((_rxBuff_overflow.size() == 0) && (rxBuff.size() > 1) && (rxBuff.at(1) > 32) && (rxBuff.size() < rxBuff.at(1))) { //rxBuff.size() == 32
-////        if (cfg.DEBUG_MSG_UART) {
-////            qCDebug(logDebug()) << "SERIAL: rx - BUFFER LESS - " << rxBuff.size() << rxBuff.at(1);
-////        }
-//        //rxBuff_overflow.clear();
-//        _rxBuff_overflow = rxBuff;
-//    } else {
-//        if (_rxBuff_overflow.size() != 0) {
-//            _rxBuff_overflow.append(rxBuff);
-//            rxBuff.clear();
-//            rxBuff = _rxBuff_overflow;
-//            _rxBuff_overflow.clear();
-//        }
-////        if (cfg.DEBUG_MSG_UART) {
-////            qCDebug(logDebug()) << "SERIAL: rx - BUFFER - " << rxBuff.size();
-////        }
-//        emit read_data(rxBuff);
-//    }
+    return rxBuff;
 }
 
-void SerialClient::on_timer() {
-    //TODO BASE check connection???
+
+
+void SerialClient::readDataSlot() {
+    QByteArray rxBuff = _serial->readAll();
+
+#ifdef DEBUG_MSG_INTERFACES
+    qCDebug(logDebug()) << QT_HEX << "SERIAL: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
+#endif
+
+    emit read_data(rxBuff);
 }

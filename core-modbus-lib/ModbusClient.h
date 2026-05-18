@@ -30,7 +30,6 @@ public:
     void updateDeviceMap() override;
     void updatePollingGroups() override;
 
-    void set_async(bool async);
     // bool isReadable() {return this->_socket->isReadable();};
     // int bytesAvailable() {return this->_socket->bytesAvailable();};
     // bool waitForReadyRead(int msecs = 1000) {return this->_socket->waitForReadyRead(msecs);};

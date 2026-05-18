@@ -38,25 +38,22 @@ signals:
     void port_error(QString error);
     void port_opened();
     void port_closed();
+    void ready_read();
     void read_data(QByteArray rxBuff);
 public slots:
     void openSerialPort(QString port, int speed);
     void closeSerialPort();
     void writeData(const char *buffer_tx, uint16_t length);
     void writeData(const QByteArray &txBuff);
-    std::string readData();
+    QByteArray readData(int timeoutMs = 3000);
 private slots:
     void handleError(QSerialPort::SerialPortError error);
     void readDataSlot();
-    void on_timer();
 private:
-    bool _async = false;
-
     QSerialPort *_serial = new QSerialPort(this);
 
-    QTimer *timer = new QTimer(this);
-    int TIMER_MS = 1000;
-
     QByteArray _rxBuff_overflow;
+
+    bool _async = false;
 };
 #endif // SERIALCLIENT_H

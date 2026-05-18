@@ -12,6 +12,7 @@
 #include <netinet/tcp.h>
 #endif
 
+#include "ClientHelpers.h"
 #include "Logger.h"
 
 static std::chrono::steady_clock::time_point rx_st;
@@ -30,16 +31,16 @@ TCPClient::TCPClient(QWidget *parent) :
 //    connect(_socket,SIGNAL(disconnected()),SLOT(onConnectionTerminated()),Qt::UniqueConnection);
 //    connect(_socket,SIGNAL(connected()),SLOT(onConnectionEstablished()),Qt::UniqueConnection);
 
-    //connect(_socket, &QTcpSocket::readyRead, this, &TCPClient::readData);
+    //connect(_socket, &QAbstractSocket::readyRead, this, &TCPClient::readData);
 #if QT_VERSION > QT_VERSION_CHECK(5, 13, 0)
-    connect(_socket, &QTcpSocket::errorOccurred, this, &TCPClient::handleError);
+    connect(_socket, &QAbstractSocket::errorOccurred, this, &TCPClient::handleError);
 #endif
-    connect(_socket, &QTcpSocket::connected, this, [=](){
+    connect(_socket, &QAbstractSocket::connected, this, [=](){
         qCDebug(logInfo()) << "TCP: connected to" << this->_host << this->_port;
         emit host_connected();
         this->setSockOpt();
     });
-    connect(_socket, &QTcpSocket::disconnected, this, [=](){
+    connect(_socket, &QAbstractSocket::disconnected, this, [=](){
         qCDebug(logInfo()) << "TCP: disconnected from" << this->_host << this->_port;
         emit host_disconnected();
     });
@@ -53,15 +54,6 @@ TCPClient::TCPClient(QWidget *parent) :
 TCPClient::~TCPClient() {
     if (_socket && this->isConnected()) {
         this->disconnectFromHost();
-    }
-}
-
-void TCPClient::set_async(bool async) {
-    _async = async;
-    if (async) {
-        connect(_socket, &QTcpSocket::readyRead, this, &TCPClient::readDataSlot);
-    } else {
-        disconnect(_socket, &QTcpSocket::readyRead, this, &TCPClient::readDataSlot);
     }
 }
 
@@ -126,9 +118,9 @@ void TCPClient::handleError(QAbstractSocket::SocketError socketError){
 #endif
 
 void TCPClient::connectToHost(QString host, int port) {
-    _socket->connectToHost(host, port, QIODevice::ReadWrite);
     this->_host = host;
     this->_port = port;
+    _socket->connectToHost(host, port, QIODevice::ReadWrite);
 }
 
 void TCPClient::disconnectFromHost() {
@@ -191,47 +183,25 @@ void TCPClient::writeData(const QByteArray &txBuff){
 //    }
 }
 
-std::string TCPClient::readData() {
-    QByteArray rxBuff;
-    while(_socket->bytesAvailable()){
-        rxBuff += _socket->readAll();
+// std::string TCPClient::readData() {
+//     QByteArray rxBuff;
+//     while(_socket->bytesAvailable()){
+//         rxBuff += _socket->readAll();
+
+// #ifdef DEBUG_MSG_INTERFACES
+//             qCDebug(logDebug()) << QT_HEX << "TCP: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
+// #endif
+//     }
+
+//     return rxBuff.toStdString();
+// }
+
+QByteArray TCPClient::readData(int timeoutMs) {
+    QByteArray rxBuff = readDataWithTimeout(_socket, timeoutMs);
 
 #ifdef DEBUG_MSG_INTERFACES
-            qCDebug(logDebug()) << QT_HEX << "TCP: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
-#endif
-    }
-
-    return rxBuff.toStdString();
-}
-
-void TCPClient::readDataSlot(){
-#ifdef PROFILER
-    prev_rx_st = rx_st;
-    rx_st = std::chrono::steady_clock::now();
-    std::cout << "rx-rx " << std::chrono::duration_cast<std::chrono::microseconds>(rx_st - prev_rx_st).count() << "mcs" << std::endl;
+    qCDebug(logDebug()) << QT_HEX << "TCP: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
 #endif
 
-    QByteArray rxBuff;
-    while(_socket->bytesAvailable()){
-        rxBuff += _socket->readAll();
-
-#ifdef DEBUG_MSG_INTERFACES
-            qCDebug(logDebug()) << QT_HEX << "TCP: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
-#endif
-    }
-
-    emit read_data(std::move(rxBuff));
-//    QByteArray rxBuff;
-
-//    QDataStream socketStream(_socket);
-//    //socketStream.setVersion(QDataStream::Qt_5_15);
-
-//    socketStream.startTransaction();
-//    socketStream >> rxBuff;
-
-//    while (!socketStream.commitTransaction()) {
-//        socketStream >> rxBuff;
-//    }
-//    qCDebug(logDebug()) << Qt::hex << "TCP: rx - " << qPrintable(rxBuff.toHex(' ')) << "SIZE" << rxBuff.size();
-//    emit read_data(rxBuff);
+    return rxBuff;
 }

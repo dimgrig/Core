@@ -15,7 +15,6 @@ public:
     HTTPClient(QWidget *parent = nullptr);
     ~HTTPClient();
 
-    void set_async(bool async);
     bool isConnected() {return true;}; //{return this->_session.isOpen();};
     ////bool isReadable() {return this->_session->isReadable();};
     int bytesAvailable() {return _rxBuff.size();}; //{return this->_session.bytesReceived();};
@@ -32,6 +31,11 @@ public slots:
     void disconnectFromHost();
     std::string readData();
     void request(const QUrl url = QUrl(), const QJsonObject *requestObject = nullptr);
+
+    // Синхронный GET с таймаутом
+    QByteArray get(const QUrl &url, int timeoutMs = 3000, bool *ok = nullptr);
+    // Синхронный POST с таймаутом
+    QByteArray post(const QUrl &url, const QByteArray &body, int timeoutMs = 3000, bool *ok = nullptr);
 private slots:
     void readDataSlot();
     void http_finished();
@@ -47,7 +51,6 @@ private:
 
     bool _httpRequestAborted = false;
     bool _request = false;
-    bool _async = false;
 
     QByteArray _rxBuff;
 };
