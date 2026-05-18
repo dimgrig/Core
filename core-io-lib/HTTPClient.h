@@ -33,7 +33,8 @@ public slots:
     void request(const QUrl url = QUrl(), const QJsonObject *requestObject = nullptr);
 
     // Синхронный GET с таймаутом
-    QByteArray get(const QUrl &url, int timeoutMs = 3000, bool *ok = nullptr);
+    //QByteArray get(const QUrl &url, int timeoutMs = 3000, bool *ok = nullptr);
+    QByteArray get(const QUrl &url, int timeoutMs = 3000, bool *ok = nullptr, int maxRetries = 3, int retryDelayMs = 1000);
     // Синхронный POST с таймаутом
     QByteArray post(const QUrl &url, const QByteArray &body, int timeoutMs = 3000, bool *ok = nullptr);
 private slots:

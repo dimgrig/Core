@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTimer>
+#include <QThread>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -117,38 +118,84 @@ void HTTPClient::request(const QUrl url, const QJsonObject *requestObject) {
     //}
 }
 
-QByteArray HTTPClient::get(const QUrl &url, int timeoutMs, bool *ok) {
-    QNetworkRequest request(url);
-    QNetworkReply *reply = _qnam.get(request);
+// QByteArray HTTPClient::get(const QUrl &url, int timeoutMs, bool *ok) {
+//     QNetworkRequest request(url);
+//     QNetworkReply *reply = _qnam.get(request);
 
-    QEventLoop loop;
-    QTimer timer;
-    timer.setSingleShot(true);
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-    timer.start(timeoutMs);
-    loop.exec();
+//     QEventLoop loop;
+//     QTimer timer;
+//     timer.setSingleShot(true);
+//     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+//     connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+//     timer.start(timeoutMs);
+//     loop.exec();
 
-    QByteArray data;
-    bool success = false;
-    if (timer.isActive()) {
-        timer.stop();
-        if (reply->error() == QNetworkReply::NoError) {
-            data = reply->readAll();
-            success = true;
-            //qCDebug(logDebug) << "HTTP GET success, size:" << data.size();
+//     QByteArray data;
+//     bool success = false;
+//     if (timer.isActive()) {
+//         timer.stop();
+//         if (reply->error() == QNetworkReply::NoError) {
+//             data = reply->readAll();
+//             success = true;
+//             //qCDebug(logDebug) << "HTTP GET success, size:" << data.size();
+//         } else {
+//             qCDebug(logDebug) << "HTTP GET error:" << reply->error() << reply->errorString();
+//             qCDebug(logDebug) << "HTTP GET response data:" << reply->readAll();
+//         }
+//     } else {
+//         // Таймаут
+//         reply->abort();
+//         qCDebug(logDebug) << "HTTP GET timeout after" << timeoutMs << "ms";
+//     }
+//     reply->deleteLater();
+
+//     if (ok) *ok = success;
+//     return data;
+// }
+
+QByteArray HTTPClient::get(const QUrl &url, int timeoutMs, bool *ok, int maxRetries, int retryDelayMs) {
+    for (int attempt = 1; attempt <= maxRetries; ++attempt) {
+        QNetworkRequest request(url);
+        QNetworkReply *reply = _qnam.get(request);
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+        timer.start(timeoutMs);
+        loop.exec();
+
+        QByteArray data;
+        bool success = false;
+        if (timer.isActive()) {
+            timer.stop();
+            if (reply->error() == QNetworkReply::NoError) {
+                data = reply->readAll();
+                success = true;
+                if (ok) *ok = true;
+                reply->deleteLater();
+                return data;
+            } else if (reply->error() == QNetworkReply::UnknownContentError) {
+                // Проверяем, не является ли ошибка 408
+                int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                if (httpCode == 408 && attempt < maxRetries) {
+                    qCDebug(logDebug) << "HTTP GET 408, retrying in" << retryDelayMs << "ms (attempt" << attempt << ")";
+                    reply->deleteLater();
+                    QThread::msleep(retryDelayMs);
+                    continue;
+                }
+            }
+            qCDebug(logDebug) << "HTTP GET error:" << reply->error() << reply->errorString();
         } else {
-            qCDebug(logDebug) << "HTTP GET error:" << reply->error();
+            reply->abort();
+            qCDebug(logDebug) << "HTTP GET timeout after" << timeoutMs << "ms";
         }
-    } else {
-        // Таймаут
-        reply->abort();
-        qCDebug(logDebug) << "HTTP GET timeout after" << timeoutMs << "ms";
+        reply->deleteLater();
+        if (ok) *ok = false;
+        return {};
     }
-    reply->deleteLater();
-
-    if (ok) *ok = success;
-    return data;
+    if (ok) *ok = false;
+    return {};
 }
 
 QByteArray HTTPClient::post(const QUrl &url, const QByteArray &body, int timeoutMs, bool *ok) {
@@ -173,7 +220,8 @@ QByteArray HTTPClient::post(const QUrl &url, const QByteArray &body, int timeout
             success = true;
             //qCDebug(logDebug) << "HTTP POST success, size:" << data.size();
         } else {
-            qCDebug(logDebug) << "HTTP POST error:" << reply->error();
+            qCDebug(logDebug) << "HTTP POST error:" << reply->error() << reply->errorString();
+            qCDebug(logDebug) << "HTTP POST response data:" << reply->readAll();
         }
     } else {
         // Таймаут
