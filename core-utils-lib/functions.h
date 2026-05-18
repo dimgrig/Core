@@ -98,6 +98,14 @@ static std::map<std::string, std::string> translations_RU_EN {
     {"мкСм", "uS"},
     {"нСм", "nS"},
 
+    {"ГГц", "GHz"},
+    {"МГц", "MHz"},
+    {"кГц", "kHz"},
+    {"Гц", "Hz"},
+    {"мГц", "mHz"},
+    {"мкГц", "uHz"},
+    {"нГц", "nHz"},
+
     {"В норме", "Passed"},
     {"Не в норме", "Failed"},
     {"Годен", "Passed"},
