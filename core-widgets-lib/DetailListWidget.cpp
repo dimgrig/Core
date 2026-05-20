@@ -1,7 +1,9 @@
 #include "DetailListWidget.h"
 
-#include <QVBoxLayout>
+#include <QAction>
 #include <QItemSelectionModel>
+#include <QMenu>
+#include <QVBoxLayout>
 
 DetailListWidget::DetailListWidget(QString name, QWidget *parent)
     : QWidget(parent)
@@ -23,6 +25,9 @@ DetailListWidget::DetailListWidget(QString name, QWidget *parent)
     auto *layout = new QVBoxLayout(this);
     layout->addWidget(splitter);
     //layout->setContentsMargins(0, 0, 0, 0);
+
+    m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_listView, &QWidget::customContextMenuRequested, this, &DetailListWidget::onListViewContextMenu);
 }
 
 void DetailListWidget::setModel(QAbstractItemModel *model, DetailListWidgetPanelFactory factory, int idColumn, int displayColumn)
@@ -111,6 +116,37 @@ void DetailListWidget::onSelectionChanged()
         emit currentRowChanged(row);
         emit currentRowIdChanged(currentId());
     }
+}
+
+void DetailListWidget::onListViewContextMenu(const QPoint &pos)
+{
+    if (!m_model || m_idColumn < 0)
+        return;
+
+    QModelIndex index = m_listView->indexAt(pos);
+    if (!index.isValid())
+        return;
+
+    // Получаем строку и ID из колонки идентификатора
+    int row = index.row();
+    QModelIndex idIndex = m_model->index(row, m_idColumn);
+    if (!idIndex.isValid())
+        return;
+    int id = m_model->data(idIndex, Qt::DisplayRole).toInt();
+
+    QMenu menu;
+    QAction *repeatAction = menu.addAction("Повторить тест");
+    QAction *startAction  = menu.addAction("Запустить с теста");
+
+    connect(repeatAction, &QAction::triggered, this, [this, id]() {
+        emit runTestRefreshSequenceRequested(id);
+    });
+    connect(startAction, &QAction::triggered, this, [this, id]() {
+        emit runFromTestRequested(id);
+    });
+
+    // Показываем меню в глобальных координатах
+    menu.exec(m_listView->viewport()->mapToGlobal(pos));
 }
 
 int DetailListWidget::currentId() const

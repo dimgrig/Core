@@ -34,15 +34,18 @@ public:
     int currentRow() const;
     void setCurrentRow(int row);
 
-    void updatePanels();                          // очищает и пересоздаёт панели
+    void updatePanels();
 
 signals:
     void currentRowChanged(int row);
     void currentRowIdChanged(int id);
 
+    void runTestRefreshSequenceRequested(int id);
+    void runFromTestRequested(int id);
 private slots:
     void onSelectionChanged();
 
+    void onListViewContextMenu(const QPoint &pos);
 private:
     int currentId() const;
 
