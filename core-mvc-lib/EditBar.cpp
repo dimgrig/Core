@@ -18,9 +18,13 @@ EditBar::EditBar(QWidget *parent) :
         "tb_edit_paste_after",
         "tb_edit_delete",
         "tb_edit_save",
+        "tb_edit_print",
         "tb_edit_export",
         "tb_edit_cancel",
-        "tb_edit_ok"
+        "tb_edit_ok",
+        "tb_edit_custom1",
+        "tb_edit_custom2",
+        "tb_edit_custom3"
     };
 
     static const char* tooltips_v[] = {
@@ -34,9 +38,13 @@ EditBar::EditBar(QWidget *parent) :
         "Вставить после",
         "Удалить",
         "Сохранить",
+        "Печать",
         "Экспорт",
         "Отмена",
-        "Ок"
+        "Ок",
+        "",
+        "",
+        ""
     };
 
     static const char* edit_action_names[] = {
@@ -54,9 +62,13 @@ EditBar::EditBar(QWidget *parent) :
         "edit_delete_separator",
         "edit_save",
         "edit_save_separator",
+        "edit_print",
         "edit_export",
         "edit_cancel",
-        "edit_ok"
+        "edit_ok",
+        "edit_custom1",
+        "edit_custom2",
+        "edit_custom3"
     };
 
     this->setObjectName("Панель инструментов");
@@ -83,9 +95,13 @@ EditBar::EditBar(QWidget *parent) :
     button_icons.push_back(ICON_INSERT_AFTER);
     button_icons.push_back(ICON_DELETE);
     button_icons.push_back(ICON_SAVE);
+    button_icons.push_back(ICON_PRINT);
     button_icons.push_back(ICON_EXPORT);
     button_icons.push_back(ICON_CANCEL);
     button_icons.push_back(ICON_OK);
+    button_icons.push_back(QIcon());
+    button_icons.push_back(QIcon());
+    button_icons.push_back(QIcon());
 
     for (const auto &icon : button_icons) {
         Q_UNUSED(icon);
@@ -102,9 +118,34 @@ EditBar::EditBar(QWidget *parent) :
     buttons.push_back(tb_paste_after);
     buttons.push_back(tb_delete);
     buttons.push_back(tb_save);
+    buttons.push_back(tb_print);
     buttons.push_back(tb_export);
     buttons.push_back(tb_cancel);
     buttons.push_back(tb_ok);
+    buttons.push_back(tb_custom1);
+    buttons.push_back(tb_custom2);
+    buttons.push_back(tb_custom3);
+
+    // после инициализации buttons вектора
+    m_buttonMap = {
+        {Button::Add,         tb_add},
+        {Button::AddBefore,   tb_add_before},
+        {Button::AddAfter,    tb_add_after},
+        {Button::Copy,        tb_copy},
+        {Button::Cut,         tb_cut},
+        {Button::Paste,       tb_paste},
+        {Button::PasteBefore, tb_paste_before},
+        {Button::PasteAfter,  tb_paste_after},
+        {Button::Delete,      tb_delete},
+        {Button::Save,        tb_save},
+        {Button::Print,       tb_print},
+        {Button::Export,      tb_export},
+        {Button::Cancel,      tb_cancel},
+        {Button::Ok,          tb_ok},
+        {Button::Custom1,     tb_custom1},
+        {Button::Custom2,     tb_custom2},
+        {Button::Custom3,     tb_custom3}
+    };
 
     for (auto &[btn, icon, text] : qzip(buttons, button_icons, button_texts)) {
         btn->setIcon(icon);
@@ -118,25 +159,60 @@ EditBar::EditBar(QWidget *parent) :
         btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     }
 
-    widget_actions.append({
-        this->addWidget(tb_add),
-        this->addWidget(tb_add_before),
-        this->addWidget(tb_add_after),
-        this->addSeparator(),
-        this->addWidget(tb_copy),
-        this->addWidget(tb_cut),
-        this->addWidget(tb_paste),
-        this->addWidget(tb_paste_before),
-        this->addWidget(tb_paste_after),
-        this->addSeparator(),
-        this->addWidget(tb_delete),
-        this->addSeparator(),
-        this->addWidget(tb_save),
-        this->addSeparator(),
-        this->addWidget(tb_export),
-        this->addWidget(tb_cancel),
-        this->addWidget(tb_ok),
-    });
+    // widget_actions.append({
+    //     this->addWidget(tb_add),
+    //     this->addWidget(tb_add_before),
+    //     this->addWidget(tb_add_after),
+    //     this->addSeparator(),
+    //     this->addWidget(tb_copy),
+    //     this->addWidget(tb_cut),
+    //     this->addWidget(tb_paste),
+    //     this->addWidget(tb_paste_before),
+    //     this->addWidget(tb_paste_after),
+    //     this->addSeparator(),
+    //     this->addWidget(tb_delete),
+    //     this->addSeparator(),
+    //     this->addWidget(tb_save),
+    //     this->addSeparator(),
+    //     this->addWidget(tb_print),
+    //     this->addWidget(tb_export),
+    //     this->addWidget(tb_cancel),
+    //     this->addWidget(tb_ok),
+    //     this->addSeparator(),
+    //     this->addWidget(tb_custom1),
+    //     this->addWidget(tb_custom2),
+    //     this->addWidget(tb_custom3),
+    // });
+
+    // Добавляем виджеты и запоминаем действия
+    auto addButton = [this](Button button, QToolButton* btn) -> QAction* {
+        QAction* act = this->addWidget(btn);
+        m_actionMap[button] = act;
+        return act;
+    };
+
+    widget_actions.append(addButton(Button::Add, tb_add));
+    widget_actions.append(addButton(Button::AddBefore, tb_add_before));
+    widget_actions.append(addButton(Button::AddAfter, tb_add_after));
+    widget_actions.append(this->addSeparator());
+    widget_actions.append(addButton(Button::Copy, tb_copy));
+    widget_actions.append(addButton(Button::Cut, tb_cut));
+    widget_actions.append(addButton(Button::Paste, tb_paste));
+    widget_actions.append(addButton(Button::PasteBefore, tb_paste_before));
+    widget_actions.append(addButton(Button::PasteAfter, tb_paste_after));
+    widget_actions.append(this->addSeparator());
+    widget_actions.append(addButton(Button::Delete, tb_delete));
+    widget_actions.append(this->addSeparator());
+    widget_actions.append(addButton(Button::Save, tb_save));
+    widget_actions.append(this->addSeparator());
+    widget_actions.append(addButton(Button::Print, tb_print));
+    widget_actions.append(addButton(Button::Export, tb_export));
+    widget_actions.append(addButton(Button::Cancel, tb_cancel));
+    widget_actions.append(addButton(Button::Ok, tb_ok));
+    widget_actions.append(this->addSeparator());
+    widget_actions.append(addButton(Button::Custom1, tb_custom1));
+    widget_actions.append(addButton(Button::Custom2, tb_custom2));
+    widget_actions.append(addButton(Button::Custom3, tb_custom3));
 
     // for (auto &[name, tb] : qzip(edit_tb_names, buttons)) {
     //     tb->setObjectName(name.c_str());
@@ -177,26 +253,49 @@ EditBar::~EditBar() {
 
 }
 
-void EditBar::set_visible(std::map<QString, bool> edit_tb_enable_m) {
-    for (auto &[name, visible] : edit_tb_enable_m) {
-        int i = 0;
-        for (auto &tb : buttons) {
-            if (tb->objectName() == name) {
-                tb->setVisible(visible);
-                if (!visible) {
-                    QString action_name = name;
-                    action_name.remove(0, 3);
-                    for (auto &action : widget_actions) {
-                        if (action->objectName() == action_name) {
-                            this->removeAction(action);
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
-            ++i;
-        }
+// void EditBar::set_visible(std::map<QString, bool> edit_tb_enable_m) {
+//     for (auto &[name, visible] : edit_tb_enable_m) {
+//         int i = 0;
+//         for (auto &tb : buttons) {
+//             if (tb->objectName() == name) {
+//                 tb->setVisible(visible);
+//                 if (!visible) {
+//                     QString action_name = name;
+//                     action_name.remove(0, 3);
+//                     for (auto &action : widget_actions) {
+//                         if (action->objectName() == action_name) {
+//                             this->removeAction(action);
+//                             break;
+//                         }
+//                     }
+//                 }
+//                 break;
+//             }
+//             ++i;
+//         }
+//     }
+// }
+
+void EditBar::setButtonVisible(Button button, bool visible) {
+    QToolButton *btn = m_buttonMap.value(button);
+    QAction *action = m_actionMap.value(button);
+    if (btn) {
+        btn->setVisible(visible);
+    }
+    if (action) {
+        action->setVisible(visible);
+    }
+}
+
+void EditBar::setButtonIcon(Button button, const QIcon &icon) {
+    if (auto *btn = m_buttonMap.value(button)) {
+        btn->setIcon(icon);
+    }
+}
+
+void EditBar::setButtonToolTip(Button button, const QString &tooltip) {
+    if (auto *btn = m_buttonMap.value(button)) {
+        btn->setToolTip(tooltip);
     }
 }
 

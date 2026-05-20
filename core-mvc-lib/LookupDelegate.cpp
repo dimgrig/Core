@@ -124,16 +124,15 @@ QWidget* LookupDelegate::createEditor(QWidget *parent, const QStyleOptionViewIte
 
         // --- Панель инструментов (аналог EditBar) ---
         EditBar *edit_bar = new EditBar(editor);
-        // Настройка видимости кнопок; для простоты оставим только нужные
-        edit_bar->set_visible({{"tb_edit_add_before", false},
-                               {"tb_edit_add_after", false},
-                               {"tb_edit_copy", true},
-                               {"tb_edit_cut", true},
-                               {"tb_edit_paste", true},
-                               {"tb_edit_paste_before", false},
-                               {"tb_edit_paste_after", false},
-                               {"tb_edit_export", false},
-                               });
+        edit_bar->setButtonVisible(EditBar::Button::AddBefore, false);
+        edit_bar->setButtonVisible(EditBar::Button::AddAfter, false);
+        edit_bar->setButtonVisible(EditBar::Button::Copy, true);
+        edit_bar->setButtonVisible(EditBar::Button::Cut, true);
+        edit_bar->setButtonVisible(EditBar::Button::Paste, true);
+        edit_bar->setButtonVisible(EditBar::Button::PasteBefore, false);
+        edit_bar->setButtonVisible(EditBar::Button::PasteAfter, false);
+        edit_bar->setButtonVisible(EditBar::Button::Print, false);
+        edit_bar->setButtonVisible(EditBar::Button::Export, false);
         edit_bar->tb_save->setEnabled(false);
 
         connect(model, &BaseSqlRelationalTableModel::modified, edit_bar->tb_save, &QToolButton::setEnabled);

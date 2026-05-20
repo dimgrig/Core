@@ -12,7 +12,30 @@ public:
     EditBar(QWidget *parent = nullptr);
     virtual ~EditBar();
 
-    void set_visible(std::map<QString, bool> edit_tb_enable_m);
+    enum class Button {
+        Add,
+        AddBefore,
+        AddAfter,
+        Copy,
+        Cut,
+        Paste,
+        PasteBefore,
+        PasteAfter,
+        Delete,
+        Save,
+        Print,
+        Export,
+        Cancel,
+        Ok,
+        Custom1,
+        Custom2,
+        Custom3
+    };
+    Q_ENUM(Button)
+
+    void setButtonVisible(Button button, bool visible);
+    void setButtonIcon(Button button, const QIcon &icon);
+    void setButtonToolTip(Button button, const QString &tooltip);
     void disable_separators();
 
     QToolButton *tb_add = new QToolButton(this);
@@ -25,9 +48,14 @@ public:
     QToolButton *tb_paste_after = new QToolButton(this);
     QToolButton *tb_delete = new QToolButton(this);
     QToolButton *tb_save = new QToolButton(this);
+    QToolButton *tb_print = new QToolButton(this);
     QToolButton *tb_export = new QToolButton(this);
     QToolButton *tb_cancel = new QToolButton(this);
     QToolButton *tb_ok = new QToolButton(this);
+    QToolButton *tb_custom1 = new QToolButton(this);
+    QToolButton *tb_custom2 = new QToolButton(this);
+    QToolButton *tb_custom3 = new QToolButton(this);
+
 
 signals:
 
@@ -40,10 +68,10 @@ private:
     QVector<QIcon> button_icons;
     QVector<QString> button_texts;
 
-    QVector<int> button_enables;
-    QVector<int> button_separators;
-
     QVector<QAction*> widget_actions;
+
+    QMap<Button, QAction*> m_actionMap;
+    QMap<Button, QToolButton*> m_buttonMap;
 };
 
 #endif // EDITBAR_H
