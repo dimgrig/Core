@@ -1,6 +1,7 @@
 #include "UniversalFormWidget.h"
 
 #include <QFormLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -25,11 +26,27 @@ UniversalFormWidget::UniversalFormWidget(QWidget *parent)
 void UniversalFormWidget::setModel(QAbstractItemModel *model)
 {
     if (!model) return;
+
+    // отсоединяем старый сигнал, если модель меняется
+    if (m_model) {
+        disconnect(m_model, &QAbstractItemModel::modelReset, this, nullptr);
+    }
+
     m_model = model;
     if (m_mapper) m_mapper->deleteLater();
     m_mapper = new QDataWidgetMapper(this);
     m_mapper->setModel(model);
-    m_mapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit); // будем обновлять вручную
+    m_mapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
+
+    // Автоматически обновляем виджет после перезагрузки модели (например, select())
+    connect(m_model, &QAbstractItemModel::modelReset, this, [this]() {
+        if (m_currentRow >= 0 && m_currentRow < m_model->rowCount()) {
+            setCurrentRow(m_currentRow);
+        } else if (m_model->rowCount() > 0) {
+            // Если текущая строка исчезла, можно сбросить на первую
+            setCurrentRow(0);
+        }
+    });
 }
 
 void UniversalFormWidget::setTableView(QTableView *view)
@@ -46,6 +63,7 @@ void UniversalFormWidget::setupColumns(const QVector<ColumnSetup> &columns)
     m_delegates.clear();
     m_editorTypes.clear();
     m_columnSetups.clear();
+    m_iconLabels.clear();
 
     QFormLayout *layout = qobject_cast<QFormLayout*>(this->layout());
     if (!layout) return;
@@ -117,6 +135,29 @@ void UniversalFormWidget::setupColumns(const QVector<ColumnSetup> &columns)
             editor = cmb;
             break;
         }
+        case IconLabel: {
+            auto *container = new QWidget;
+            auto *hlay = new QHBoxLayout(container);
+            hlay->setContentsMargins(0, 0, 0, 0);
+            hlay->setSpacing(4);
+
+            auto *iconLbl = new QLabel;
+            iconLbl->setFixedSize(cs.iconWidth, cs.iconHeight);
+            iconLbl->setScaledContents(true);
+
+            auto *textLbl = new QLabel;
+            textLbl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+            hlay->addWidget(iconLbl);
+            hlay->addWidget(textLbl);
+            container->setLayout(hlay);
+
+            // Сохраняем указатели для последующего обновления
+            m_iconLabels[cs.column] = qMakePair(iconLbl, textLbl);
+
+            editor = container;
+            break;
+        }
         case ReadOnlyLineEdit:
         default: {
             auto *le = new QLineEdit;
@@ -173,6 +214,7 @@ void UniversalFormWidget::setCurrentRow(int row)
         EditorType type = m_editorTypes.value(col, ReadOnlyLineEdit);
         QModelIndex idx = m_model->index(row, col);
         QVariant val = idx.data(Qt::EditRole);
+        const ColumnSetup &cs = m_columnSetups[col];
 
         switch (type) {
         case SpinBox:
@@ -190,6 +232,29 @@ void UniversalFormWidget::setCurrentRow(int row)
         case ComboBox:
             qobject_cast<QComboBox*>(w)->setCurrentText(val.toString());
             break;
+        case IconLabel: {
+            auto it = m_iconLabels.find(col);
+            if (it != m_iconLabels.end()) {
+                QLabel *iconLbl = it.value().first;
+                QLabel *textLbl = it.value().second;
+
+                // Иконка
+                QVariant decoration = idx.data(Qt::DecorationRole);
+                if (decoration.canConvert<QIcon>()) {
+                    QIcon icon = decoration.value<QIcon>();
+                    iconLbl->setPixmap(icon.pixmap(cs.iconWidth, cs.iconHeight));
+                } else if (decoration.canConvert<QPixmap>()) {
+                    iconLbl->setPixmap(decoration.value<QPixmap>().scaled(cs.iconWidth, cs.iconHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                } else {
+                    iconLbl->clear();
+                }
+
+                QString text = idx.data(Qt::DisplayRole).toString();
+                textLbl->setText(text);
+                textLbl->setVisible(!text.isEmpty());
+            }
+            break;
+        }
         case ReadOnlyLineEdit: {
             QLineEdit *le = qobject_cast<QLineEdit*>(w);
             if (le) {
@@ -219,6 +284,17 @@ void UniversalFormWidget::setColumnVisible(int column, bool visible)
 bool UniversalFormWidget::isColumnVisible(int column) const
 {
     return m_visibleFlags.value(column, false);
+}
+
+int UniversalFormWidget::currentRow() const
+{
+    return m_currentRow;
+}
+
+void UniversalFormWidget::refresh()
+{
+    if (m_currentRow >= 0 && m_model && m_currentRow < m_model->rowCount())
+        setCurrentRow(m_currentRow);
 }
 
 bool UniversalFormWidget::eventFilter(QObject *obj, QEvent *event)

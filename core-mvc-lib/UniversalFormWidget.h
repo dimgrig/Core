@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QDataWidgetMapper>
+#include <QLabel>
 #include <QMap>
 #include <QVector>
 #include <QAbstractItemDelegate>
@@ -21,7 +22,8 @@ public:
         DoubleSpinBox,      // QDoubleSpinBox
         CheckBox,           // QCheckBox
         DateEdit,           // QDateEdit
-        ComboBox            // QComboBox (для relation можно наполнять отдельно)
+        ComboBox,            // QComboBox (для relation можно наполнять отдельно)
+        IconLabel
     };
 
     // Структура для описания одной колонки
@@ -33,6 +35,8 @@ public:
         // Для SpinBox/DoubleSpinBox можно задать min/max/step (опционально)
         int min = 0, max = 1000, decimals = 0;
         double singleStep = 1.0;
+        int iconWidth = 16;
+        int iconHeight = 16;
     };
 
     explicit UniversalFormWidget(QWidget *parent = nullptr);
@@ -50,6 +54,9 @@ public:
 
     void setColumnVisible(int column, bool visible);
     bool isColumnVisible(int column) const;
+
+    int currentRow() const;
+    void refresh();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -69,6 +76,8 @@ private:
     QMap<int, EditorType> m_editorTypes;         // колонка → тип редактора
     QMap<int, bool> m_visibleFlags;
     int m_currentRow = -1;
+
+    QMap<int, QPair<QLabel*, QLabel*>> m_iconLabels;
 };
 
 #endif // UNIVERSALFORMWIDGET_H
