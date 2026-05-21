@@ -79,7 +79,7 @@ void TemplateEditRelationalTableModel<T>::sync_v() {
         sl.clear();
         for (int col = 0; col < columnCount(); ++col) {
             //sl << item(row, col)->text();
-            sl << this->data(this->index(row, col)).toString();
+            sl << this->data(this->index(row, col), Qt::EditRole).toString();
         }
         auto t = std::make_shared<T>(nullptr); //this->get_parent()
         t->create_from_model(sl);
