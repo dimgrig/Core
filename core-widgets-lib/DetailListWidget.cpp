@@ -5,6 +5,8 @@
 #include <QMenu>
 #include <QVBoxLayout>
 
+#include "Logger.h"
+
 DetailListWidget::DetailListWidget(QString name, QWidget *parent)
     : QWidget(parent)
 {
@@ -111,6 +113,7 @@ void DetailListWidget::onSelectionChanged()
         return;
     }
     int row = indexes.first().row();
+    //qCDebug(logDebug) << row << m_stack->count();
     if (row >= 0 && row < m_stack->count()) {
         m_stack->setCurrentIndex(row);
         emit currentRowChanged(row);

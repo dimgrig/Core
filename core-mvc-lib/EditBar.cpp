@@ -66,6 +66,7 @@ EditBar::EditBar(QWidget *parent) :
         "edit_export",
         "edit_cancel",
         "edit_ok",
+        "edit_ok_separator",
         "edit_custom1",
         "edit_custom2",
         "edit_custom3"
