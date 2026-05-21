@@ -34,6 +34,10 @@ enum TableType {
     TableType_StaticPressureTolerance,
     TableType_StaticPressure,
     TableType_StaticPressureResult,
+
+    TableType_Pulse,
+    TableType_PulseResult,
+
     TableType_VerificationTable,
     TableType_BPMTable,
     TableType_MITable,

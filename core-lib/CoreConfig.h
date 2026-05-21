@@ -17,8 +17,9 @@
 #define _US 1000000
 
 #define PARAMS_DELIMETER    ", "            // ",\n" = not working due to test raw delimeter - cant copy to txt
-#define ELEMENTS_DELIMETER  ";"
+#define ELEMENTS_DELIMETER  "; "
 #define ROW_DELIMETER       "\r\n"
+#define PARAMS_IN_GROUP_DELIMETER    " | "
 
 #define LOG_DT_FORMAT "yyyy-MM-dd HH:mm:ss.zzz"
 
