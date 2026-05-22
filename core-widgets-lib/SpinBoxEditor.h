@@ -7,8 +7,10 @@
 #include <QSpinBox>
 #include <QVariant>
 
+#include "core-widgets-lib-global.h"
+
 // Создаем пользовательский редактор
-class SpinBoxEditor : public QSpinBox {
+class CORE_WIDGETS_LIB_EXPORT SpinBoxEditor : public QSpinBox {
     Q_OBJECT
 public:
     SpinBoxEditor(QWidget *parent = nullptr) : QSpinBox(parent) {
