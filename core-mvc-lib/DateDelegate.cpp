@@ -84,9 +84,17 @@ void DateDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, cons
     }
 }
 
-// Опционально: форматируем отображение даты в ячейке
-void DateDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
-    QDate date = index.data(Qt::DisplayRole).toDate();
-    QString text = date.toString("dd.MM.yyyy"); // Формат отображения
-    painter->drawText(option.rect, Qt::AlignLeft | Qt::AlignVCenter, text);
+// // Опционально: форматируем отображение даты в ячейке
+// void DateDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+//     QDate date = index.data(Qt::DisplayRole).toDate();
+//     QString text = date.toString("dd.MM.yyyy"); // Формат отображения
+//     painter->drawText(option.rect, Qt::AlignLeft | Qt::AlignVCenter, text);
+// }
+
+QString DateDelegate::displayText(const QVariant &value, const QLocale &locale) const {
+    QDate date = value.toDate();
+    if (date.isValid())
+        return date.toString("dd.MM.yyyy");
+    return QStyledItemDelegate::displayText(value, locale);
 }
+
