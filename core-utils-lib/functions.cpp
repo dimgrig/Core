@@ -575,6 +575,24 @@ void calculate(double &value, const QString &polynom_str) {
     }
 }
 
+void center_dialog_mainwindow(QDialog* dialog) {
+    // Подгоняем размер диалога под содержимое
+    dialog->adjustSize();
+    // Находим экран, на котором находится центр главного окна
+    QWidget* mainWindow = qApp->activeWindow();
+    if (mainWindow) {
+        QPoint mainCenter = mainWindow->geometry().center();
+        QScreen* screen = QGuiApplication::screenAt(mainCenter);
+        if (!screen)
+            screen = QGuiApplication::primaryScreen();
+        // Вычисляем позицию, чтобы диалог оказался по центру этого экрана
+        QRect screenRect = screen->geometry();
+        QPoint dialogCenter = dialog->rect().center();
+        QPoint newTopLeft = screenRect.center() - dialogCenter;
+        dialog->move(newTopLeft);
+    }
+}
+
 void center_dialog(QDialog* dialog) {
     if (!dialog) return;
 

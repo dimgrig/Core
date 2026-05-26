@@ -2,6 +2,7 @@
 #define TEMPLATES_H
 
 #include <iterator>
+#include <optional>
 #include <vector>
 
 #include "templates_cout.h"
@@ -12,6 +13,7 @@ void IteratorTest();
 void SliceTest();
 void ZipTest();
 void TypeTraitsTest();
+void ClosestTest();
 
 
 class TestValue {
@@ -264,5 +266,30 @@ bool check_renderable(T obj) {
     }
 }
 
+template<typename T>
+std::optional<T> findClosestLess(const std::vector<T>& vec, const T& target) {
+    std::optional<T> best;
+    for (const T& val : vec) {
+        if (val < target) {                      // ищем строго меньшие
+            if (!best.has_value() || val > *best) {
+                best = val;
+            }
+        }
+    }
+    return best;
+}
+
+template<typename T>
+std::optional<T> findClosestGreater(const std::vector<T>& vec, const T& target) {
+    std::optional<T> best;
+    for (const T& val : vec) {
+        if (val > target) {                      // ищем строго большие
+            if (!best.has_value() || val < *best) {
+                best = val;
+            }
+        }
+    }
+    return best;
+}
 
 #endif //TEMPLATES_H

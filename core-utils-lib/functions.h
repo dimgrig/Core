@@ -66,6 +66,7 @@ CORE_UTILS_LIB_EXPORT std::string format_polynom_for_export(const std::string& i
 
 CORE_UTILS_LIB_EXPORT void calculate(double &value, const QString &polynom_str);
 
+CORE_UTILS_LIB_EXPORT void center_dialog_mainwindow(QDialog* dialog);
 CORE_UTILS_LIB_EXPORT void center_dialog(QDialog *dialog);
 
 static std::map<std::string, std::string> translations_RU_EN {

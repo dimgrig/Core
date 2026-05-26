@@ -11,6 +11,7 @@ void TemplatesTest() {
     SliceTest();
     ZipTest();
     TypeTraitsTest();
+    ClosestTest();
     {
         {
             std::vector<int> v{1, 2, 3, 4, 5};
@@ -297,4 +298,134 @@ void TypeTraitsTest() {
         ASSERT_EQUAL(check_renderable(renderable), true);
         ASSERT_EQUAL(check_renderable(not_renderable), false);
     }
+}
+
+// ---------- Тесты для findClosestLess ----------
+void test_less_empty_vector() {
+    std::vector<int> v;
+    auto res = findClosestLess(v, 5);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_less_all_elements_greater() {
+    std::vector<int> v = {10, 20, 30};
+    auto res = findClosestLess(v, 5);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_less_all_elements_smaller() {
+    std::vector<int> v = {1, 2, 3};
+    auto res = findClosestLess(v, 4);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 3);
+}
+
+void test_less_closest_smaller() {
+    std::vector<int> v = {10, 20, 30, 5, 25};
+    auto res = findClosestLess(v, 22);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 20);
+}
+
+void test_less_target_equal_to_existing_value() {
+    // Должно взять строго меньшее, а не равное
+    std::vector<int> v = {10, 20, 22, 25};
+    auto res = findClosestLess(v, 22);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 20);
+}
+
+void test_less_target_smaller_than_all() {
+    std::vector<int> v = {10, 20, 30};
+    auto res = findClosestLess(v, 5);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_less_with_duplicates() {
+    std::vector<int> v = {10, 20, 20, 30};
+    auto res = findClosestLess(v, 20);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 10);
+}
+
+void test_less_different_types() {
+    std::vector<double> v = {1.5, 2.7, 3.1, 0.9};
+    auto res = findClosestLess(v, 2.6);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 1.5);   // Исправлено: 1.5, а не 2.7
+}
+
+// ---------- Тесты для findClosestGreater ----------
+void test_greater_empty_vector() {
+    std::vector<int> v;
+    auto res = findClosestGreater(v, 5);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_greater_all_elements_smaller() {
+    std::vector<int> v = {1, 2, 3};
+    auto res = findClosestGreater(v, 10);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_greater_all_elements_greater() {
+    std::vector<int> v = {10, 20, 30};
+    auto res = findClosestGreater(v, 5);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 10);
+}
+
+void test_greater_closest_greater() {
+    std::vector<int> v = {10, 20, 30, 5, 25};
+    auto res = findClosestGreater(v, 22);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 25);
+}
+
+void test_greater_target_equal_to_existing_value() {
+    // Должно взять строго большее
+    std::vector<int> v = {10, 20, 22, 25};
+    auto res = findClosestGreater(v, 22);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 25);
+}
+
+void test_greater_target_greater_than_all() {
+    std::vector<int> v = {10, 20, 30};
+    auto res = findClosestGreater(v, 35);
+    ASSERT_EQUAL(res.has_value(), false);
+}
+
+void test_greater_with_duplicates() {
+    std::vector<int> v = {10, 20, 20, 30};
+    auto res = findClosestGreater(v, 20);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 30);
+}
+
+void test_greater_different_types() {
+    std::vector<double> v = {1.5, 2.7, 3.1, 0.9};
+    auto res = findClosestGreater(v, 2.6);
+    ASSERT_EQUAL(res.has_value(), true);
+    ASSERT_EQUAL(*res, 2.7);  // 2.7 > 2.6, подходит
+}
+
+void ClosestTest() {
+    test_less_empty_vector();
+    test_less_all_elements_greater();
+    test_less_all_elements_smaller();
+    test_less_closest_smaller();
+    test_less_target_equal_to_existing_value();
+    test_less_target_smaller_than_all();
+    test_less_with_duplicates();
+    test_less_different_types();
+
+    test_greater_empty_vector();
+    test_greater_all_elements_smaller();
+    test_greater_all_elements_greater();
+    test_greater_closest_greater();
+    test_greater_target_equal_to_existing_value();
+    test_greater_target_greater_than_all();
+    test_greater_with_duplicates();
+    test_greater_different_types();
 }
