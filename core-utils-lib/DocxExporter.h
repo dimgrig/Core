@@ -19,6 +19,8 @@ public:
     bool write(const QString &fileName, QTextDocument &document);
     void style(QTextDocument &document);
     void exportTextToDocx(QTextDocument &document, const QString &text);
+    void exportHtmlToDocx(QTextDocument &document, const QString &text);
+    void exportPageBreakToDocx(QTextDocument &document);
     void exportTableToDocx(QTextDocument &document, const QString &caption, const QVector<QVector<QString>> &tableData);
     void exportFormulaToDocx(QTextDocument &document, const QString &caption, const QString &formula);
 private:

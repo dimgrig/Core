@@ -32,12 +32,18 @@ void DocxExporter::style(QTextDocument &document) {
             bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight); // interval
             //bf.setNonBreakableLines(true);
         } else {
-            bf.setAlignment(Qt::AlignJustify);
-            bf.setIndent(0);
-            bf.setTextIndent(47.5); // first line in the block (38 - 1 cm???, 47.5 - 1.26cm)
-            bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight); // interval - working in docx
-            //bf.setLineHeight(150, QTextBlockFormat::ProportionalHeight); // interval - works in pdf, not working in docx
-            //bf.setNonBreakableLines(true);
+            // Не трогаем блоки, которые уже отцентрованы (заголовок)
+            if (bf.alignment() != Qt::AlignCenter) {
+                bf.setAlignment(Qt::AlignJustify);
+                bf.setIndent(0);
+                bf.setTextIndent(47.5); // first line in the block (38 - 1 cm???, 47.5 - 1.26cm)
+                bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight); // interval - working in docx
+                //bf.setLineHeight(150, QTextBlockFormat::ProportionalHeight); // interval - works in pdf, not working in docx
+                //bf.setNonBreakableLines(true);
+            }
+            bf.setTopMargin(0);
+            bf.setBottomMargin(0);
+            bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight);
         }
         style_cursor.setBlockFormat(bf);
     } while(style_cursor.movePosition(QTextCursor::NextBlock));
@@ -50,6 +56,24 @@ void DocxExporter::exportTextToDocx(QTextDocument &document, const QString &text
     QTextCharFormat tcf;
     tcf.setFont(QFont("Arial", 14));
     cursor.insertText(text, tcf);
+}
+
+void DocxExporter::exportHtmlToDocx(QTextDocument &document, const QString &text) {
+    // Добавляем текст в документ
+    QTextCursor cursor(&document);
+    cursor.movePosition(QTextCursor::End);
+    QString styledHtml = QString("<span style=\"font-family:'Arial'; font-size:14pt;\">%1</span>").arg(text);
+    cursor.insertHtml(styledHtml);
+}
+
+void DocxExporter::exportPageBreakToDocx(QTextDocument &document) {
+    QTextCursor cursor(&document);
+    cursor.movePosition(QTextCursor::End);
+
+    // Принудительный переход на новую страницу
+    QTextBlockFormat pageBreakFormat;
+    pageBreakFormat.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+    cursor.insertBlock(pageBreakFormat);          // создаёт пустой параграф с разрывом перед ним
 }
 
 void DocxExporter::exportTableToDocx(QTextDocument &document, const QString &caption, const QVector<QVector<QString>> &tableData) {
