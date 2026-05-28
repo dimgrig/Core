@@ -29,7 +29,7 @@ void DocxExporter::style(QTextDocument &document) {
         if (style_cursor.currentTable() != nullptr) {
             bf.setAlignment(Qt::AlignCenter);
             bf.setIndent(0);
-            bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight); // interval
+            bf.setLineHeight(115, QTextBlockFormat::ProportionalHeight);// interval
             //bf.setNonBreakableLines(true);
         } else {
             // Не трогаем блоки, которые уже отцентрованы (заголовок)
@@ -37,7 +37,7 @@ void DocxExporter::style(QTextDocument &document) {
                 bf.setAlignment(Qt::AlignJustify);
                 bf.setIndent(0);
                 bf.setTextIndent(47.5); // first line in the block (38 - 1 cm???, 47.5 - 1.26cm)
-                bf.setLineHeight(10, QTextBlockFormat::LineDistanceHeight); // interval - working in docx
+                bf.setLineHeight(115, QTextBlockFormat::ProportionalHeight); // interval - working in docx
                 //bf.setLineHeight(150, QTextBlockFormat::ProportionalHeight); // interval - works in pdf, not working in docx
                 //bf.setNonBreakableLines(true);
             }
