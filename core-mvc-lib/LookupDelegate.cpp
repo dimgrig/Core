@@ -141,6 +141,7 @@ QWidget* LookupDelegate::createEditor(QWidget *parent, const QStyleOptionViewIte
         edit_bar->setButtonVisible(EditBar::Button::Custom1, false);
         edit_bar->setButtonVisible(EditBar::Button::Custom2, false);
         edit_bar->setButtonVisible(EditBar::Button::Custom3, false);
+        edit_bar->disable_separators();
         edit_bar->tb_save->setEnabled(false);
 
         connect(model, &BaseSqlRelationalTableModel::modified, edit_bar->tb_save, &QToolButton::setEnabled);
