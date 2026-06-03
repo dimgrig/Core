@@ -19,7 +19,7 @@ include(../qmake-destination-path.pri)
 exists(/etc/astra_version) {
     LIBS += -L/usr/lib/qt/ -lcore-lib
     LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
-    LIBS += -L/usr/local/lib/ -lmuparser
+    LIBS += -L/usr/local/lib/ -lmuParser
 
     DISTFILES += ../core-gcc10.pri
     include(../core-gcc10.pri)
@@ -53,10 +53,10 @@ DEFINES += NOCRYPT #fix DOMDocument ambigious with qcustomplot
 DEFINES += NOUSER
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/muParser"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-widgets-lib"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../muParser/include"
 
 BUILD_DIR = $$PWD/../../build/$${TARGET}-build/
 DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH
@@ -70,24 +70,6 @@ unix {
     target.path = /usr/lib/
 }
 !isEmpty(target.path): INSTALLS += target
-
-unix {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1.0.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-}
-
-win32 {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-utils-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
-}
-win64 {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-utils-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
-}
-
-#message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t))
 
 HEADERS += \
     Approximation.h \
@@ -119,3 +101,20 @@ SOURCES += \
     functions_degrees.cpp \
     functions_http.cpp
 
+unix {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.so.1.0.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+}
+
+win32 {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-utils-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+}
+win64 {
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-utils-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-utils-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+}
+
+#message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t))

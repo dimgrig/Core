@@ -69,6 +69,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib/bindings"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-mvc-lib/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-utils-lib/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-widgets-lib/"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../muParser/include"
 
 BUILD_DIR = $$PWD/../../build/$${TARGET}-build/
 DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH

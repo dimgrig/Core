@@ -2,7 +2,7 @@
 #define MATHPARSER_H
 
 #include <QString>
-#include "muParser/muParser.h"
+#include "muParser.h"
 
 #include "core-utils-lib-global.h"
 
