@@ -64,10 +64,10 @@ unix {
 !isEmpty(target.path): INSTALLS += target
 
 unix {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1.0) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1.0.0) $$quote(/usr/lib/qt/) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.so.1.0.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
 }
 
 win32 {
@@ -89,8 +89,8 @@ win32 {
 #    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
 #    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
 
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
 }
 win64 {
 #    # Используем относительные пути от текущего каталога
@@ -111,11 +111,11 @@ win64 {
 #    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_DLL_WIN\" \"$$DEST_WIN\"
 #    QMAKE_POST_LINK += $$QMAKE_COPY \"$$SOURCE_LIB_WIN\" \"$$DEST_WIN\"
 
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/core-modbus-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-modbus-lib.a)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t)
 }
 
-#message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll) $$quote(C:/QtCreatorProjects/libs) $$escape_expand(\\n\\t))
+#message($$QMAKE_COPY $$quote($$PWD/../$${TARGET}-binaries/$$DESTINATION_PATH/core-lib.dll)) $$quote($$shell_path(C:/QtCreatorProjects/libs)) $$escape_expand(\\n\\t))
 
 HEADERS += \
     IModbusService.h \
