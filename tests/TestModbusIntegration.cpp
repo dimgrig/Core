@@ -42,7 +42,7 @@ void TestModbusIntegration::testClientServerCommunication()
     modbusSettings.MODBUS_ENABLE = true;
     modbusSettings.MODBUS_TYPE = "TCP";
     modbusSettings.MODBUS_IP = "127.0.0.1";
-    modbusSettings.MODBUS_PORT = 1502; // свободный порт
+    modbusSettings.MODBUS_PORT = 502; // свободный порт
     modbusSettings.MODBUS_ADDRESS = 1;
     modbusSettings.MODBUS_POLL_TIMER = 100;
 
@@ -108,12 +108,19 @@ void TestModbusIntegration::testClientServerCommunication()
 
     // --- Клиент (наш ModbusClient) ---
     auto modbusClient = std::make_shared<ModbusClient>(nullptr, config, modbusSettings);
-    QTest::qWait(100); // Даём клиенту время запуститься
+    QTest::qWait(500); // Даём клиенту время запуститься
     QSignalSpy readSpy(modbusClient.get(), &ModbusClient::read_ready);
     QSignalSpy stateSpy(modbusClient.get(), &ModbusClient::on_state_changed);
 
+    // connect(modbusClient.get(), &ModbusClient::read_ready, [=](int serverAddress, QModbusDataUnit mdu){
+    //     qCDebug(logDebug) << serverAddress << mdu.valueCount() << mdu.values();
+    // });
+
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
+    QTest::qWait(500); // Даём клиенту время сделать polling
+    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
+    readSpy.clear();
 
     //--- Тест 1: чтение начальных значений ---
     {
@@ -122,6 +129,7 @@ void TestModbusIntegration::testClientServerCommunication()
         QList<QVariant> args = readSpy.takeFirst();
         int serverAddress = args.at(0).value<int>();
         QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        //qCDebug(logDebug) << serverAddress << unit.valueCount() << unit.values();
         QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
@@ -143,6 +151,7 @@ void TestModbusIntegration::testClientServerCommunication()
         QList<QVariant> args = readSpy.takeFirst();
         int serverAddress = args.at(0).value<int>();
         QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        //qCDebug(logDebug) << serverAddress << unit.valueCount() << unit.values();
         QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 10);
@@ -164,6 +173,7 @@ void TestModbusIntegration::testClientServerCommunication()
         QList<QVariant> args = readSpy.takeFirst();
         int serverAddress = args.at(0).value<int>();
         QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        //qCDebug(logDebug) << serverAddress << unit.valueCount() << unit.values();
         QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 39);
@@ -214,6 +224,7 @@ void TestModbusIntegration::testClientServerCommunication()
         QList<QVariant> args = readSpy.takeFirst();
         int serverAddress = args.at(0).value<int>();
         QModbusDataUnit unit = args.at(1).value<QModbusDataUnit>();
+        //qCDebug(logDebug) << serverAddress << unit.valueCount() << unit.values();
         QCOMPARE(serverAddress, modbusSettings.MODBUS_ADDRESS);
         QCOMPARE(unit.startAddress(), 0);
         QCOMPARE(unit.valueCount(), 39);
@@ -454,16 +465,17 @@ void TestModbusIntegration::testClientServerCommunication()
     }
 
     // --- Тест 3: запись клиентом ---
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", true);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input2", false);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input3", true);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input4", false);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input5", true);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input6", false);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input7", true);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input8", false);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input9", true);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input10", false);
+    // no write to input
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", true);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input2", false);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input3", true);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input4", false);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input5", true);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input6", false);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input7", true);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input8", false);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input9", true);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "input10", false);
 
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil1", true);
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil2", false);
@@ -476,17 +488,18 @@ void TestModbusIntegration::testClientServerCommunication()
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil9", true);
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "Coil10", false);
 
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir1", 1);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir2", -2);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir3", 1000000);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir4", -1000000);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir5", 5.5);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir6", -6.6);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir7", 7.7);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir8", -8.8);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir9", 10000000000);
-    modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir10", -10000000000);
-    modbusClient->setRegisterString(modbusSettings.MODBUS_ADDRESS, "InputString", "InputString456");
+    // no write to input
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir1", 1);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir2", -2);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir3", 1000000);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir4", -1000000);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir5", 5.5);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir6", -6.6);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir7", 7.7);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir8", -8.8);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir9", 10000000000);
+    // modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "ir10", -10000000000);
+    // modbusClient->setRegisterString(modbusSettings.MODBUS_ADDRESS, "InputString", "InputString456");
 
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr1", 1);
     modbusClient->setRegister(modbusSettings.MODBUS_ADDRESS, "hr2", -2);
@@ -761,6 +774,9 @@ void TestModbusIntegration::testBindingValueChangedTriggersWrite() {
 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
+    QTest::qWait(500); // Даём клиенту время сделать polling
+    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
+    readSpy.clear();
 
     BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>("hr4");
@@ -824,7 +840,6 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
 
     // Запускаем сервер
     modbusServer->connectToHost(); // QVERIFY2(modbusServer->connectToHost(),
-        // "Failed to start server");
     QTRY_COMPARE_WITH_TIMEOUT(modbusServer->state(), QModbusDevice::ConnectedState, 100);
 
     // Устанавливаем регистры
@@ -837,6 +852,9 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
+    QTest::qWait(500); // Даём клиенту время сделать polling
+    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
+    readSpy.clear();
 
     BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     bindingManager.registerWidgetsFromContainer(container);

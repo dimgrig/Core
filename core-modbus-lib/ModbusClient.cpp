@@ -626,7 +626,7 @@ void ModbusClient::startPollingCycle()
     _pollingCycleActive = true;
     _pendingPollCount = _pollingGroups.size();
     for (const auto& group : _pollingGroups) {
-        enqueueReadRequest(group.serverAddress, group.unit, true); // помечаем как опросный
+        enqueueReadRequest(group.serverAddress, group.unit); //, true помечаем как опросный
     }
 }
 
