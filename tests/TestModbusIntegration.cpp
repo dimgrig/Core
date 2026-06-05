@@ -42,7 +42,7 @@ void TestModbusIntegration::testClientServerCommunication()
     modbusSettings.MODBUS_ENABLE = true;
     modbusSettings.MODBUS_TYPE = "TCP";
     modbusSettings.MODBUS_IP = "127.0.0.1";
-    modbusSettings.MODBUS_PORT = 502; // свободный порт
+    modbusSettings.MODBUS_PORT = 1502; // свободный порт
     modbusSettings.MODBUS_ADDRESS = 1;
     modbusSettings.MODBUS_POLL_TIMER = 100;
 
