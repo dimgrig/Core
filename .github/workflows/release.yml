@@ -11,143 +11,327 @@ on:
         required: true
 
 jobs:
+  # ------------------------------------------------------------
+  # Linux (native)
+  # ------------------------------------------------------------
   build-linux:
     runs-on: ubuntu-22.04
     container:
       image: debian:bookworm-slim
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Qt5 and build tools
         run: |
           apt update
           apt install -y --no-install-recommends \
-              build-essential qt5-qmake qtbase5-dev \
-              libqt5serialbus5-dev libqt5serialport5-dev \
-              libqt5sql5-sqlite wget ca-certificates git
+            build-essential \
+            qt5-qmake \
+            qtbase5-dev \
+            qtbase5-private-dev \
+            libqt5serialbus5-dev \
+            libqt5serialport5-dev \
+            libqt5sql5-sqlite \
+            libqt5svg5-dev \
+            libqt5x11extras5-dev \
+            wget ca-certificates git
           apt clean
-      - name: Build qtmqtt
+
+      # ---------- Cache qtmqtt (Linux) ----------
+      - name: Cache qtmqtt (Linux)
+        id: cache-qtmqtt-linux
+        uses: actions/cache@v3
+        with:
+          path: /usr/lib/x86_64-linux-gnu/qt5/
+          key: linux-qtmqtt-5.15.2
+
+      - name: Build qtmqtt (Linux)
+        if: steps.cache-qtmqtt-linux.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
           cd /tmp/qtmqtt
           qmake qtmqtt.pro
           make -j$(nproc)
           make install
+          # Копируем заголовки туда, где их найдёт проект
+          cp -r /usr/local/include/QtMqtt /usr/include/x86_64-linux-gnu/qt5/ 2>/dev/null || true
           rm -rf /tmp/qtmqtt
-      - name: Build qtserialbus (optional)
+
+      # ---------- Cache qtserialbus (Linux) ----------
+      - name: Cache qtserialbus (Linux)
+        id: cache-qtserialbus-linux
+        uses: actions/cache@v3
+        with:
+          path: /usr/lib/x86_64-linux-gnu/qt5/
+          key: linux-qtserialbus-5.15
+
+      - name: Build qtserialbus (Linux)
+        if: steps.cache-qtserialbus-linux.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
           cd /tmp/qtserialbus
           qmake qtserialbus.pro
           make -j$(nproc)
           make install
+          # Копируем заголовки туда, где их найдёт проект
+          cp -r /usr/local/include/QtSeriaalBus /usr/include/x86_64-linux-gnu/qt5/ 2>/dev/null || true
           rm -rf /tmp/qtserialbus
-      - name: Build Core libraries (Linux)
-        run: |
-          qmake core.pro CONFIG+=release
-          make -j$(nproc)
-          mkdir -p deploy/linux/lib
-          cp -d core-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-io-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-journal-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-modbus-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-mvc-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-utils-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d core-widgets-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
-          cp -d muParser-binaries/linux/gcc/x64/release/*.a deploy/linux/lib/ 2>/dev/null || true
-      - name: Tar artifacts
-        run: tar -czf core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz -C deploy/linux .
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # ---------- Cache Core libraries (Linux) ----------
+      - name: Cache Core libraries (Linux)
+        id: cache-core-linux
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/_cache_linux/core_binaries
+          key: linux-core-${{ hashFiles('**/*.pro') }}
+          restore-keys: |
+            linux-core-
+
+      - name: Restore cached binaries to original location (Linux)
+        if: steps.cache-core-linux.outputs.cache-hit == 'true'
+        run: |
+          mkdir -p ../core-lib-binaries ../core-io-lib-binaries ../core-journal-lib-binaries ../core-modbus-lib-binaries ../core-mvc-lib-binaries ../core-utils-lib-binaries ../core-widgets-lib-binaries ../muParser-binaries
+          cp -r ${{ github.workspace }}/_cache_linux/core_binaries/* ../ 2>/dev/null || true
+          echo "Cached binaries restored"
+          mkdir -p /usr/lib/qt/
+          cp -d ../core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+
+      - name: Build Core libraries (Linux)
+        if: steps.cache-core-linux.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p deploy/linux/lib
+          mkdir -p /usr/lib/qt/
+          find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
+
+          cd core-lib
+          qmake core-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-journal-lib
+          qmake core-journal-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-journal-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-modbus-lib
+          qmake core-modbus-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-io-lib
+          qmake core-io-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-io-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd muParser
+          qmake muParser.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../muParser-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-widgets-lib
+          qmake core-widgets-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-utils-lib
+          qmake core-utils-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-utils-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-mvc-lib
+          qmake core-mvc-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+      - name: Copy binaries into workspace for caching (Linux)
+        if: steps.cache-core-linux.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ${{ github.workspace }}/_cache_linux/core_binaries
+          cp -r ../core-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-io-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../muParser-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          echo "Binaries copied to workspace for caching"
+
+      - name: Archive artifacts (Linux)
+        run: tar -czf core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz -C deploy/linux .
+
+      - name: Upload artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-linux-${{ github.event.inputs.tag || github.ref_name }}
+          path: core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
+
+  # ------------------------------------------------------------
+  # Windows (cross-compile) – 32-bit
+  # ------------------------------------------------------------
   build-windows:
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/mdimura/docker-mingw-arch:qt5
+      options: --user root
     steps:
       - uses: actions/checkout@v4
-      # В этом образе уже есть mingw, qt5, git, wget и т.д., но может не быть некоторых утилит
-      - name: Install additional tools if needed
+
+      - name: Install additional tools
         run: |
           apt update || true
-          apt install -y --no-install-recommends zip wget git || true
-      - name: Build qtmqtt (for Windows cross)
+          apt install -y --no-install-recommends wget git || true
+
+      # ---------- Cache qtmqtt (Windows) ----------
+      - name: Cache qtmqtt (Windows)
+        id: cache-qtmqtt-win
+        uses: actions/cache@v3
+        with:
+          path: /usr/i686-w64-mingw32/
+          key: win32-qtmqtt-5.15.2
+
+      - name: Build qtmqtt (Windows cross)
+        if: steps.cache-qtmqtt-win.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
           cd /tmp/qtmqtt
-          x86_64-w64-mingw32-qmake-qt5 qtmqtt.pro CONFIG+=release
+          i686-w64-mingw32-qmake-qt5 qtmqtt.pro CONFIG+=release
           make -j$(nproc)
           make install
           rm -rf /tmp/qtmqtt
-      - name: Build qtserialbus (for Windows cross)
+
+      # ---------- Cache qtserialbus (Windows) ----------
+      - name: Cache qtserialbus (Windows)
+        id: cache-qtserialbus-win
+        uses: actions/cache@v3
+        with:
+          path: /usr/i686-w64-mingw32/
+          key: win32-qtserialbus-5.15
+
+      - name: Build qtserialbus (Windows cross)
+        if: steps.cache-qtserialbus-win.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
           cd /tmp/qtserialbus
-          x86_64-w64-mingw32-qmake-qt5 qtserialbus.pro CONFIG+=release
+          i686-w64-mingw32-qmake-qt5 qtserialbus.pro CONFIG+=release
           make -j$(nproc)
           make install
           rm -rf /tmp/qtserialbus
+
+      # ---------- Cache Core libraries (Windows) ----------
+      - name: Cache Core libraries (Windows)
+        id: cache-core-win
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/_cache_win/core_binaries
+          key: win32-core-${{ hashFiles('**/*.pro') }}
+          restore-keys: |
+            win32-core-
+
+      - name: Restore cached binaries to original location (Windows)
+        if: steps.cache-core-win.outputs.cache-hit == 'true'
+        run: |
+          mkdir -p ../core-lib-binaries ../core-io-lib-binaries ../core-journal-lib-binaries ../core-modbus-lib-binaries ../core-mvc-lib-binaries ../core-utils-lib-binaries ../core-widgets-lib-binaries ../muParser-binaries
+          cp -r ${{ github.workspace }}/_cache_win/core_binaries/* ../ 2>/dev/null || true
+          echo "Cached binaries restored"
+
       - name: Build Core libraries for Windows
+        if: steps.cache-core-win.outputs.cache-hit != 'true'
         run: |
           export WIN_LIBS_PATH=$(pwd)/deploy/windows/bin
           mkdir -p $WIN_LIBS_PATH
           find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 
           cd core-lib
-          x86_64-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared
+          i686-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared
           make -j$(nproc)
-          cp ../../core-lib-binaries/windows/gcc/x64/release/core-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-lib-binaries/windows/gcc/x86/release/core-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-journal-lib
-          x86_64-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-journal-lib-binaries/windows/gcc/x64/release/core-journal-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-journal-lib-binaries/windows/gcc/x86/release/core-journal-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-modbus-lib
-          x86_64-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-modbus-lib-binaries/windows/gcc/x64/release/core-modbus-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-modbus-lib-binaries/windows/gcc/x86/release/core-modbus-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-io-lib
-          x86_64-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-io-lib-binaries/windows/gcc/x64/release/core-io-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-io-lib-binaries/windows/gcc/x86/release/core-io-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd muParser
-          x86_64-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release
+          i686-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release
           make -j$(nproc)
-          cp ../../muParser-binaries/windows/gcc/x64/release/libmuParser.a $WIN_LIBS_PATH/
+          cp ../../muParser-binaries/windows/gcc/x86/release/libmuParser.a $WIN_LIBS_PATH/
           cd ..
 
           cd core-widgets-lib
-          x86_64-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-widgets-lib-binaries/windows/gcc/x64/release/core-widgets-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-widgets-lib-binaries/windows/gcc/x86/release/core-widgets-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-utils-lib
-          x86_64-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-utils-lib-binaries/windows/gcc/x64/release/core-utils-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-utils-lib-binaries/windows/gcc/x86/release/core-utils-lib.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-mvc-lib
-          x86_64-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          i686-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
           make -j$(nproc)
-          cp ../../core-mvc-lib-binaries/windows/gcc/x64/release/core-mvc-lib.dll $WIN_LIBS_PATH/
+          cp ../../core-mvc-lib-binaries/windows/gcc/x86/release/core-mvc-lib.dll $WIN_LIBS_PATH/
           cd ..
-      - name: Zip artifacts
-        run: zip -r core-windows-${{ github.event.inputs.tag || github.ref_name }}.zip deploy/windows
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v1
+
+      - name: Copy binaries into workspace for caching (Windows)
+        if: steps.cache-core-win.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ${{ github.workspace }}/_cache_win/core_binaries
+          cp -r ../core-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-io-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../muParser-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          echo "Binaries copied to workspace for caching"
+
+      - name: Archive artifacts (Windows)
+        run: tar -czf core-windows-${{ github.event.inputs.tag || github.ref_name }}.tar.gz -C deploy/windows .
+
+      - name: Upload artifact (Windows)
+        uses: actions/upload-artifact@v4
         with:
-          files: core-windows-${{ github.event.inputs.tag || github.ref_name }}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: core-windows-${{ github.event.inputs.tag || github.ref_name }}
+          path: core-windows-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
