@@ -1,0 +1,187 @@
+name: Build and Release Core (Qt5)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ------------------------------------------------------------
+  # Linux: используем Debian 12 (через контейнер docker)
+  # ------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-22.04
+    container:
+      image: debian:bookworm-slim
+      options: --user root
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt5 and build tools
+        run: |
+          apt update
+          apt install -y --no-install-recommends \
+              build-essential qt5-qmake qtbase5-dev \
+              libqt5serialbus5-dev libqt5serialport5-dev \
+              libqt5sql5-sqlite wget ca-certificates git
+          # Удаляем лишнее
+          apt clean
+          rm -rf /var/lib/apt/lists/*
+
+      # Сборка qtmqtt (нестандартный модуль)
+      - name: Build qtmqtt
+        run: |
+          git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
+          cd /tmp/qtmqtt
+          qmake qtmqtt.pro
+          make -j$(nproc)
+          make install
+          rm -rf /tmp/qtmqtt
+
+      # Сборка qtserialbus (необязательно, но если нужен свежий)
+      - name: Build qtserialbus (if needed)
+        run: |
+          git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
+          cd /tmp/qtserialbus
+          qmake qtserialbus.pro
+          make -j$(nproc)
+          make install
+          rm -rf /tmp/qtserialbus
+
+      - name: Build Core libraries (Linux)
+        run: |
+          qmake core.pro CONFIG+=release
+          make -j$(nproc)
+          mkdir -p deploy/linux/lib
+          cp -d core-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-io-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-journal-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-modbus-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-mvc-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-utils-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d core-widgets-lib-binaries/linux/gcc/x64/release/*.so* deploy/linux/lib/ 2>/dev/null || true
+          cp -d muParser-binaries/linux/gcc/x64/release/*.a deploy/linux/lib/ 2>/dev/null || true
+
+      - name: Tar artifacts
+        run: tar -czf core-linux-${{ github.ref_name }}.tar.gz -C deploy/linux .
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: core-linux-${{ github.ref_name }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ------------------------------------------------------------
+  # Windows: кросс-сборка из Linux (как в вашем Dockerfile.win)
+  # ------------------------------------------------------------
+  build-windows:
+    runs-on: ubuntu-22.04
+    container:
+      image: debian:bookworm-slim
+      options: --user root
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW + Qt5 cross compiler
+        run: |
+          apt update
+          apt install -y --no-install-recommends \
+              g++-mingw-w64-x86-64-posix \
+              qtbase5-dev qtbase5-dev:i386 \
+              qttools5-dev-tools \
+              wget ca-certificates git
+          apt clean
+
+      - name: Build qtmqtt (for Windows cross)
+        run: |
+          git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
+          cd /tmp/qtmqtt
+          x86_64-w64-mingw32-qmake-qt5 qtmqtt.pro CONFIG+=release
+          make -j$(nproc)
+          make install
+          rm -rf /tmp/qtmqtt
+
+      - name: Build qtserialbus (for Windows cross)
+        run: |
+          git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
+          cd /tmp/qtserialbus
+          x86_64-w64-mingw32-qmake-qt5 qtserialbus.pro CONFIG+=release
+          make -j$(nproc)
+          make install
+          rm -rf /tmp/qtserialbus
+
+      # Теперь сборка Core (Windows) — точно по вашему Dockerfile.win
+      - name: Build Core libraries for Windows
+        run: |
+          export WIN_LIBS_PATH=$(pwd)/deploy/windows/bin
+          mkdir -p $WIN_LIBS_PATH
+
+          # Удаляем QMAKE_POST_LINK
+          find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
+
+          # core-lib
+          cd core-lib
+          x86_64-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared
+          make -j$(nproc)
+          cp ../../core-lib-binaries/windows/gcc/x64/release/core-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # core-journal-lib
+          cd core-journal-lib
+          x86_64-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-journal-lib-binaries/windows/gcc/x64/release/core-journal-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # core-modbus-lib
+          cd core-modbus-lib
+          x86_64-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-modbus-lib-binaries/windows/gcc/x64/release/core-modbus-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # core-io-lib
+          cd core-io-lib
+          x86_64-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-io-lib-binaries/windows/gcc/x64/release/core-io-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # muParser
+          cd muParser
+          x86_64-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../muParser-binaries/windows/gcc/x64/release/libmuParser.a $WIN_LIBS_PATH/
+          cd ..
+
+          # core-widgets-lib
+          cd core-widgets-lib
+          x86_64-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-widgets-lib-binaries/windows/gcc/x64/release/core-widgets-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # core-utils-lib
+          cd core-utils-lib
+          x86_64-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-utils-lib-binaries/windows/gcc/x64/release/core-utils-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          # core-mvc-lib
+          cd core-mvc-lib
+          x86_64-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-mvc-lib-binaries/windows/gcc/x64/release/core-mvc-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+      - name: Zip artifacts
+        run: zip -r core-windows-${{ github.ref_name }}.zip deploy/windows
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: core-windows-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
