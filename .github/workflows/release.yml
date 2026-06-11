@@ -106,7 +106,7 @@ jobs:
             linux-core-
 
       - name: Restore cached binaries to original location (Linux)
-        if: steps.cache-core-linux.outputs.cache-hit == 'true'
+        if: steps.cache-qtserialbus-linux.outputs.cache-hit == 'true' && steps.cache-qtmqtt-linux.outputs.cache-hit == 'true'
         run: |
           mkdir -p ../core-lib-binaries ../core-io-lib-binaries ../core-journal-lib-binaries ../core-modbus-lib-binaries ../core-mvc-lib-binaries ../core-utils-lib-binaries ../core-widgets-lib-binaries ../muParser-binaries
           cp -r ${{ github.workspace }}/_cache_linux/core_binaries/* ../ 2>/dev/null || true
