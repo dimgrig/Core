@@ -353,3 +353,59 @@ jobs:
         with:
           name: core-windows-${{ github.event.inputs.tag || github.ref_name }}
           path: core-windows-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
+    # ------------------------------------------------------------
+  # Релиз (создаёт GitHub Release и прикрепляет архивы)
+  # ------------------------------------------------------------
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-windows]
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '')
+    permissions:
+      contents: write    # нужно для создания релиза и загрузки файлов
+
+    steps:
+      - name: Determine tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: core-linux-${{ steps.tag.outputs.tag_name }}
+          path: artifacts/linux
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: core-windows-${{ steps.tag.outputs.tag_name }}
+          path: artifacts/windows
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag_name }}
+          name: Core ${{ steps.tag.outputs.tag_name }}
+          body: |
+            ## Библиотеки Core для Linux и Windows (Qt5)
+            
+            Автоматическая сборка по тегу ${{ steps.tag.outputs.tag_name }}.
+            
+            ### Состав архива Linux:
+            - `lib/` – динамические библиотеки `.so`
+            
+            ### Состав архива Windows:
+            - `bin/` – DLL-библиотеки
+            - `lib/` – статическая библиотека `libmuParser.a`
+          files: |
+            artifacts/linux/*.tar.gz
+            artifacts/windows/*.tar.gz
+          draft: false
+          prerelease: false
