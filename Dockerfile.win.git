@@ -1,0 +1,34 @@
+# ---------- загрузка готовых Core библиотек (с секретом) ----------
+FROM base-deps-win:latest AS core-downloader-win
+
+RUN mkdir -p /usr/lib/qt
+WORKDIR /tmp
+
+# ASSETS нужно получить вручную
+# curl -H "Authorization: Bearer YOUR_GITHUB_TOKEN" https://api.github.com/repos/dimgrig/Core/releases/tags/v1.0.0
+# В выводе секция "assets": [ ... ] и "id" для core-windows-v1.0.0.tar.gz
+
+RUN --mount=type=secret,id=github_token \
+    TOKEN=$(cat /run/secrets/github_token) && \
+    echo "Token length: ${#TOKEN}" && \
+    curl -L -o core-windows-v1.0.0.tar.gz \
+         -H "Accept: application/octet-stream" \
+         -H "Authorization: Bearer $TOKEN" \
+         -H "X-GitHub-Api-Version: 2022-11-28" \
+         https://api.github.com/repos/dimgrig/Core/releases/assets/448965289 \
+         --fail --silent --show-error && \
+    echo "Download successful" || \
+    (echo "Curl failed, exit code: $?" && cat core-windows-v1.0.0.tar.gz && exit 1)
+
+RUN tar -xzf core-windows-v1.0.0.tar.gz && \
+    ls -la && \
+    # Копируем библиотеки из папки bin (именно она появилась после распаковки)
+    cp -d /tmp/bin/* /usr/lib/qt/ && \
+    rm -rf /tmp/*
+
+RUN ls -la /usr/lib/qt/*core-*.dll* || (echo "ОШИБКА: Core не скопировались в download-core" && exit 1)
+RUN ls -la /usr/lib/qt/*mu* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la /usr/lib/qt/*qcustomplot* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la /usr/lib/qt/*QtWebApp* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+
+# docker build -t core-builder-win-git:latest   -f ../Core/Dockerfile.win.git ..

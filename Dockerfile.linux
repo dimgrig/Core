@@ -1,0 +1,69 @@
+# ---------- сборка Core библиотек ----------
+FROM base-deps-linux:latest AS core-builder-linux
+
+RUN mkdir -p /usr/lib/qt
+WORKDIR /app
+
+#COPY . .
+COPY Core/core-io-lib/ /app/Core/core-io-lib/
+COPY Core/core-journal-lib/ /app/Core/core-journal-lib/
+COPY Core/core-lib/ /app/Core/core-lib/
+COPY Core/core-modbus-lib/ /app/Core/core-modbus-lib/
+COPY Core/core-mvc-lib/ /app/Core/core-mvc-lib/
+COPY Core/core-plot-lib/ /app/Core/core-plot-lib/
+COPY Core/core-utils-lib/ /app/Core/core-utils-lib/
+COPY Core/core-widgets-lib/ /app/Core/core-widgets-lib/
+COPY Core/muParser/ /app/Core/muParser/
+COPY Core/qcustomplot/ /app/Core/qcustomplot/
+COPY Core/QtWebApp/ /app/Core/QtWebApp/
+COPY Core/*pri /app/Core/
+COPY Core/*.pro*/ /app/Core/
+
+# Собираем Core библиотеки (они находятся в ../Core относительно текущей директории)
+# В контейнере после COPY они окажутся в /app/Core (если контекст = ~/QtProjects)
+# RUN cd /app/Core && qmake core.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+# RUN cd /app/Core && qmake core.pro -spec linux-g++ CONFIG+=release && make -j$(nproc) 2>&1 | tee /build.log && cat /build.log
+
+RUN cd /app/Core/core-lib && qmake core-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-journal-lib && qmake core-journal-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-modbus-lib && qmake core-modbus-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-io-lib && qmake core-io-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/muParser && qmake muParser.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-widgets-lib && qmake core-widgets-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-utils-lib && qmake core-utils-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-mvc-lib && qmake core-mvc-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/qcustomplot && qmake qcustomplot.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/core-plot-lib && qmake core-plot-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+# RUN cd /app/Core/QtWebApp && qmake QtWebApp.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+
+# Проверяем, какие библиотеки создались (отладка)
+RUN ls -la /app/core-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-io-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-journal-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-modbus-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-mvc-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-plot-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/core-utils-lib-binaries/linux/gcc/x64/release/
+RUN ls -la /app/core-widgets-lib-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/muParser-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/qcustomplot-binaries/linux/gcc/x64/release/ 
+# RUN ls -la /app/QtWebApp-binaries/linux/gcc/x64/release/ 
+
+# Копируем все .so и .a в /usr/lib/qt
+RUN mkdir -p /usr/lib/qt
+RUN cp -d /app/core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
+RUN cp -d /app/muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+RUN cp -d /app/qcustomplot-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+# RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+
+# Проверяем, что libcore-lib.so теперь есть
+RUN ls -la /usr/lib/qt/libcore-lib.so*
+
+# docker build -t core-builder-linux:latest -f ../Core/Dockerfile.linux .. 

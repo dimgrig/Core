@@ -1,0 +1,20 @@
+# ---------- Базовый образ с зависимостями ----------
+FROM ghcr.io/mdimura/docker-mingw-arch:qt5
+
+# Сборка qtserialbus (для Windows)
+RUN git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus && \
+    cd /tmp/qtserialbus && \
+    i686-w64-mingw32-qmake-qt5 qtserialbus.pro CONFIG+=release && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/qtserialbus
+
+# Сборка qtmqtt (для Windows)
+RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt && \
+    cd /tmp/qtmqtt && \
+    i686-w64-mingw32-qmake-qt5 qtmqtt.pro CONFIG+=release && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/qtmqtt
+
+# docker build -t base-deps-win:latest -f Dockerfile.base-deps-win ..

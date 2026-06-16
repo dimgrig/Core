@@ -1,0 +1,54 @@
+# Игнорировать все бинарные и сборочные папки на любом уровне
+**/*-binaries/
+**/*-build/
+**/binaries/
+**/build/
+
+# Игнорировать системные файлы
+**/.git/
+**/.gitignore
+**/.vs/
+**/*.user
+**/*.o
+**/*.so
+**/*.a
+**/*.qm
+**/*.pyc
+**/__pycache__/
+
+# Игнорировать временные файлы
+**/*.swp
+**/*.swo
+**/*~
+
+**/.dockerignore
+.gitignore
+**/docker-compose.linux.yml
+**/docker-compose.win.yml
+**/Dockerfile.linux
+**/Dockerfile.win
+**/*.pro.user
+
+# Временные файлы сборки
+**/Makefile
+**/Makefile.*
+**/.qmake.stash
+**/*.o
+**/*.obj
+**/*.moc
+**/*.ui
+**/moc_*
+**/ui_*
+**/*.qrc.depends
+**/*.user
+**/*.creator*
+**/*.files
+**/*.includes
+**/*.config
+**/*.pro.user*
+**/*.creator*
+**/*.files
+**/*.includes
+**/*.config
+**/*-build
+**/*-binaries
