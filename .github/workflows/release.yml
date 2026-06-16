@@ -51,7 +51,7 @@ jobs:
           key: linux-qtmqtt-5.15.2
 
       - name: Build qtmqtt (Linux)
-        if: steps.cache-qtmqtt-linux.outputs.cache-hit != 'true'
+        #if: steps.cache-qtmqtt-linux.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
           cd /tmp/qtmqtt
@@ -77,7 +77,7 @@ jobs:
           key: linux-qtserialbus-5.15
 
       - name: Build qtserialbus (Linux)
-        if: steps.cache-qtserialbus-linux.outputs.cache-hit != 'true'
+        #if: steps.cache-qtserialbus-linux.outputs.cache-hit != 'true'
         run: |
           git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
           cd /tmp/qtserialbus
@@ -184,8 +184,8 @@ jobs:
           cd qcustomplot
           qmake qcustomplot.pro CONFIG+=release
           make -j$(nproc)
-          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cd ..
 
           cd core-plot-lib
