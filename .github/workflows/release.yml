@@ -215,8 +215,8 @@ jobs:
           cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../muParser-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -d ../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp -r ../qcustomplot-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../QtWebApp-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           echo "Binaries copied to workspace for caching"
 
       - name: Archive artifacts (Linux)
@@ -355,7 +355,7 @@ jobs:
           cd qcustomplot
           i686-w64-mingw32-qmake-qt5 qcustomplot.pro CONFIG+=release
           make -j$(nproc)
-          cp ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.a $WIN_LIBS_PATH/
+          cp ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll $WIN_LIBS_PATH/
           cd ..
 
           cd core-plot-lib
@@ -367,7 +367,7 @@ jobs:
           cd QtWebApp
           i686-w64-mingw32-qmake-qt5 QtWebApp.pro CONFIG+=release
           make -j$(nproc)
-          cp ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.a $WIN_LIBS_PATH/
+          cp ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll $WIN_LIBS_PATH/
           cd ..
 
       - name: Copy binaries into workspace for caching (Windows)
