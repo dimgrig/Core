@@ -198,8 +198,8 @@ jobs:
           cd QtWebApp
           qmake QtWebApp.pro CONFIG+=release
           make -j$(nproc)
-          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cd ..
 
       - name: Copy binaries into workspace for caching (Linux)
