@@ -1,0 +1,12 @@
+#ifndef COREPLOTLIBGLOBAL_H
+#define COREPLOTLIBGLOBAL_H
+
+#include <QtCore/QtGlobal>
+
+#if defined(CORE_PLOT_LIB_LIBRARY)
+#define CORE_PLOT_LIB_EXPORT Q_DECL_EXPORT
+#else
+#define CORE_PLOT_LIB_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // COREPLOTLIBGLOBAL_H
