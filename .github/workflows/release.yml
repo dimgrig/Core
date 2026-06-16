@@ -110,10 +110,13 @@ jobs:
           cp -d ../core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cp -d ../muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
 
       - name: Build Core libraries (Linux)
         if: steps.cache-core-linux.outputs.cache-hit != 'true'
@@ -178,6 +181,27 @@ jobs:
           cp ../../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
           cd ..
 
+          cd qcustomplot
+          qmake qcustomplot.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd core-plot-lib
+          qmake core-plot-lib.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../core-plot-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
+          cd QtWebApp
+          qmake QtWebApp.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
+          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cd ..
+
       - name: Copy binaries into workspace for caching (Linux)
         if: steps.cache-core-linux.outputs.cache-hit != 'true'
         run: |
@@ -187,9 +211,12 @@ jobs:
           cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -r ../core-plot-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
           cp -r ../muParser-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
+          cp -d ../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+          cp -d ../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
           echo "Binaries copied to workspace for caching"
 
       - name: Archive artifacts (Linux)
@@ -325,6 +352,24 @@ jobs:
           cp ../../core-mvc-lib-binaries/windows/gcc/x86/release/core-mvc-lib.dll $WIN_LIBS_PATH/
           cd ..
 
+          cd qcustomplot
+          i686-w64-mingw32-qmake-qt5 qcustomplot.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.a $WIN_LIBS_PATH/
+          cd ..
+
+          cd core-plot-lib
+          i686-w64-mingw32-qmake-qt5 core-plot-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
+          make -j$(nproc)
+          cp ../../core-plot-lib-binaries/windows/gcc/x86/release/core-plot-lib.dll $WIN_LIBS_PATH/
+          cd ..
+
+          cd QtWebApp
+          i686-w64-mingw32-qmake-qt5 QtWebApp.pro CONFIG+=release
+          make -j$(nproc)
+          cp ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.a $WIN_LIBS_PATH/
+          cd ..
+
       - name: Copy binaries into workspace for caching (Windows)
         if: steps.cache-core-win.outputs.cache-hit != 'true'
         run: |
@@ -334,9 +379,12 @@ jobs:
           cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../core-plot-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           cp -r ../muParser-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../qcustomplot-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
+          cp -r ../QtWebApp-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
           echo "Binaries copied to workspace for caching"
 
       - name: Archive artifacts (Windows)
