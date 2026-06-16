@@ -445,7 +445,7 @@ jobs:
             
             ### Состав архива Windows:
             - `bin/` – DLL-библиотеки
-            - `lib/` – статическая библиотека `libmuParser.a`
+            - `lib/` – статические библиотеки
           files: |
             artifacts/linux/*.tar.gz
             artifacts/windows/*.tar.gz
