@@ -585,9 +585,11 @@ SOURCES += \
 
 DISTFILES += \
     ../qmake-destination-path.pri \
+    ../qmake-core-version.pri \
     ../qmake-target-platform.pri
 
 include(../qmake-target-platform.pri)
+include(../qmake-core-version.pri)
 include(../qmake-destination-path.pri)
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
@@ -599,10 +601,10 @@ RCC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
 UI_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.ui
 
 unix {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9.0)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
 }
 
 win32 {

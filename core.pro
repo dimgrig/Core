@@ -34,3 +34,8 @@ CONFIG(debug, debug|release) {
                     qcustomplot \
                     QtWebApp
 }
+
+DISTFILES += \
+    qmake-destination-path.pri \
+    qmake-core-version.pri \
+    qmake-target-platform.pri

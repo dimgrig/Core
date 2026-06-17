@@ -12,14 +12,16 @@ QMAKE_CXXFLAGS += -Wno-deprecated #-std=c++2a
 
 DISTFILES += \
     ../qmake-destination-path.pri \
+    ../qmake-core-version.pri \
     ../qmake-target-platform.pri
 
 include(../qmake-target-platform.pri)
+include(../qmake-core-version.pri)
 include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
-    LIBS += -L/usr/lib/qt/ -lcore-lib
-    LIBS += -L/usr/lib/qt/ -lqcustomplot
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lqcustomplot
 
     DISTFILES += ../core-gcc10.pri
     include(../core-gcc10.pri)
@@ -28,11 +30,10 @@ exists(/etc/astra_version) {
     message($${ASTRA_QT_PATH})
 } else {
     unix {
-        LIBS += -L/usr/lib/qt/ -lcore-lib
-        LIBS += -L/usr/lib/qt/ -lqcustomplot
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lqcustomplot
     }
 
-    WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
@@ -65,10 +66,10 @@ unix {
 !isEmpty(target.path): INSTALLS += target
 
 unix {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1.0.0)) $$quote($$shell_path(/usr/lib/qt/)) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1.0)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libcore-plot-lib.so.1.0.0)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
 }
 
 win32 {

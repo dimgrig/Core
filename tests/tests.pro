@@ -8,13 +8,13 @@ include(../qmake-target-platform.pri)   # если эти файлы лежат 
 include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
-    LIBS += -L/usr/lib/qt/ -lcore-lib
-    LIBS += -L/usr/lib/qt/ -lcore-io-lib
-    LIBS += -L/usr/lib/qt/ -lcore-journal-lib
-    LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
-    LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
-    LIBS += -L/usr/lib/qt/ -lcore-utils-lib
-    LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-io-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-mvc-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-utils-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
     LIBS += -L/usr/local/lib/ -lmuparser
 
     DISTFILES += core-gcc10.pri
@@ -22,17 +22,16 @@ exists(/etc/astra_version) {
 } else {
     unix {
         LIBS += -ldl
-        LIBS += -L/usr/lib/qt/ -lcore-lib
-        LIBS += -L/usr/lib/qt/ -lcore-io-lib
-        LIBS += -L/usr/lib/qt/ -lcore-journal-lib
-        LIBS += -L/usr/lib/qt/ -lcore-modbus-lib
-        LIBS += -L/usr/lib/qt/ -lcore-mvc-lib
-        LIBS += -L/usr/lib/qt/ -lcore-utils-lib
-        LIBS += -L/usr/lib/qt/ -lcore-widgets-lib
-        LIBS += -L/usr/lib/qt/ -lmuParser
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-io-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-mvc-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-utils-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lmuParser
     }
 
-    WIN_LIBS_PATH = "C:/QtCreatorProjects/libs"
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
@@ -80,7 +79,7 @@ UI_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.ui
 
 # Запуск тестов сразу после сборки (кросс-платформенно)
 win32 {
-    LIB_PATH = C:/QtCreatorProjects/libs
+    LIB_PATH = $${WIN_LIBS_PATH}
     QMAKE_POST_LINK = $$shell_path(set PATH=$$LIB_PATH;%PATH% && $$DESTDIR/$$TARGET.exe)
 } else {
     LIB_PATH = /usr/lib/qt
