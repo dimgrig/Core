@@ -5,6 +5,7 @@ TARGET = core-tests    # имя исполняемого файла тестов
 CONFIG += c++17
 
 include(../qmake-target-platform.pri)   # если эти файлы лежат в корне
+include(../qmake-core-version.pri)
 include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
@@ -78,15 +79,19 @@ RCC_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
 UI_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.ui
 
 # Запуск тестов сразу после сборки (кросс-платформенно)
-win32 {
-    LIB_PATH = $${WIN_LIBS_PATH}
-    QMAKE_POST_LINK = $$shell_path(set PATH=$$LIB_PATH;%PATH% && $$DESTDIR/$$TARGET.exe)
+exists(/etc/astra_version) {
+
 } else {
-    LIB_PATH = /usr/lib/qt
-    QMAKE_POST_LINK = LD_LIBRARY_PATH=$$LIB_PATH:$$LD_LIBRARY_PATH $$DESTDIR/$$TARGET
+    unix {
+        QMAKE_POST_LINK = LD_LIBRARY_PATH=$$shell_path($${LINUX_LIBS_PATH}):$$LD_LIBRARY_PATH $$shell_path($$DESTDIR/$$TARGET)
+    }
+    #    win32|win64 {
+    #        #QMAKE_POST_LINK = set PATH=$$shell_path($${WIN_LIBS_PATH});%PATH% && $$shell_path($$DESTDIR/$$TARGET.exe)
+    #        QMAKE_POST_LINK = cmd /c "set PATH=$${WIN_LIBS_PATH};%PATH% && $$DESTDIR/$${TARGET}.exe"
+    #    }
 }
 
-DIR_ROOT = $$PWD/../
+#DIR_ROOT = $$PWD/../
 
 #QMAKE_LFLAGS += -Wl,--allow-multiple-definition
 #{
