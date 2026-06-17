@@ -15,9 +15,12 @@ RUN apt update && \
         libqt5sql5-sqlite \
         libqt5svg5-dev \
         libqt5x11extras5-dev \
-        wget git ca-certificates \
-        && \
-    apt clean && \
+        wget git ca-certificates
+
+RUN apt install -y --no-install-recommends \
+        libxerces-c-dev 
+
+RUN apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Сборка qtmqtt из исходников (требуется, т.к. нет пакета в Debian 12)

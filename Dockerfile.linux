@@ -34,7 +34,7 @@ RUN cd /app/Core/core-utils-lib && qmake core-utils-lib.pro -spec linux-g++ CONF
 RUN cd /app/Core/core-mvc-lib && qmake core-mvc-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
 RUN cd /app/Core/qcustomplot && qmake qcustomplot.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
 RUN cd /app/Core/core-plot-lib && qmake core-plot-lib.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
-# RUN cd /app/Core/QtWebApp && qmake QtWebApp.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
+RUN cd /app/Core/QtWebApp && qmake QtWebApp.pro -spec linux-g++ CONFIG+=release && make -j$(nproc)
 
 # Проверяем, какие библиотеки создались (отладка)
 RUN ls -la /app/core-lib-binaries/linux/gcc/x64/release/ 
@@ -47,7 +47,7 @@ RUN ls -la /app/core-utils-lib-binaries/linux/gcc/x64/release/
 RUN ls -la /app/core-widgets-lib-binaries/linux/gcc/x64/release/ 
 RUN ls -la /app/muParser-binaries/linux/gcc/x64/release/ 
 RUN ls -la /app/qcustomplot-binaries/linux/gcc/x64/release/ 
-# RUN ls -la /app/QtWebApp-binaries/linux/gcc/x64/release/ 
+RUN ls -la /app/QtWebApp-binaries/linux/gcc/x64/release/ 
 
 # Копируем все .so и .a в /usr/lib/qt
 RUN mkdir -p /usr/lib/qt
@@ -61,7 +61,7 @@ RUN cp -d /app/core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 
 RUN cp -d /app/core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
 RUN cp -d /app/muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
 RUN cp -d /app/qcustomplot-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-# RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
 
 # Проверяем, что libcore-lib.so теперь есть
 RUN ls -la /usr/lib/qt/libcore-lib.so*
