@@ -40,7 +40,7 @@ void CoreConfig::setUserDataDir(const QString &path)
     if (!s_userDataDir.isEmpty())
         QDir().mkpath(s_userDataDir);
 
-    CoreConfig::initializeDefaultFiles(QCoreApplication::applicationDirPath());
+    CoreConfig::initializeDefaultFiles(""); //QCoreApplication::applicationDirPath()
 }
 
 void CoreConfig::setDatabaseName(const QString &name) {
