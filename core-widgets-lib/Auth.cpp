@@ -18,7 +18,7 @@ Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Auth),
     _roleManager(roleManager),
-    _users(new Users(roleManager, UserDefaultFilename, this))
+    _users(new Users(roleManager, CoreConfig::userFile().toStdString(), this))
 {
     ui->setupUi(this);
 

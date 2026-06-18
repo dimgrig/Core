@@ -325,7 +325,7 @@ void Users::load() {
         }
     }
 
-    if (_filename == UserDefaultFilename) {
+    if (_filename == CoreConfig::userFile().toStdString()) {
         if (_users.empty()) {
             std::string password = "123";
             this->addUser("acs", "Разработчик", "5041511"); //developer

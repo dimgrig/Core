@@ -19,7 +19,7 @@
 #include "core-widgets-lib-global.h"
 
 const int UserCharLength = 256;
-const std::string UserDefaultFilename = "user.dat";
+//const std::string UserDefaultFilename = "user.dat";
 
 #define auth_user User_singleton::instance()
 
@@ -101,7 +101,7 @@ class CORE_WIDGETS_LIB_EXPORT Users : public QDialog {
 Q_OBJECT
 public:
     Users(IUserRoleManager* roleManager = nullptr,
-          const std::string& filename = UserDefaultFilename,
+          const std::string& filename = CoreConfig::userFile().toStdString(),
           QWidget *parent = nullptr);
     ~Users();
 

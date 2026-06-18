@@ -152,4 +152,23 @@ extern const QStringList SerialStopBits_sl;
 extern const QStringList SerialParity_sl;
 extern const QStringList BytesFormat_sl;
 
+namespace CoreConfig {
+    // Установить каталог для изменяемых данных (config, БД и т.п.)
+    // Если не вызывать, используется автоматическое определение.
+    void setUserDataDir(const QString &path);
+
+    void setDatabaseName(const QString &name);
+
+    // Получить каталог для изменяемых данных
+    QString userDataDir();
+
+    // Получить файлы
+    QString configFile();
+    QString calibrationFile();
+    QString userFile();
+    QString databaseFile();
+
+    void initializeDefaultFiles(const QString &sourceDir);
+}
+
 #endif // CORECONFIG_H

@@ -23,6 +23,17 @@
 
 int main(int argc, char *argv[])
 {
+    {
+        QCoreApplication::setApplicationName("core-tests"); // важно для AppConfigLocation
+        QCoreApplication::setOrganizationName("ACS");
+
+#ifdef Q_OS_WIN
+        CoreConfig::setUserDataDir(QCoreApplication::applicationDirPath());
+#else
+        CoreConfig::setUserDataDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+#endif
+    }
+
     int status = 0;
     QApplication app(argc, argv);
 

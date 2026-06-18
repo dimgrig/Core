@@ -117,7 +117,7 @@ void SCPISettingsUI::read_config(SCPISettings settings){
 SCPISettings SCPISettingsUI::write_config(){
     SCPISettings settings = this->getSettingsFromUi();
 
-    QSettings config("config.ini", QSettings::IniFormat);
+    QSettings config(CoreConfig::configFile(), QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     config.setIniCodec("UTF-8"); //Windows-1251
 #endif

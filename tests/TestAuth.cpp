@@ -68,7 +68,7 @@ void TestAuth::testSetAndGetDefaultUser()
     settings.clear();
 
     // Удаляем старый файл пользователей, если существует
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 
     MockUserRoleManager mock;
     QTemporaryFile tempFile;
@@ -106,11 +106,11 @@ void TestAuth::testTryAutoLoginSuccess()
     settings.clear();
 
     // Удаляем старый файл пользователей, если существует
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 
     // Создаём временный файл с тестовым пользователем
     MockUserRoleManager mock;
-    Users tempUsers(&mock, UserDefaultFilename);
+    Users tempUsers(&mock, CoreConfig::userFile().toStdString());
     tempUsers.addUser("testuser", "Администратор", "correctpass");
     tempUsers.save();  // сохраняем в файл по умолчанию
 
@@ -132,7 +132,7 @@ void TestAuth::testTryAutoLoginSuccess()
     // Очистка
     auth_user.user = User_s();
     authUsers->clearDefaultUser();
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 }
 
 void TestAuth::testTryAutoLoginWrongPassword()
@@ -140,10 +140,10 @@ void TestAuth::testTryAutoLoginWrongPassword()
     QSettings settings(__ORGANIZATION_NAME, _appName);
     settings.clear();
 
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 
     MockUserRoleManager mock;
-    Users tempUsers(&mock, UserDefaultFilename);
+    Users tempUsers(&mock, CoreConfig::userFile().toStdString());
     tempUsers.addUser("testuser", "Администратор", "correctpass");
     tempUsers.save();
 
@@ -160,7 +160,7 @@ void TestAuth::testTryAutoLoginWrongPassword()
     QCOMPARE(std::string(auth_user.user.name), std::string());
 
     authUsers->clearDefaultUser();
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 }
 
 void TestAuth::testTryAutoLoginDefault()
@@ -168,10 +168,10 @@ void TestAuth::testTryAutoLoginDefault()
     QSettings settings(__ORGANIZATION_NAME, _appName);
     settings.clear();
 
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 
     MockUserRoleManager mock;
-    Users tempUsers(&mock, UserDefaultFilename);
+    Users tempUsers(&mock, CoreConfig::userFile().toStdString());
     tempUsers.addUser("testuser", "Администратор", "pass");
     tempUsers.save();
 
@@ -181,7 +181,7 @@ void TestAuth::testTryAutoLoginDefault()
     bool result = auth.tryAutoLogin();
     QVERIFY(result);
 
-    QFile::remove(UserDefaultFilename.c_str());
+    QFile::remove(CoreConfig::userFile().toStdString().c_str());
 }
 
 void TestAuth::testClearDefaultUser()

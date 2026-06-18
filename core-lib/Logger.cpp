@@ -198,8 +198,9 @@ void Logger::LogFileOpening(int change) {
         }
     }
 
-    if (change == 1) {        
-        QString exeDir = QString::fromUtf8(getExecutableDirectory().c_str());
+    if (change == 1) {
+        //QString exeDir = QString::fromUtf8(getExecutableDirectory().c_str());
+        QString exeDir = CoreConfig::userDataDir();
         if (exeDir != "") {
             const QString path = exeDir + "/log/";
 

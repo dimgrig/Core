@@ -335,7 +335,7 @@ void ModbusSettingsUI::read_config(ModbusSettings settings){
 ModbusSettings ModbusSettingsUI::write_config(){
     ModbusSettings modbus_settings = this->getSettingsFromUi();
 
-    QSettings config("config.ini", QSettings::IniFormat);
+    QSettings config(CoreConfig::configFile(), QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     config.setIniCodec("UTF-8"); //Windows-1251
 #endif
