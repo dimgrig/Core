@@ -4,6 +4,10 @@
 #include <QStandardPaths>
 #include <QDir>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 const QStringList ConnectionType_sl = {{ConnectionType_to_text(ConnectionTypeSerial),
                                          ConnectionType_to_text(ConnectionTypeTCP)}};
 const QStringList SerialBaudRate_sl = {{SerialBaudRate_to_text(SerialBaud1200),
@@ -31,8 +35,8 @@ const QStringList BytesFormat_sl = {{BytesFormat_to_text(BigEndian),
                                       BytesFormat_to_text(LittleEndianByteSwap),
                                       BytesFormat_to_text(LittleEndian)}};
 
-static QString s_userDataDir; // пустая строка означает "авто"
-static QString s_databaseName;
+static QString s_userDataDir = "";
+static QString s_databaseName = "";
 
 void CoreConfig::setUserDataDir(const QString &path)
 {
@@ -54,7 +58,21 @@ QString CoreConfig::userDataDir()
 
 // Автоматическое определение, если путь не был установлен явно
 #ifdef Q_OS_WIN
-    return QCoreApplication::applicationDirPath();
+    // Если QApplication уже есть, используем его метод
+    if (QCoreApplication::instance()) {
+        s_userDataDir = QCoreApplication::applicationDirPath();
+    } else {
+        // Иначе получаем путь через WinAPI (работает до создания QApplication)
+        wchar_t path[MAX_PATH];
+        DWORD len = GetModuleFileNameW(NULL, path, MAX_PATH);
+        if (len > 0) {
+            QString exePath = QString::fromWCharArray(path, len);
+            s_userDataDir = QFileInfo(exePath).absolutePath();
+        } else {
+            s_userDataDir = QString(); // на крайний случай
+        }
+    }
+    return s_userDataDir;
 #else
     // Используем AppConfigLocation, зависящее от applicationName
     QString path = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
@@ -83,7 +101,12 @@ QString CoreConfig::databaseFile() {
 void CoreConfig::initializeDefaultFiles(const QString &sourceDir)
 {
     auto copyIfMissing = [&](const QString &fileName) {
-        QString dest = userDataDir() + "/" + fileName;
+        QString dest = userDataDir() ;
+        if (dest == "") {
+            dest = fileName;
+        } else {
+            dest += "/" + fileName;
+        }
         if (!QFile::exists(dest)) {
             QString src = sourceDir;
             if (src == "") {
