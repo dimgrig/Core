@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         QCoreApplication::setOrganizationName("ACS");
 
 #ifdef Q_OS_WIN
-        CoreConfig::setUserDataDir(QCoreApplication::applicationDirPath());
+        ;
 #else
         CoreConfig::setUserDataDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
 #endif
