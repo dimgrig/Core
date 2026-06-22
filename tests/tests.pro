@@ -74,9 +74,9 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/../muParser/include"
 BUILD_DIR = $$PWD/../../build/$${TARGET}-build/
 DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH
 OBJECTS_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.obj
-MOC_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.moc
-RCC_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
-UI_DIR = $$PWD/../../../$${TARGET}-build/$$DESTINATION_PATH/.ui
+MOC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.moc
+RCC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
+UI_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.ui
 
 # Запуск тестов сразу после сборки (кросс-платформенно)
 exists(/etc/astra_version) {

@@ -9,7 +9,7 @@ NumericIdProxyModel::NumericIdProxyModel(int column, QObject *parent)
     setId(-1);
 }
 
-void NumericIdProxyModel::setId(int id)
+void NumericIdProxyModel::setId(long long id)
 {
     if (m_id != id) {
         m_id = id;
@@ -19,12 +19,12 @@ void NumericIdProxyModel::setId(int id)
     }
 }
 
-int NumericIdProxyModel::getId() const
+long long NumericIdProxyModel::getId() const
 {
     return m_id;
 }
 
-void NumericIdProxyModel::setIds(const QSet<int>& ids)
+void NumericIdProxyModel::setIds(const QSet<long long>& ids)
 {
     if (m_ids != ids) {
         m_ids = ids;
@@ -33,22 +33,22 @@ void NumericIdProxyModel::setIds(const QSet<int>& ids)
     }
 }
 
-QSet<int> NumericIdProxyModel::getIds() const
+QSet<long long> NumericIdProxyModel::getIds() const
 {
     return m_ids;
 }
 
 bool NumericIdProxyModel::filterAcceptsRow(int source_row,
-                                                const QModelIndex &source_parent) const
+                                           const QModelIndex &source_parent) const
 {
     if (!(m_column < sourceModel()->columnCount())) {
         return false;
     }
 
     // Если фильтр не установлен, показываем все строки
-    if (!m_useMultipleIds && m_id == -1) {
-        return true;
-    }
+//    if (!m_useMultipleIds && m_id == -1) {
+//        return true;
+//    }
 
     // Получаем индекс столбца с ID
     QModelIndex index = sourceModel()->index(source_row, m_column, source_parent);
@@ -59,19 +59,19 @@ bool NumericIdProxyModel::filterAcceptsRow(int source_row,
 
     // Получаем ID из модели
     bool ok;
-    int rowId = sourceModel()->data(index).toInt(&ok);
+    long long rowId = sourceModel()->data(index).toLongLong(&ok);
 
     if (!ok) {
         // Если данные не могут быть преобразованы в int, пробуем получить через роль
         QVariant data = sourceModel()->data(index, Qt::UserRole);
-        rowId = data.toInt();
+        rowId = data.toLongLong();
     }
 
     // Применяем фильтр
     if (m_useMultipleIds) {
         return m_ids.contains(rowId);
     } else {
-        return rowId == m_id;
+        return rowId == m_id || rowId == 0;
     }
 }
 

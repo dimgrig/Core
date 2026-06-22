@@ -9,23 +9,23 @@
 class CORE_MVC_LIB_EXPORT NumericIdProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
-    Q_PROPERTY(int id READ getId WRITE setId NOTIFY idChanged)
+    Q_PROPERTY(long long id READ getId WRITE setId NOTIFY idChanged)
 
 public:
     explicit NumericIdProxyModel(int column = 0, QObject *parent = nullptr);
 
     // Установка ID для фильтрации
-    void setId(int id);
-    int getId() const;
+    void setId(long long id);
+    long long getId() const;
 
     // Можно фильтровать по нескольким ID
-    void setIds(const QSet<int>& ids);
-    QSet<int> getIds() const;
+    void setIds(const QSet<long long>& ids);
+    QSet<long long> getIds() const;
 
     // Метод для принудительного обновления фильтра
     void invalidateFilter();
 signals:
-    void idChanged(int id);
+    void idChanged(long long id);
 
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
@@ -33,8 +33,8 @@ protected:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 private:
     int m_column = 0;
-    int m_id = -1;
-    QSet<int> m_ids;    // Если нужна фильтрация по нескольким устройствам
+    long long m_id = -1;
+    QSet<long long> m_ids;    // Если нужна фильтрация по нескольким устройствам
     bool m_useMultipleIds = false;
 };
 

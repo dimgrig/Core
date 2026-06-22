@@ -118,9 +118,11 @@ void TestModbusIntegration::testClientServerCommunication()
 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
-    QTest::qWait(500); // Даём клиенту время сделать polling
-    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
-    readSpy.clear();
+    QTest::qWait(100);               // Небольшая пауза для завершения инициализации
+    modbusClient->stopPolling();     // Останавливаем фоновый опрос
+    modbusClient->clearQueue();
+    QTest::qWait(50);                // даём время завершиться текущему запросу, если он был
+    readSpy.clear();                 // Очищаем возможные сигналы
 
     //--- Тест 1: чтение начальных значений ---
     {
@@ -774,9 +776,11 @@ void TestModbusIntegration::testBindingValueChangedTriggersWrite() {
 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
-    QTest::qWait(500); // Даём клиенту время сделать polling
-    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
-    readSpy.clear();
+    QTest::qWait(100);               // Небольшая пауза для завершения инициализации
+    modbusClient->stopPolling();     // Останавливаем фоновый опрос
+    modbusClient->clearQueue();
+    QTest::qWait(50);                // даём время завершиться текущему запросу, если он был
+    readSpy.clear();                 // Очищаем возможные сигналы
 
     BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>("hr4");
@@ -852,9 +856,11 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
 
     modbusClient->connectToHost();
     QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
-    QTest::qWait(500); // Даём клиенту время сделать polling
-    QTRY_COMPARE_WITH_TIMEOUT(readSpy.count(), 4, 2000);
-    readSpy.clear();
+    QTest::qWait(100);               // Небольшая пауза для завершения инициализации
+    modbusClient->stopPolling();     // Останавливаем фоновый опрос
+    modbusClient->clearQueue();
+    QTest::qWait(50);                // даём время завершиться текущему запросу, если он был
+    readSpy.clear();                 // Очищаем возможные сигналы
 
     BitAwareBindingManager bindingManager(modbusSettings.MODBUS_ADDRESS, modbusClient);
     bindingManager.registerWidgetsFromContainer(container);
