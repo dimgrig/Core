@@ -82,6 +82,7 @@ private:
 #define ICON_SAVE_AS                IconManager::getIcon(":/icons/save_as.svg")
 #define ICON_CLOSE                  IconManager::getIcon(":/icons/close.svg")
 #define ICON_CANCEL                 IconManager::getIcon(":/icons/cancel.svg")
+#define ICON_CLEAN                  IconManager::getIcon(":/icons/clean.svg")
 
 #define ICON_ADD                    IconManager::getIcon(":/icons/add.svg")
 #define ICON_ADD_BEFORE             IconManager::getIcon(":/icons/add_before.svg")
