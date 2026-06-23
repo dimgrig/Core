@@ -19,6 +19,18 @@ FilterHeader::FilterHeader(QWidget* parent) :
     setHighlightSections(true);
 }
 
+void FilterHeader::setFilterEnabled(int section, bool enabled) {
+    if (enabled)
+        disabledSections.remove(section);
+    else
+        disabledSections.insert(section);
+    viewport()->update(); // перерисовка иконок
+}
+
+bool FilterHeader::isFilterEnabled(int section) const {
+    return !disabledSections.contains(section);
+}
+
 void FilterHeader::registerCustomFilter(int section,
                           std::function<QWidget*()> widgetFactory,
                           std::function<void(QWidget*)> onApply) {
@@ -48,6 +60,9 @@ void FilterHeader::mouseDoubleClickEvent(QMouseEvent* event) {
     if (section == -1)
         return;
 
+    if (!isFilterEnabled(section))
+        return;
+
     if (event->button() == Qt::LeftButton) {
         showFilterMenu(section, event->globalPos());
     } else {
@@ -61,7 +76,7 @@ void FilterHeader::paintSection(QPainter* painter, const QRect& rect, int logica
     painter->restore(); // Восстанавливаем настройки
 
     // Рисуем иконку фильтра, если он применен
-    if (filters.contains(logicalIndex)) {
+    if (filters.contains(logicalIndex) && isFilterEnabled(logicalIndex)) {
         // Настраиваем цвет и шрифт
         painter->setPen(QColor(DGRAY_COLOR));
         painter->setFont(QFont("Arial", 8, QFont::Bold));

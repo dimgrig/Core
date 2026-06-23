@@ -26,22 +26,13 @@ MultiSelectWidget::MultiSelectWidget(QWidget *parent)
     _addButton->setIconSize(ICON_SIZE_24);
     mainLayout->addWidget(_addButton);
 
-    // Область прокрутки для чипсов
-    _scrollArea = new QScrollArea(this);
-    _scrollArea->setWidgetResizable(true);
-    _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    _scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    _scrollArea->setFrameShape(QFrame::NoFrame);
-    _scrollArea->setFixedHeight(60);
+    _flowContainer = new QWidget(this);
+    _flowLayout = new FlowLayout(_flowContainer, 2, 2, 2); // отступы
+    _flowContainer->setLayout(_flowLayout);
+    _flowContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mainLayout->addWidget(_flowContainer);
 
-    QWidget *chipsContainer = new QWidget();
-    _chipsLayout = new QHBoxLayout(chipsContainer);
-    _chipsLayout->setContentsMargins(2, 2, 2, 2);
-    _chipsLayout->setSpacing(2);
-    _scrollArea->setWidget(chipsContainer);
-
-    mainLayout->addWidget(_scrollArea);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     // Меню с поиском
     _popupMenu = new QMenu(this);
@@ -132,25 +123,29 @@ void MultiSelectWidget::onMenuItemToggled(QListWidgetItem *item) {
 }
 
 void MultiSelectWidget::rebuildChips() {
-    // Корректное удаление чипсов
+    // Удаляем старые виджеты из FlowLayout
     QLayoutItem *child;
-    while ((child = _chipsLayout->takeAt(0)) != nullptr) {
+    while ((child = _flowLayout->takeAt(0)) != nullptr) {
         if (QWidget *w = child->widget())
             delete w;
         delete child;
     }
 
+    // Создаём чипсы для выбранных элементов
     for (int id : _selectedIds) {
         if (_availableItems.contains(id)) {
             QWidget *chip = createChip(id, _availableItems[id]);
-            _chipsLayout->addWidget(chip);
+            _flowLayout->addWidget(chip);
         }
     }
-    _chipsLayout->addStretch();
 
-    // Обновляем размер контейнера, чтобы ScrollArea правильно отреагировала
-    QWidget *container = _scrollArea->widget();
-    container->adjustSize();
+    // Добавляем растягивающийся элемент, чтобы чипсы прижимались влево
+    _flowLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
+    // Обновляем геометрию контейнера и всего виджета
+    _flowContainer->adjustSize();
+    adjustSize();
+    updateGeometry(); // сигнализируем родительскому layout об изменении размера
 }
 
 QWidget* MultiSelectWidget::createChip(int id, const QString &name) {

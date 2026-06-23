@@ -94,6 +94,7 @@ HEADERS += \
     DetailListWidget.h \
     DoubleSpinBoxDialog.h \
     DynamicListWidget.h \
+    FlowLayout.h \
     FocusWatcher.h \
     IUserRoleManager.h \
     IconManager.h \
@@ -120,6 +121,7 @@ SOURCES += \
     DetailListWidget.cpp \
     DoubleSpinBoxDialog.cpp \
     DynamicListWidget.cpp \
+    FlowLayout.cpp \
     FocusWatcher.cpp \
     IUserRoleManager.cpp \
     IconManager.cpp \

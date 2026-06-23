@@ -8,6 +8,8 @@
 #include <QSet>
 #include <QWidget>
 
+#include "FlowLayout.h"
+
 class QLabel;
 class QMenu;
 class QLineEdit;
@@ -41,8 +43,9 @@ private:
     void populateMenu();
     QWidget* createChip(int id, const QString &name);
 
-    QScrollArea *_scrollArea = nullptr;
-    QHBoxLayout *_chipsLayout = nullptr;
+    QWidget *_flowContainer = nullptr;
+    FlowLayout *_flowLayout = nullptr;
+
     QPushButton *_addButton = nullptr;
     QMenu *_popupMenu = nullptr;
     QLineEdit *_filterEdit = nullptr;

@@ -13,6 +13,10 @@ class CORE_MVC_LIB_EXPORT FilterHeader : public QHeaderView {
     Q_OBJECT
 public:
     FilterHeader(QWidget* parent = nullptr);
+
+    void setFilterEnabled(int section, bool enabled);
+    bool isFilterEnabled(int section) const;
+
     void set_date(int section) {this->dates.insert(section);};
     void set_datetime(int section) {this->datetimes.insert(section);};
     void set_log(int section) {this->logs.insert(section);};
@@ -41,6 +45,8 @@ private:
     void getDateTimeSelection(QString filter, QDateTime& startDateTime, QDateTime& endDateTime);
     QString checkLogLevelToText(int section, QString& text);
     QString checkLogLevelFromText(int section, QString& text);
+
+    QSet<int> disabledSections;   // колонки, для которых фильтрация запрещена
 
     // Хранилище фильтров: [column, filter text]
     QMap<int, QString> filters;
