@@ -95,6 +95,10 @@ Qt::ItemFlags BaseSqlRelationalTableModel::flags(const QModelIndex& index) const
     return default_flags;
 }
 
+void BaseSqlRelationalTableModel::setRawFilterColumn(int column) {
+    _rawFilterColumns.insert(column);
+}
+
 void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -113,6 +117,16 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
 
         // Получаем имя поля в БД для столбца
         QString fieldName = this->record().fieldName(col);
+
+        if (_rawFilterColumns.contains(col)) {
+            // Получаем оригинальное имя поля из схемы БД
+            QSqlRecord rec = database().record(tableName());
+            QString actualFieldName = (col >= 0 && col < rec.count())
+                                          ? rec.fieldName(col)
+                                          : record().fieldName(col); // запасной вариант
+            conditions << QString("%1 %2").arg(actualFieldName, value);
+            continue;
+        }
 
         // Обработка реляционных столбцов
         if (this->relation(col).isValid()) {

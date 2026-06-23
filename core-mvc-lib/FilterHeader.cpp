@@ -19,6 +19,13 @@ FilterHeader::FilterHeader(QWidget* parent) :
     setHighlightSections(true);
 }
 
+void FilterHeader::registerCustomFilter(int section,
+                          std::function<QWidget*()> widgetFactory,
+                          std::function<void(QWidget*)> onApply) {
+    customWidgetFactories[section] = widgetFactory;
+    customApplyHandlers[section]   = onApply;
+}
+
 void FilterHeader::setFilter(int section, const QString& text) {
     if (text.isEmpty()) {
         filters.remove(section);
@@ -66,6 +73,44 @@ void FilterHeader::paintSection(QPainter* painter, const QRect& rect, int logica
 }
 
 void FilterHeader::showFilterMenu(int section, const QPoint& pos) {
+    // ---------- Кастомный виджет ----------
+    if (customWidgetFactories.contains(section)) {
+        QWidget *filterWidget = customWidgetFactories[section](); // создаём без родителя
+        QMenu menu;
+
+        QWidget *container = new QWidget(&menu);
+        QVBoxLayout *vlay = new QVBoxLayout(container);
+        vlay->addWidget(filterWidget);   // теперь filterWidget без родителя — ошибки нет
+
+        QPushButton *applyBtn = new QPushButton(tr("Применить"), container);
+        QPushButton *clearBtn = new QPushButton(tr("Очистить"), container);
+        QHBoxLayout *btnLay = new QHBoxLayout();
+        btnLay->addWidget(applyBtn);
+        btnLay->addWidget(clearBtn);
+        vlay->addLayout(btnLay);
+
+        QWidgetAction *action = new QWidgetAction(&menu);
+        action->setDefaultWidget(container);
+        menu.addAction(action);
+
+        // Кнопка "Применить"
+        auto applyHandler = customApplyHandlers[section];
+        connect(applyBtn, &QPushButton::clicked, [this, section, filterWidget, applyHandler, &menu]() {
+            menu.close();
+            applyHandler(filterWidget);   // вызываем колбек, передавая временный виджет
+        });
+
+        // Кнопка "Очистить"
+        connect(clearBtn, &QPushButton::clicked, [this, section, &menu]() {
+            menu.close();
+            clearFilter(section);         // сброс фильтра через стандартный механизм
+        });
+
+        menu.exec(pos);
+        filterWidget->deleteLater();      // удаляем временный виджет после закрытия меню
+        return;
+    }
+
     QMenu menu;
 
     QWidget* widget = new QWidget(&menu);

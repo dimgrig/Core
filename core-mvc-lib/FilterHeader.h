@@ -17,6 +17,10 @@ public:
     void set_datetime(int section) {this->datetimes.insert(section);};
     void set_log(int section) {this->logs.insert(section);};
 
+    void registerCustomFilter(int section,
+                              std::function<QWidget*()> widgetFactory,
+                              std::function<void(QWidget*)> onApply);
+
     void setFilter(int section, const QString& text);
     QString getFilter(int section);
 signals:
@@ -43,6 +47,9 @@ private:
     QSet<int> dates;
     QSet<int> datetimes;
     QSet<int> logs;
+
+    QMap<int, std::function<QWidget*()>>         customWidgetFactories;
+    QMap<int, std::function<void(QWidget*)>>     customApplyHandlers;
 };
 
 #endif // FILTERHEADER_H

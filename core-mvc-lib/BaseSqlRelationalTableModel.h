@@ -3,6 +3,7 @@
 
 #include <set>
 
+#include <QSet>
 #include <QSqlRelationalTableModel>
 
 #include "core-mvc-lib-global.h"
@@ -52,6 +53,7 @@ signals:
 
     void filterChanged(const QString fullFilter);
 public slots:
+    void setRawFilterColumn(int column);
     void filter_changed(int column, const QString& text);
 private slots:
     void data_changed(const QModelIndex &topLeft, const QModelIndex &bottomRight);
@@ -68,6 +70,7 @@ private:
 
     QMap<int, QString> _filters;
     QString _fullFilter;
+    QSet<int> _rawFilterColumns;
 
     QString _timestampOp;
     qint64 _startSecs = 0;
