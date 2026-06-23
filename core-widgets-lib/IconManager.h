@@ -126,6 +126,9 @@ private:
 #define ICON_TESTS_RESULT_PASSED    IconManager::getIcon(":/icons/mode_done.svg")
 #define ICON_TESTS_RESULT_FAILED    IconManager::getIcon(":/icons/error.svg")
 
+#define ICON_PLUS                   IconManager::getIcon(":/icons/plus.svg")
+#define ICON_BASKET                 IconManager::getIcon(":/icons/basket.svg")
+
 
 #define PIXMAP_ORGANIZATION         IconManager::getPixmap(":/icons/ACS_LOGO.svg")
 #define PIXMAP_APP                  IconManager::getPixmap(":/icons/app.svg")

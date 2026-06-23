@@ -101,6 +101,7 @@ HEADERS += \
     MenuCornerWidget.h \
     MessageBox.h \
     MockUserRoleManager.h \
+    MultiSelectWidget.h \
     SpinBoxEditor.h \
     TabBarHorizontalText.h \
     User.h \
@@ -126,6 +127,7 @@ SOURCES += \
     MenuCornerWidget.cpp \
     MessageBox.cpp \
     MockUserRoleManager.cpp \
+    MultiSelectWidget.cpp \
     TabBarHorizontalText.cpp \
     User.cpp \
     aqp.cpp

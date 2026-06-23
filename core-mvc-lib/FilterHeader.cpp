@@ -19,21 +19,6 @@ FilterHeader::FilterHeader(QWidget* parent) :
     setHighlightSections(true);
 }
 
-// void FilterHeader::mousePressEvent(QMouseEvent* event) {
-//     int section = logicalIndexAt(event->pos());
-//     if (section == -1)
-//         return;
-
-//     if (event->button() == Qt::LeftButton) {
-//         showFilterMenu(section, event->globalPos());
-//     } else {
-//         // if (event->button() == Qt::RightButton) {
-//         //     QHeaderView::contextMenuEvent(event);
-//         // }
-//         QHeaderView::mousePressEvent(event);
-//     }
-// }
-
 void FilterHeader::setFilter(int section, const QString& text) {
     if (text.isEmpty()) {
         filters.remove(section);
@@ -42,6 +27,13 @@ void FilterHeader::setFilter(int section, const QString& text) {
     }
     emit filterChanged(section, text);
     viewport()->update();
+}
+
+QString FilterHeader::getFilter(int section) {
+    if (filters.count(section)) {
+        return filters[section];
+    }
+    return "";
 }
 
 void FilterHeader::mouseDoubleClickEvent(QMouseEvent* event) {

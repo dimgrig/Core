@@ -29,11 +29,12 @@ public:
     bool get_autorescale() const {return this->_autorescale;}
     void set_autorescale(bool autorescale) {this->_autorescale = autorescale;}
 
+    int get_width() const {return _width;};
+
     void rescale(int index = 0);
     void autoscale_all();
 protected slots:
     void move_legend(int pos);
-    int get_width() const {return _width;};
 
     void export_csv();
     void export_png();

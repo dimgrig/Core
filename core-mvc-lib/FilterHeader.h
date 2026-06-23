@@ -18,6 +18,7 @@ public:
     void set_log(int section) {this->logs.insert(section);};
 
     void setFilter(int section, const QString& text);
+    QString getFilter(int section);
 signals:
     void filterChanged(int section, const QString& text);
 private slots:
