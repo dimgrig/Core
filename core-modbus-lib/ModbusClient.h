@@ -75,6 +75,8 @@ public slots:
     void setRegister(int serverAddress, const QString &reg_name, double value);
     void setRegisterString(int serverAddress, const QString &reg_name, const QString &value);
 
+    void writeMultipleRegisters(int serverAddress, int startAddress, const QVector<quint16>& values);
+
     QModbusDataUnit getLastReadUnit() const {return _lastReadUnit;};
     QModbusDataUnit getLastWriteUnit()  const {return _lastWriteUnit;};
 private slots:

@@ -414,6 +414,12 @@ void ModbusClient::setRegisterString(int serverAddress, const QString &reg_name,
     }
 }
 
+void ModbusClient::writeMultipleRegisters(int serverAddress, int startAddress, const QVector<quint16>& values) {
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters, startAddress, values.size());
+    unit.setValues(values);
+    enqueueWriteRequest(serverAddress, unit, true);
+}
+
 void ModbusClient::setRegister(int serverAddress, QModbusDataUnit::RegisterType table, const QString &regName, double value) {
     if (!modbusDevice)
         return;

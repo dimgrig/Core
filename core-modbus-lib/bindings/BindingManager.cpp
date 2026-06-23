@@ -18,7 +18,7 @@ BindingManager::BindingManager(int serverAddress,
     : QObject(parent)
     , m_serverAddress(serverAddress)
     , m_modbusClient(modbusClient) {
-
+    loadTransactionalGroups();
 }
 
 BindingManager::~BindingManager() {   
@@ -51,12 +51,12 @@ void BindingManager::addBinding(std::shared_ptr<RegisterBinding> binding) {
     }
 }
 
-void BindingManager::removeBinding(const QString& registerName) {
-    if (m_bindings.contains(registerName)) {
-        for (auto& binding : m_bindings[registerName]) {
+void BindingManager::removeBinding(const QString& regName) {
+    if (m_bindings.contains(regName)) {
+        for (auto& binding : m_bindings[regName]) {
             disconnect(binding.get(), nullptr, this, nullptr);
         }
-        m_bindings.remove(registerName);
+        m_bindings.remove(regName);
     }
 }
 
@@ -84,9 +84,9 @@ void BindingManager::clearBindings() {
     m_updatingBindings.clear();
 }
 
-QList<std::shared_ptr<RegisterBinding>> BindingManager::get_bindings(const QString& registerName) const {
-    if (m_bindings.contains(registerName)) {
-        return m_bindings[registerName];
+QList<std::shared_ptr<RegisterBinding>> BindingManager::get_bindings(const QString& regName) const {
+    if (m_bindings.contains(regName)) {
+        return m_bindings[regName];
     } else {
         return {};
     }
@@ -162,7 +162,7 @@ void BindingManager::onBindingValueChanged() {
     }
 
     QString regName = sourceBinding->registerName();
-    QVector<quint16> newData = sourceBinding->getRegisterData();
+    QVector<quint16> data = sourceBinding->getRegisterData();
 
     auto regType = m_modbusClient->getRegisterType(m_serverAddress, regName);
     if (regType == QModbusDataUnit::DiscreteInputs || regType == QModbusDataUnit::InputRegisters) {
@@ -171,24 +171,24 @@ void BindingManager::onBindingValueChanged() {
     }
 
     // Обновляем кэш
-    updateRegisterCache(regName, newData);
+    updateRegisterCache(regName, data);
 
     // Обновляем все другие привязки этого регистра (кроме источника)
     if (m_bindings.contains(regName)) {
         for (auto& binding : m_bindings[regName]) {
             if (binding.get() != sourceBinding && binding->direction() != RegisterBinding::WriteOnly) {
                 m_updatingBindings.insert(binding.get());
-                binding->updateFromRegister(newData);
+                binding->updateFromRegister(data);
                 m_updatingBindings.remove(binding.get());
             }
         }
     }
 
     QVariant value;
-    if (newData.size() == 1) {
-        value = QVariant(newData[0]);
+    if (data.size() == 1) {
+        value = QVariant(data[0]);
     } else {
-        value = QVariant::fromValue(newData);
+        value = QVariant::fromValue(data);
     }
     emit bindingValueChanged(regName, value);
 
@@ -196,30 +196,46 @@ void BindingManager::onBindingValueChanged() {
     auto mdum = m_modbusClient->get_mdum();
     if (mdum.count(m_serverAddress) > 0) {
         if (mdum.at(m_serverAddress).count(regName) > 0) {
-            QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
-            unit.setValues(newData);
-            m_modbusClient->on_write(m_serverAddress, unit);
+            if (m_registerToGroup.contains(regName)) {
+                const QString& groupName = m_registerToGroup[regName];
+                QModbusDataUnit unit = buildTransactionalUnit(groupName);
+                if (unit.isValid()) {
+                    m_modbusClient->writeMultipleRegisters(m_serverAddress, unit.startAddress(), unit.values());
+                }
+            } else {
+                QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
+                unit.setValues(data);
+                m_modbusClient->on_write(m_serverAddress, unit);
+            }
         }
     }
 }
 
-void BindingManager::onRegisterValueRequested(const QString& registerName, const QVector<quint16>& data) {
-    emit registerValueRequested(registerName, data);
+void BindingManager::onRegisterValueRequested(const QString& regName, const QVector<quint16>& data) {
+    emit registerValueRequested(regName, data);
 
     // Прямой запрос на запись регистра
     auto mdum = m_modbusClient->get_mdum();
     if (mdum.count(m_serverAddress) > 0) {
-        if (mdum.at(m_serverAddress).count(registerName) > 0) {
-            QModbusDataUnit unit = mdum.at(m_serverAddress).at(registerName);
-            unit.setValues(data);
-            m_modbusClient->on_write(m_serverAddress, unit);
-
+        if (mdum.at(m_serverAddress).count(regName) > 0) {
             // Также обновляем кэш и другие привязки
-            updateRegisterCache(registerName, data);
+            updateRegisterCache(regName, data);
 
-            if (m_bindings.contains(registerName)) {
+            if (m_registerToGroup.contains(regName)) {
+                const QString& groupName = m_registerToGroup[regName];
+                QModbusDataUnit unit = buildTransactionalUnit(groupName);
+                if (unit.isValid()) {
+                    m_modbusClient->writeMultipleRegisters(m_serverAddress, unit.startAddress(), unit.values());
+                }
+            } else {
+                QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
+                unit.setValues(data);
+                m_modbusClient->on_write(m_serverAddress, unit);
+            }
+
+            if (m_bindings.contains(regName)) {
                 auto* sourceBinding = qobject_cast<RegisterBinding*>(sender());
-                for (auto& binding : m_bindings[registerName]) {
+                for (auto& binding : m_bindings[regName]) {
                     if (binding.get() != sourceBinding && binding->direction() != RegisterBinding::WriteOnly) {
                         m_updatingBindings.insert(binding.get());
                         binding->updateFromRegister(data);
@@ -231,10 +247,10 @@ void BindingManager::onRegisterValueRequested(const QString& registerName, const
     }
 }
 
-void BindingManager::onReadRequested(const QString& registerName) {
-    emit readRequested(registerName);
+void BindingManager::onReadRequested(const QString& regName) {
+    emit readRequested(regName);
 
-    requestRegisterRead(registerName);
+    requestRegisterRead(regName);
 }
 
 QList<QModbusDataUnit> BindingManager::getPollingUnits() const {
@@ -250,20 +266,20 @@ QList<QModbusDataUnit> BindingManager::getPollingUnits() const {
     return units;
 }
 
-void BindingManager::updateRegisterCache(const QString& registerName, const QVector<quint16>& data) {
-    m_registerCache[registerName] = data;
+void BindingManager::updateRegisterCache(const QString& regName, const QVector<quint16>& data) {
+    m_registerCache[regName] = data;
 }
 
-QVector<quint16> BindingManager::getRegisterCache(const QString& registerName) const {
-    return m_registerCache.value(registerName);
+QVector<quint16> BindingManager::getRegisterCache(const QString& regName) const {
+    return m_registerCache.value(regName);
 }
 
-bool BindingManager::hasRegisterCache(const QString& registerName) const {
-    return m_registerCache.contains(registerName);
+bool BindingManager::hasRegisterCache(const QString& regName) const {
+    return m_registerCache.contains(regName);
 }
 
-void BindingManager::requestRegisterRead(const QString& registerName) {
-    QModbusDataUnit pollingUnit = findPollingUnitForRegister(registerName);
+void BindingManager::requestRegisterRead(const QString& regName) {
+    QModbusDataUnit pollingUnit = findPollingUnitForRegister(regName);
     if (pollingUnit.isValid()) {
         m_modbusClient->sendSingleRequest(m_serverAddress, pollingUnit);
     }
@@ -281,14 +297,38 @@ void BindingManager::registerWidgetsFromContainer(QWidget* container) {
     scanWidgetForBindings(container);
 }
 
-QModbusDataUnit BindingManager::findPollingUnitForRegister(const QString& registerName) const {
+void BindingManager::loadTransactionalGroups() {
+    if (!m_modbusClient) return;
+
+    auto groups = m_modbusClient->getTransactionalGroups(); // std::map<int, std::map<QString, QStringList>>
+    if (groups.count(m_serverAddress) > 0) {
+        const auto& serverGroups = groups.at(m_serverAddress);
+        for (auto it = serverGroups.begin(); it != serverGroups.end(); ++it) {
+            const QStringList& regNames = it->second;   // список регистров группы
+            setTransactionalGroup(regNames);
+        }
+    }
+}
+
+void BindingManager::setTransactionalGroup(const QStringList& regNames) {
+    if (regNames.size() < 2) return;
+
+    // Создаём уникальное имя группы, например, объединяя имена регистров
+    QString groupName = regNames.join('|');
+    m_transactionalGroups[groupName] = regNames;
+    for (const auto& reg : regNames) {
+        m_registerToGroup[reg] = groupName;
+    }
+}
+
+QModbusDataUnit BindingManager::findPollingUnitForRegister(const QString& regName) const {
     // Получаем список всех блоков для опроса
     //auto pollingUnits = getPollingUnits();
 
     auto mdum = m_modbusClient->get_mdum();
     if (mdum.count(m_serverAddress) > 0) {
-        if (mdum.at(m_serverAddress).count(registerName) > 0) {
-            QModbusDataUnit unit = mdum.at(m_serverAddress).at(registerName);
+        if (mdum.at(m_serverAddress).count(regName) > 0) {
+            QModbusDataUnit unit = mdum.at(m_serverAddress).at(regName);
             return unit;
         }
     }
@@ -296,13 +336,47 @@ QModbusDataUnit BindingManager::findPollingUnitForRegister(const QString& regist
     return QModbusDataUnit();
 }
 
+QModbusDataUnit BindingManager::buildTransactionalUnit(const QString& groupName) const {
+    auto mdum = m_modbusClient->get_mdum();
+    const QStringList& regs = m_transactionalGroups[groupName];
+
+    // Определяем минимальный адрес и полный размер
+    int startAddress = std::numeric_limits<int>::max();
+    unsigned int endAddress = 0;
+    for (const auto& regName : regs) {
+        if (mdum.count(m_serverAddress) && mdum.at(m_serverAddress).count(regName)) {
+            const auto& unit = mdum.at(m_serverAddress).at(regName);
+            startAddress = std::min(startAddress, unit.startAddress());
+            endAddress = std::max(endAddress, unit.startAddress() + unit.valueCount());
+        }
+    }
+
+    int totalSize = endAddress - startAddress;
+    QVector<quint16> values(totalSize, 0);
+
+    // Заполняем данными из кэша
+    for (const auto& regName : regs) {
+        if (m_registerCache.contains(regName)) {
+            const auto& data = m_registerCache[regName];
+            if (mdum.at(m_serverAddress).count(regName)) {
+                int offset = mdum.at(m_serverAddress).at(regName).startAddress() - startAddress;
+                for (int i = 0; i < data.size(); ++i) {
+                    values[offset + i] = data[i];
+                }
+            }
+        }
+    }
+
+    return QModbusDataUnit(QModbusDataUnit::HoldingRegisters, startAddress, values);
+}
+
 void BindingManager::scanWidgetForBindings(QWidget* widget) {
     if (!widget) return;
 
     // Проверяем сам виджет на наличие свойств для привязки
-    QString registerName = widget->property("modbusRegister").toString();
-    if (!registerName.isEmpty()) {
-        createBindingForWidget(widget, registerName);
+    QString regName = widget->property("modbusRegister").toString();
+    if (!regName.isEmpty()) {
+        createBindingForWidget(widget, regName);
     }
 
     // Сканируем все дочерние виджеты
@@ -311,16 +385,16 @@ void BindingManager::scanWidgetForBindings(QWidget* widget) {
 
     for (QWidget* childWidget : childWidgets) {
         if (childWidget != widget) { // Избегаем повторной проверки самого себя
-            QString childRegisterName = childWidget->property("modbusRegister").toString();
-            if (!childRegisterName.isEmpty()) {
-                createBindingForWidget(childWidget, childRegisterName);
+            QString childregName = childWidget->property("modbusRegister").toString();
+            if (!childregName.isEmpty()) {
+                createBindingForWidget(childWidget, childregName);
             }
         }
     }
 }
 
-void BindingManager::createBindingForWidget(QWidget* widget, const QString& registerName) {
-    if (!widget || registerName.isEmpty()) return;
+void BindingManager::createBindingForWidget(QWidget* widget, const QString& regName) {
+    if (!widget || regName.isEmpty()) return;
 
     // Получаем дополнительные свойства
     QString dataType = widget->property("modbusDataType").toString();
@@ -333,14 +407,14 @@ void BindingManager::createBindingForWidget(QWidget* widget, const QString& regi
 
     // Создаем соответствующую привязку
     std::shared_ptr<RegisterBinding> binding = createAppropriateBinding(
-        widget, registerName, dataType);
+        widget, regName, dataType);
 
     if (binding) {
         binding->setDirection(direction);
         addBinding(binding);
 
         // qCDebug(logDebug()) << "Created binding for widget:" << widget->objectName()
-        //                     << "register:" << registerName
+        //                     << "register:" << regName
         //                     << "type:" << dataType
         //                     << "direction:" << RegisterBinding::directionToString(direction);
     }
@@ -348,53 +422,53 @@ void BindingManager::createBindingForWidget(QWidget* widget, const QString& regi
 
 std::shared_ptr<RegisterBinding> BindingManager::createAppropriateBinding(
     QWidget* widget,
-    const QString& registerName,
+    const QString& regName,
     const QString& dataType) {
 
-    //qCDebug(logDebug()) << "createAppropriateBinding" << registerName;
+    //qCDebug(logDebug()) << "createAppropriateBinding" << regName;
 
     // Проверяем тип виджета и создаем соответствующую привязку
     if (qobject_cast<QCheckBox*>(widget)) {
         // Для QCheckBox - битовая привязка
-        //qCDebug(logDebug()) << "QCheckBox" << registerName;
+        //qCDebug(logDebug()) << "QCheckBox" << regName;
         int bitPosition = widget->property("modbusBitPosition").toInt();
         return std::make_shared<CheckBoxBinding>(
             qobject_cast<QCheckBox*>(widget),
-            registerName,
+            regName,
             bitPosition,
             RegisterBinding::ReadWrite,  // По умолчанию
             BigEndian);                  // По умолчанию
     } else if (qobject_cast<QSpinBox*>(widget)) {
-        //qCDebug(logDebug()) << "QSpinBox" << registerName;
+        //qCDebug(logDebug()) << "QSpinBox" << regName;
         return std::make_shared<SpinBoxBinding>(
             qobject_cast<QSpinBox*>(widget),
-            registerName,
+            regName,
             ModbusRegisterDataType_from_text(dataType.toStdString().c_str()),
             RegisterBinding::ReadWrite,  // По умолчанию
             BigEndian);                  // По умолчанию
     } else if (qobject_cast<QDoubleSpinBox*>(widget)) {
-        //qCDebug(logDebug()) << "QDoubleSpinBox" << registerName;
+        //qCDebug(logDebug()) << "QDoubleSpinBox" << regName;
         return std::make_shared<DoubleSpinBoxBinding>(
             qobject_cast<QDoubleSpinBox*>(widget),
-            registerName,
+            regName,
             ModbusRegisterDataType_from_text(dataType.toStdString().c_str()),
             RegisterBinding::ReadWrite,  // По умолчанию
             BigEndian);                  // По умолчанию
     } else if (qobject_cast<QLineEdit*>(widget)) {
-        //qCDebug(logDebug()) << "QLineEdit" << registerName;
+        //qCDebug(logDebug()) << "QLineEdit" << regName;
         return std::make_shared<LineEditBinding>(
             qobject_cast<QLineEdit*>(widget),
-            registerName);
+            regName);
     } else if (qobject_cast<QLabel*>(widget)) {
-        //qCDebug(logDebug()) << "QLabel" << registerName;
+        //qCDebug(logDebug()) << "QLabel" << regName;
         return std::make_shared<LabelBinding>(
             qobject_cast<QLabel*>(widget),
-            registerName);
+            regName);
     }
 
     qCWarning(logWarning()) << "Unsupported widget type for binding:"
                             << widget->metaObject()->className()
-                            << "register:" << registerName;
+                            << "register:" << regName;
 
     return nullptr;
 }

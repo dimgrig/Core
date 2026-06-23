@@ -687,7 +687,7 @@ void TestModbusIntegration::testProcessModbusDataUpdatesBindings() {
     QString regName = "testReg";
     auto mdu = QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2);
     QString dataType = "Int32";
-    modbusClient->add_mdu_reg_data_type(serverAddress, regName, mdu, dataType);
+    modbusClient->add_modbus_params(serverAddress, regName, mdu, dataType);
 
     BitAwareBindingManager bindingManager(serverAddress, modbusClient);
     auto binding = std::make_shared<TestRegisterBinding>(regName);

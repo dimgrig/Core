@@ -46,6 +46,9 @@ public:
 
     // Регистрация виджетов из контейнера
     void registerWidgetsFromContainer(QWidget* container);
+
+    void loadTransactionalGroups();
+    void setTransactionalGroup(const QStringList& registerNames);
 signals:
     void bindingValueChanged(const QString& registerName, const QVariant& value);
     void registerValueRequested(const QString& registerName, const QVector<quint16>& data);
@@ -63,11 +66,16 @@ protected:
 private:
     QModbusDataUnit findPollingUnitForRegister(const QString& registerName) const;
 
+    QModbusDataUnit buildTransactionalUnit(const QString& groupName) const;
+
     void scanWidgetForBindings(QWidget* widget);
     void createBindingForWidget(QWidget* widget, const QString& registerName);
     std::shared_ptr<RegisterBinding> createAppropriateBinding(QWidget* widget,
                                                               const QString& registerName,
                                                               const QString& dataType = QString());
+
+    QMap<QString, QStringList> m_transactionalGroups; // groupName -> registerNames
+    QMap<QString, QString> m_registerToGroup;         // registerName -> groupName
 };
 
 #endif // BINDINGMANAGER_H

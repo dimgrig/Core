@@ -241,7 +241,7 @@ bool ModbusBase::on_write_json(const QString& config) {
         return false;
     }
 
-    QString json = ModbusRegisterSerializer::serialize(this->getServerAddress(), this->_mdum, this->_reg_data_type_m);
+    QString json = ModbusRegisterSerializer::serialize(this->getServerAddress(), this->_mdum, this->_reg_data_type_m, this->_transactionalGroups);
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -277,11 +277,13 @@ void ModbusBase::on_read_json(QString config) {
     QString json = mapFile.data()->readAll();
     mapFile.data()->close();
 
-    auto [mdum, reg_data_type_m] = ModbusRegisterSerializer::deserialize(this->getServerAddress(), json);
+    auto [mdum, reg_data_type_m, transactionalGroups] = ModbusRegisterSerializer::deserialize(this->getServerAddress(), json);
     this->_mdum.clear();
     this->_reg_data_type_m.clear();
+    this->_transactionalGroups.clear();
     this->_mdum = mdum;
     this->_reg_data_type_m = reg_data_type_m;
+    this->_transactionalGroups = transactionalGroups;
 
     //filter complex regs
 //    auto _mdum_copy = _mdum;
@@ -333,16 +335,20 @@ std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> ModbusBase::get_
     return res;
 }
 
-void ModbusBase::set_mdu_reg_data_type(int serverAddress, std::map<int, std::map<QString, QModbusDataUnit>> mdum, std::map<int, std::map<QString, QString>> reg_data_type_m) {
+void ModbusBase::set_modbus_params(int serverAddress,
+                                   std::map<int, std::map<QString, QModbusDataUnit>> mdum,
+                                   std::map<int, std::map<QString, QString>> reg_data_type_m,
+                                   std::map<int, std::map<QString, QStringList>> transactionalGroups) {
     this->_mdum[serverAddress] = mdum[serverAddress];
     this->_reg_data_type_m[serverAddress] = reg_data_type_m[serverAddress];
+    this->_transactionalGroups[serverAddress] = transactionalGroups[serverAddress];
 
     this->setupDeviceData();
     this->updateDeviceMap();
     this->updatePollingGroups();
 }
 
-void ModbusBase::add_mdu_reg_data_type(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type) {
+void ModbusBase::add_modbus_params(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type) {
     this->_mdum[serverAddress][reg_name] = mdu;
     this->_reg_data_type_m[serverAddress][reg_name] = reg_data_type;
 

@@ -60,10 +60,10 @@ public:
 
     bool isConnected() const;
 
-    QString get_config() const {return _config;};
-    int getServerAddress() const {return _modbus_settings.MODBUS_ADDRESS;};
+    QString get_config() const {return _config;}
+    int getServerAddress() const {return _modbus_settings.MODBUS_ADDRESS;}
 
-    BytesFormat modbus_format() const {return BytesFormat_from_text(this->_modbus_settings.MODBUS_FORMAT.toStdString().c_str());};
+    BytesFormat modbus_format() const {return BytesFormat_from_text(this->_modbus_settings.MODBUS_FORMAT.toStdString().c_str());}
 
     QModbusDataUnit::RegisterType getRegisterType(int serverAddress, const QString regName) const;
 
@@ -73,12 +73,16 @@ public:
     QModbusDataUnitMap get_reg(int serverAddress) const;
     std::vector<QModbusDataUnitMap> get_reg_v(int serverAddress) const;
 
-    std::map<int, std::map<QString, QModbusDataUnit>> get_mdum() const {return _mdum;};
+    std::map<int, std::map<QString, QModbusDataUnit>> get_mdum() const {return _mdum;}
     std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> get_sort_by_start_address_mdum_v() const;
-    std::map<int, std::map<QString, QString>> get_reg_data_type_m() const {return _reg_data_type_m;};
+    std::map<int, std::map<QString, QString>> get_reg_data_type_m() const {return _reg_data_type_m;}
+    std::map<int, std::map<QString, QStringList>> getTransactionalGroups() const { return _transactionalGroups; }
 
-    void set_mdu_reg_data_type(int serverAddress, std::map<int, std::map<QString, QModbusDataUnit>> mdum, std::map<int, std::map<QString, QString>> reg_data_type_m);
-    void add_mdu_reg_data_type(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type);
+    void set_modbus_params(int serverAddress,
+                           std::map<int, std::map<QString, QModbusDataUnit>> mdum,
+                           std::map<int, std::map<QString, QString>> reg_data_type_m,
+                           std::map<int, std::map<QString, QStringList>> transactionalGroups);
+    void add_modbus_params(int serverAddress, QString reg_name, QModbusDataUnit mdu, QString reg_data_type);
 signals:
     void host_error(QString error);
     void host_connected();
@@ -94,7 +98,7 @@ signals:
 
     void config_changed(QString config);
 public slots:
-    QModbusDevice::State state() const {return this->device()->state();};
+    QModbusDevice::State state() const {return this->device()->state();}
 
     virtual std::shared_ptr<QModbusDevice> device() const = 0;
 
@@ -102,7 +106,7 @@ public slots:
     virtual void on_connect() = 0;
     virtual void disconnectFromHost() = 0;
 
-    void connectToHost() {this->on_connect();};
+    void connectToHost() {this->on_connect();}
 
     bool on_write_json(const QString& config);
 protected slots:
@@ -126,6 +130,7 @@ protected:
     std::map<int, std::vector<QModbusDataUnitMap>> _reg_v; //vector for splitting blanc space between registers
     std::map<int, std::map<QString, QModbusDataUnit>> _mdum;
     std::map<int, std::map<QString, QString>> _reg_data_type_m; //map reg_name to type
+    std::map<int, std::map<QString, QStringList>> _transactionalGroups;
 
     ModbusSettings _modbus_settings;
     ConnectionType _connection_type = ConnectionTypeTCP;
