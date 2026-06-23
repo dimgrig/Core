@@ -164,6 +164,12 @@ void CustomPlotBase::mousePressEvent(QMouseEvent *event) {
     QCustomPlot::mousePressEvent(event);
 }
 
+void CustomPlotBase::set_legend_state(bool state) {
+    this->_legend_state = state;
+    this->legend->setVisible(state);
+    this->replot();
+}
+
 void CustomPlotBase::rescale(int index) {
     if (this->_autorescale) {
         //this->rescaleAxes();

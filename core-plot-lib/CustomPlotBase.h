@@ -29,6 +29,9 @@ public:
     bool get_autorescale() const {return this->_autorescale;}
     void set_autorescale(bool autorescale) {this->_autorescale = autorescale;}
 
+    bool get_legend_state() const {return this->_legend_state;};
+    void set_legend_state(bool state);
+
     int get_width() const {return _width;};
 
     void rescale(int index = 0);
@@ -46,6 +49,7 @@ private:
     void mousePressEvent(QMouseEvent *event) override;
 
     bool _autorescale = true;
+    bool _legend_state = true;
 
     int _width = 1;
 };

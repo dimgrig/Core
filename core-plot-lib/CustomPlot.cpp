@@ -599,11 +599,12 @@ void CustomPlot::context_menu_request(QPoint pos) {
 
     if (this->legend->selectTest(pos, false) >= 0) // context menu on legend requested
     {
-        menu->addAction("Переместить в верхний левый угол", [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignLeft));});
-        menu->addAction("Переместить вверху по центру", [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignHCenter));});
+        menu->addAction("Переместить в верхний левый угол",  [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignLeft));});
+        menu->addAction("Переместить вверху по центру",      [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignHCenter));});
         menu->addAction("Переместить в верхний правый угол", [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignRight));});
-        menu->addAction("Переместить в нижний правый угол", [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignRight));});
-        menu->addAction("Переместить в нижний левый угол", [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignLeft));});
+        menu->addAction("Переместить в нижний правый угол",  [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignRight));});
+        menu->addAction("Переместить вниз по центру",        [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignHCenter));});
+        menu->addAction("Переместить в нижний левый угол",   [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignLeft));});
     } else { // general context menu on graphs requested
         if (this->get_autorescale()) {
             menu->addAction("Выключить автомасштаб", [this](){this->set_autorescale(false);});
@@ -627,6 +628,11 @@ void CustomPlot::context_menu_request(QPoint pos) {
             menu->addAction("Скрыть выбранный график", this, &CustomPlot::remove_selected_graph);
         if (this->graphCount() > 0)
             menu->addAction("Скрыть все графики", this, &CustomPlot::remove_all_graphs);
+        if (this->get_legend_state()) {
+            menu->addAction("Скрыть легенду", [this](){this->set_legend_state(false);});
+        } else {
+            menu->addAction("Показать легенду", [this](){this->set_legend_state(true);});
+        }
         menu->addAction("Очистить график", this, &CustomPlot::clear_all_graphs);
 
         {
