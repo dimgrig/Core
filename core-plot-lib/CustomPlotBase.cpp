@@ -452,12 +452,6 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         menu->addAction(tr("Нижний правый угол"),  [this](){ move_legend((int)(Qt::AlignBottom|Qt::AlignRight)); });
         menu->addAction(tr("Вниз по центру"),      [this](){ move_legend((int)(Qt::AlignBottom|Qt::AlignHCenter));});
         menu->addAction(tr("Нижний левый угол"),   [this](){ move_legend((int)(Qt::AlignBottom|Qt::AlignLeft)); });
-        // Дополнительно: показать/скрыть легенду
-        if (get_legend_state()) {
-            menu->addAction(tr("Скрыть легенду"), [this](){ set_legend_state(false); });
-        } else {
-            menu->addAction(tr("Показать легенду"), [this](){ set_legend_state(true); });
-        }
     } else {
         // Автомасштаб
         if (get_autorescale()) {
@@ -466,8 +460,22 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
             menu->addAction(tr("Включить автомасштаб"), [this](){ set_autorescale(true); });
         }
 
+        // Показать/скрыть легенду
+        if (get_legend_state()) {
+            menu->addAction(tr("Скрыть легенду"), [this](){ set_legend_state(false); });
+        } else {
+            menu->addAction(tr("Показать легенду"), [this](){ set_legend_state(true); });
+        }
+
         // Специфические для наследников пункты
         addGraphSpecificActions(menu);
+
+        if (selectedGraphs().size() == 1) {
+            QCPGraph *selected = selectedGraphs().first();
+            menu->addAction(tr("Настроить стиль графика..."), this, [this, selected]() {
+                showStyleDialog(selected);
+            });
+        }
 
         // Общие подменю
         // Курсор
@@ -509,4 +517,96 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         exportMenu->addAction(tr("Экспортировать график в png"), this, &CustomPlotBase::export_png);
     }
     menu->popup(mapToGlobal(pos));
+}
+
+QColor CustomPlotBase::defaultGraphColor(int index) {
+    return (index < PEN_COLOR_EXT_v.size()) ? QColor(PEN_COLOR_EXT_v[index])
+                                        : QColor::fromHsv(index * 50 % 360, 255, 200);
+}
+
+void CustomPlotBase::applyGraphStyle(QCPGraph* graph, const GraphStyle& style) {
+    if (!graph) return;
+    QPen pen(style.color, style.width, style.penStyle);
+    graph->setPen(pen);
+    graph->selectionDecorator()->setPen(QPen(style.color.darker(), style.width));
+    replot(QCustomPlot::rpQueuedReplot);
+}
+
+void CustomPlotBase::applySavedStyle(QCPGraph* graph, const QString& styleKey) {
+    if (!graph) return;
+    int idx = graph->property("colorIndex").toInt();
+    GraphStyle style = loadStyle(styleKey, idx);
+    applyGraphStyle(graph, style);
+}
+
+void CustomPlotBase::saveStyle(const QString& styleKey, const GraphStyle& style) {
+    QSettings settings;
+    settings.beginGroup("GraphStyles");
+    settings.setValue(styleKey + "_color", style.color);
+    settings.setValue(styleKey + "_width", style.width);
+    settings.setValue(styleKey + "_lineStyle", (int)style.lineStyle);
+    settings.setValue(styleKey + "_penStyle", (int)style.penStyle);
+    settings.endGroup();
+}
+
+GraphStyle CustomPlotBase::loadStyle(const QString& styleKey, int colorIndex) const {
+    QSettings settings;
+    settings.beginGroup("GraphStyles");
+    GraphStyle style;
+    style.color = settings.value(styleKey + "_color", defaultGraphColor(colorIndex)).value<QColor>();
+    style.width = settings.value(styleKey + "_width", defaultGraphWidth()).toInt();
+    style.lineStyle = static_cast<QCPGraph::LineStyle>(
+        settings.value(styleKey + "_lineStyle", (int)defaultGraphLineStyle()).toInt()
+        );
+    style.penStyle = static_cast<Qt::PenStyle>(
+        settings.value(styleKey + "_penStyle", (int)defaultGraphPenStyle()).toInt()
+        );
+    settings.endGroup();
+    return style;
+}
+
+void CustomPlotBase::showStyleDialog(QCPGraph* graph) {
+    if (!graph) return;
+    QString key = graph->property("styleKey").toString();
+    if (key.isEmpty()) return;
+
+    int colorIdx = graph->property("colorIndex").toInt();
+    GraphStyle style = loadStyle(key, colorIdx);
+
+    // 1. Цвет
+    QColor newColor = QColorDialog::getColor(style.color, this, tr("Цвет графика"));
+    if (!newColor.isValid()) return;
+
+    // 2. Толщина
+    bool ok;
+    int newWidth = QInputDialog::getInt(this, tr("Толщина линии"),
+                                        tr("Толщина (1–10):"), style.width, 1, 10, 1, &ok);
+    if (!ok) return;
+
+    // 3. Стиль линии
+    QStringList styleNames = {
+        tr("Сплошная"),
+        tr("Пунктир"),
+        tr("Тире"),
+        tr("Штрих-пунктир"),
+        tr("Штрих-точка-точка")
+    };
+    QVector<Qt::PenStyle> penStyles = {
+        Qt::PenStyle::SolidLine,
+        Qt::PenStyle::DashLine,
+        Qt::PenStyle::DotLine,
+        Qt::PenStyle::DashDotLine,
+        Qt::PenStyle::DashDotDotLine
+    };
+    int currentIdx = penStyles.indexOf(style.penStyle);
+    if (currentIdx < 0) currentIdx = 0;
+    QString selected = QInputDialog::getItem(this, tr("Стиль линии"),
+                                             tr("Стиль:"), styleNames, currentIdx, false, &ok);
+    if (!ok) return;
+    int idx = styleNames.indexOf(selected);
+    if (idx < 0) idx = 0;
+
+    GraphStyle newStyle { newColor, newWidth, this->defaultGraphLineStyle(), penStyles[idx] };
+    applyGraphStyle(graph, newStyle);
+    saveStyle(key, newStyle);
 }

@@ -151,27 +151,32 @@ QCPAxis* CustomPlotDynamic::createRightAxis(const QString& unit) {
 }
 
 // ---------- Графики ----------
-QCPGraph* CustomPlotDynamic::createGraph(const QString& unit, const QString& name) {
+QCPGraph* CustomPlotDynamic::createGraph(const QString& unit, const QString& name,
+                                         const QString& styleKey, int colorIndex) {
     QCPAxis *valueAxis = getOrCreateAxis(unit);
     QCPGraph *graph = addGraph(xAxis, valueAxis);
-    graph->setName(name.isEmpty() ? QString("Graph %1").arg(_graphs.size() + 1) : name);
+    QString finalName = name.isEmpty() ? QString("Graph %1").arg(_graphs.size() + 1) : name;
+    graph->setName(finalName);
 
-    // цвет по кругу
-    int idx = _graphs.size();
-    QColor color = (idx < PEN_COLOR_v.size()) ? QColor(PEN_COLOR_v[idx])
-                                              : QColor::fromHsv(idx * 50 % 360, 255, 200);
-    graph->setPen(QPen(color, get_width()));
-    graph->selectionDecorator()->setPen(QPen(color.darker(), 1));
-    graph->setLineStyle(QCPGraph::lsLine);
+    if (colorIndex < 0) colorIndex = _graphs.size();
+
+    // Базовый цвет (будет переопределён стилем, если ключ задан)
+    QColor color = this->defaultGraphColor(colorIndex);
+    graph->setPen(QPen(color, this->defaultGraphWidth()));
+    graph->selectionDecorator()->setPen(QPen(color.darker(), this->defaultGraphWidth()));
+    graph->setLineStyle(this->defaultGraphLineStyle());
+
+    if (!styleKey.isEmpty()) {
+        graph->setProperty("styleKey", styleKey);
+        graph->setProperty("colorIndex", colorIndex);
+        applySavedStyle(graph, styleKey);   // загружает из QSettings и применяет поверх
+    }
 
     _graphs.append(graph);
     _graphUnit[graph] = unit;
-
-    // если это первый график на правой оси, делаем ось видимой
     if (valueAxis != yAxis)
         valueAxis->setVisible(true);
 
-    // обновляем легенду
     syncLegendVisibility();
     replot(QCustomPlot::rpQueuedReplot);
     return graph;

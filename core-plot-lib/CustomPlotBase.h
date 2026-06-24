@@ -16,6 +16,34 @@ static std::vector<QString> PEN_COLOR_v {G_COLOR, R_COLOR, B_COLOR};
 static std::vector<QString> SELECTION_PEN_COLOR_v {DG_COLOR, DR_COLOR, DB_COLOR};
 static std::vector<QString> AXIS_TAG_PEN_COLOR_v {LG_COLOR, _LR_COLOR, LB_COLOR};
 
+static std::vector<QString> PEN_COLOR_EXT_v {
+    G_COLOR,
+    R_COLOR,
+    B_COLOR,
+    COLOR_Yellow,
+    COLOR_Orange,
+    COLOR_Fuchsia,
+    COLOR_Aqua,
+    COLOR_Gray,
+    COLOR_SandyBrown,
+    COLOR_PaleGreen,
+    COLOR_DeepPink,
+    COLOR_Navy,
+};
+
+struct GraphStyle {
+    QColor color;
+    int width = 1;
+    QCPGraph::LineStyle lineStyle = QCPGraph::LineStyle::lsLine;
+    Qt::PenStyle penStyle = Qt::PenStyle::SolidLine;
+    bool operator==(const GraphStyle &other) const {
+        return ((this->color == other.color) &&
+                (this->width == other.width) &&
+                (this->lineStyle == other.lineStyle) &&
+                (this->penStyle == other.penStyle));
+    }
+};
+
 class CORE_PLOT_LIB_EXPORT CustomPlotBase : public QCustomPlot {
 Q_OBJECT
 public:
@@ -63,6 +91,27 @@ protected slots:
     virtual void selection_changed();
 
     void contextMenuRequested(QPoint pos);
+
+    // Статические умолчания
+    static QColor defaultGraphColor(int index);
+    static int defaultGraphWidth() { return 1; }
+    static Qt::PenStyle defaultGraphPenStyle() { return Qt::PenStyle::SolidLine; }
+    static QCPGraph::LineStyle defaultGraphLineStyle() { return QCPGraph::LineStyle::lsLine; }
+
+    // Применить стиль (без сохранения)
+    void applyGraphStyle(QCPGraph* graph, const GraphStyle& style);
+
+    // Применить сохранённый (или умолчание) для заданного ключа
+    void applySavedStyle(QCPGraph* graph, const QString& styleKey);
+
+    // Сохранить стиль
+    void saveStyle(const QString& styleKey, const GraphStyle& style);
+    // Загрузить стиль (или умолчание)
+    GraphStyle loadStyle(const QString& styleKey, int colorIndex) const;
+signals:
+
+public slots:
+    void showStyleDialog(QCPGraph* graph);
 private slots:
 
 protected:

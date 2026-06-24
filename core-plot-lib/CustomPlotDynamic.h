@@ -26,7 +26,10 @@ public:
     QString leftAxisUnit() const;                    // текущая единица левой оси
 
     // Графики
-    QCPGraph* createGraph(const QString& unit, const QString& name = QString());
+    QCPGraph* createGraph(const QString& unit,
+                          const QString& name = QString(),
+                          const QString& styleKey = QString(),
+                          int colorIndex = -1);
     void removeGraph(QCPGraph* graph);
     void removeAllGraphs();                          // удаляет все графики и скрывает неиспользуемые правые оси
 

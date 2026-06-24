@@ -57,7 +57,9 @@ private:
     virtual void addGraphSpecificActions(QMenu *menu) override;
 
     void form_charts();
-    void add_graph(size_t index);
+    void add_graph(size_t index,
+                   const QString& styleKey = QString(),
+                   int colorIndex = -1);
 
     // std::vector<QString> graph_names;
     // std::vector<std::pair<QString, bool>> graph_en;

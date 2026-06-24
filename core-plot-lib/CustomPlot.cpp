@@ -145,18 +145,20 @@ void CustomPlot::form_charts() {
     this->yAxis->setLabel("ADC");
 }
 
-void CustomPlot::add_graph(size_t index)
+void CustomPlot::add_graph(size_t index, const QString& styleKey, int colorIndex)
 {
+    QCPGraph *graph;
     if (_orientation == OrientationVertical) {
-        graph_v.push_back(this->addGraph(this->yAxis, this->xAxis));
+        graph = this->addGraph(this->yAxis, this->xAxis);
     }
     if (_orientation == OrientationHorizontal) {
         if ((index % 2) == 0) {
-            graph_v.push_back(this->addGraph(this->xAxis, this->yAxis));
+            graph = this->addGraph(this->xAxis, this->yAxis);
         } else {
-            graph_v.push_back(this->addGraph(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 1)));
+            graph = this->addGraph(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 1));
         }
     }
+    graph_v.push_back(graph);
 
     // Устанавливаем имя по умолчанию (локализованное)
     QString defaultName;
@@ -166,22 +168,36 @@ void CustomPlot::add_graph(size_t index)
         defaultName = tr("Гистограмма %1").arg(index + 1);
     graph_v.back()->setName(defaultName);
 
-    QString PEN_COLOR = G_COLOR;
-    QString SELECTION_PEN_COLOR = DG_COLOR;
-    if (index < PEN_COLOR_v.size()) {
-        PEN_COLOR = PEN_COLOR_v.at(index);
-        SELECTION_PEN_COLOR = SELECTION_PEN_COLOR_v.at(index);
+    if (colorIndex < 0) colorIndex = index;
+
+    // Базовый цвет (будет переопределён стилем, если ключ задан)
+    QColor color = this->defaultGraphColor(colorIndex);
+    graph->setPen(QPen(color, this->defaultGraphWidth()));
+    graph->selectionDecorator()->setPen(QPen(color.darker(), this->defaultGraphWidth()));
+    graph->setLineStyle(this->defaultGraphLineStyle());
+
+    if (!styleKey.isEmpty()) {
+        graph->setProperty("styleKey", styleKey);
+        graph->setProperty("colorIndex", colorIndex);
+        applySavedStyle(graph, styleKey);   // загружает из QSettings и применяет поверх
     }
-    // if (index < graph_v.size()) {
-    //     graph_v.at(index)->setName(graph_names.at(index));
-    //     graph_v.at(index)->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
-    //     graph_v.at(index)->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
-    //     graph_v.at(index)->setLineStyle(QCPGraph::lsLine);
-    //     graph_en.push_back(std::make_pair(graph_names.at(index), true));
+
+    // QString PEN_COLOR = G_COLOR;
+    // QString SELECTION_PEN_COLOR = DG_COLOR;
+    // if (index < PEN_COLOR_v.size()) {
+    //     PEN_COLOR = PEN_COLOR_v.at(index);
+    //     SELECTION_PEN_COLOR = SELECTION_PEN_COLOR_v.at(index);
     // }
-    graph_v.back()->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
-    graph_v.back()->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
-    graph_v.back()->setLineStyle(QCPGraph::lsLine);
+    // // if (index < graph_v.size()) {
+    // //     graph_v.at(index)->setName(graph_names.at(index));
+    // //     graph_v.at(index)->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
+    // //     graph_v.at(index)->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
+    // //     graph_v.at(index)->setLineStyle(QCPGraph::lsLine);
+    // //     graph_en.push_back(std::make_pair(graph_names.at(index), true));
+    // // }
+    // graph_v.back()->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
+    // graph_v.back()->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
+    // graph_v.back()->setLineStyle(QCPGraph::lsLine);
 }
 
 void CustomPlot::remove_selected_graph()
