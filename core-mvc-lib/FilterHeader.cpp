@@ -5,6 +5,7 @@
 #include <QDateTimeEdit>
 #include <QPainter>
 #include <QPushButton>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "CalendarWidget.h"
@@ -44,8 +45,10 @@ void FilterHeader::setFilter(int section, const QString& text) {
     } else {
         filters[section] = text;
     }
-    emit filterChanged(section, text);
-    viewport()->update();
+    QTimer::singleShot(100, [=](){
+        emit filterChanged(section, text);
+        viewport()->update();
+    });
 }
 
 QString FilterHeader::getFilter(int section) {
@@ -249,14 +252,18 @@ void FilterHeader::onFilterTextChanged(int section, const QString& text) {
 
 void FilterHeader::clearFilter(int section) {
     filters.remove(section);
-    emit filterChanged(section, "");
-    viewport()->update();
+    QTimer::singleShot(100, [=](){
+        emit filterChanged(section, "");
+        viewport()->update();
+    });
 }
 
 void FilterHeader::clearAllFilters() {
     filters.clear();
-    emit filterChanged(-1, "");
-    viewport()->update();
+    QTimer::singleShot(100, [=](){
+        emit filterChanged(-1, "");
+        viewport()->update();
+    });
 }
 
 QString FilterHeader::createDateFilter(const QDate& startDate, const QDate& endDate) {

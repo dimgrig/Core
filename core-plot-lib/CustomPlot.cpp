@@ -59,105 +59,30 @@ CustomPlot::CustomPlot(QWidget *parent, CustomPlotOrientation orientation, size_
     this->setPlottingHint(QCP::PlottingHint::phFastPolylines, true);
     this->setPlottingHint(QCP::PlottingHint::phCacheLabels, true);
 
-    _cursorManager = std::make_unique<CursorManager>(this);
-
-    _statsManager = std::make_unique<StatsManager>(this);
-    _statsManager->setVisible(false);
-
-    connect(this, &CustomPlot::customContextMenuRequested, this, &CustomPlot::context_menu_request);
-
-    connect(this->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](){ _cursorManager->handleAxisRangeChanged(); });
-    connect(this->yAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](){ _cursorManager->handleAxisRangeChanged(); });
-    if (axisRect()->axis(QCPAxis::atRight, 1)) {
-        connect(axisRect()->axis(QCPAxis::atRight, 1), QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](){ _cursorManager->handleAxisRangeChanged(); });
-    }
-
-    auto updateStatsLambda = [this]() {
-        updateStatsIfVisible();
-    };
-
-    connect(xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
-    connect(yAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
-    connect(xAxis2, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
-    connect(yAxis2, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
-
-    // Правая ось, если используется (как в вашем коде)
-    if (auto rightAxis = axisRect()->axis(QCPAxis::atRight, 1)) {
-        connect(rightAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
-    }
+    connect(this, &CustomPlotBase::customContextMenuRequested, this, &CustomPlot::contextMenuRequested);
 }
 
 CustomPlot::~CustomPlot() {
-    _statsManager.reset();
-    _cursorManager.reset();
+
 }
 
-void CustomPlot::export_data(QTextStream &stream) {
-    QLocale locale;
-    QStringList headers;
-    headers << this->xAxis->label() << this->yAxis->label();
-    QString headers_row = headers.join(ELEMENTS_DELIMETER);
-    headers_row += "\r\n";
-    stream << headers_row;
-    for (int index = 0; index < this->graphCount(); ++index) {
-        for (const auto &d : *this->graph(index)->data()) {
-            QStringList sl;
-#if EXPORT_KEY_TIME
-            sl << QDateTime::fromTime_t(d.key).toString(DT_FORMAT_WITHOUT_MS);
-#else
-            sl << locale.toString(d.key);
-#endif
-            sl << locale.toString(d.value);
-
-            QString row = sl.join(ELEMENTS_DELIMETER);
-            row += "\r\n";
-            stream << row;
+void CustomPlot::addGraphSpecificActions(QMenu *menu) {
+    for (size_t i = 0; i < graph_v.size(); ++i) {
+        if (!graph_visible[i]) {
+            menu->addAction(tr("Показать график \"%1\"").arg(graph_v[i]->name()),
+                            [this, i]() { show_graph(i); });
         }
     }
-}
-
-void CustomPlot::sync_selection() {
-    for (int index = 0; index < this->graphCount(); ++index) {
-        QCPGraph *graph = this->graph(index);
-        QCPPlottableLegendItem *item = this->legend->itemWithPlottable(graph);
-        if (item->selected() || graph->selected()) {
-            item->setSelected(true);
-            graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
-        }
+    if (selectedGraphs().size() > 0)
+        menu->addAction("Скрыть выбранный график", this, &CustomPlot::remove_selected_graph);
+    if (graphCount() > 0)
+        menu->addAction("Скрыть все графики", this, &CustomPlot::remove_all_graphs);
+    if (get_legend_state()) {
+        menu->addAction("Скрыть легенду", [this](){ set_legend_state(false); });
+    } else {
+        menu->addAction("Показать легенду", [this](){ set_legend_state(true); });
     }
-}
-
-void CustomPlot::setCursorMode(CursorManager::Mode mode) {
-    _cursorManager->setMode(mode);
-}
-
-CursorManager::Mode CustomPlot::cursorMode() const {
-    return _cursorManager->mode();
-}
-
-void CustomPlot::setStatsVisible(bool visible) {
-    _statsManager->setVisible(visible);
-}
-
-bool CustomPlot::statsVisible() const {
-    return _statsManager->isVisible();
-}
-
-void CustomPlot::setStatsOnlyVisibleRange(bool onlyVisible) {
-    _statsManager->setShowOnlyVisibleRange(onlyVisible);
-}
-
-bool CustomPlot::statsOnlyVisibleRange() const {
-    return _statsManager->showOnlyVisibleRange();
-}
-
-void CustomPlot::updateStats() {
-    _statsManager->updateStats();
-}
-
-void CustomPlot::mouseMoveEvent(QMouseEvent *event) {
-    CustomPlotBase::mouseMoveEvent(event); // вызываем базовый для стандартной обработки
-    _cursorManager->handleMouseMove(event->pos());
+    menu->addAction("Очистить график", this, &CustomPlot::clear_all_graphs);
 }
 
 void CustomPlot::form_charts() {
@@ -201,6 +126,9 @@ void CustomPlot::form_charts() {
     this->axisRect()->addAxis(QCPAxis::atRight);
     this->axisRect()->axis(QCPAxis::atRight, 1)->setVisible(false);
     this->axisRect()->axis(QCPAxis::atRight, 1)->setLabel("ADC");
+    QCPAxis *rightAxis = axisRect()->axis(QCPAxis::atRight, 1);
+    if (rightAxis)
+        _rightAxes.append(rightAxis);
 
 //    //right axe for temp with tag
 //    this->yAxis2->setVisible(true);
@@ -256,11 +184,6 @@ void CustomPlot::add_graph(size_t index)
     graph_v.back()->setLineStyle(QCPGraph::lsLine);
 }
 
-void CustomPlot::updateStatsIfVisible () {
-    if (_statsManager && _statsManager->isVisible())
-        _statsManager->updateStats();
-}
-
 void CustomPlot::remove_selected_graph()
 {
     if (selectedGraphs().isEmpty())
@@ -294,6 +217,7 @@ void CustomPlot::remove_graph(size_t index) {
     if (auto item = legend->itemWithPlottable(graph_v[index]))
         item->setVisible(false);
 
+    this->syncLegendVisibility();
     remove_axis_tag(index);
     replot(QCustomPlot::rpQueuedReplot);
 
@@ -311,17 +235,8 @@ void CustomPlot::remove_axis_tag(size_t index) {
 }
 
 void CustomPlot::show_all_graphs() {
-    // for (size_t index = 0; index < this->graphCount(); index++) {
-    //     this->graph(index)->setVisible(true);
-    //     graph_en[index].second = true;
-    //     this->legend->item(index)->setVisible(true);
-    // }
-
-    for (size_t i = 0; i < graph_v.size(); ++i) {
-        graph_v[i]->setVisible(true);
-        graph_visible[i] = true;
-        if (auto item = legend->itemWithPlottable(graph_v[i]))
-            item->setVisible(true);
+    for (int index = 0; index < this->graphCount(); index++) {
+        show_graph(index);
     }
 }
 
@@ -337,6 +252,7 @@ void CustomPlot::show_graph(size_t index) {
     if (_orientation == OrientationHorizontal && (index % 2) == 1)
         axisRect()->axis(QCPAxis::atRight, 1)->setVisible(true);
 
+    this->syncLegendVisibility();
     show_axis_tag(index);
     rescale(index);
 
@@ -583,115 +499,4 @@ void CustomPlot::set_range(double x_upper, double x_lower, double y_upper, doubl
     }
     this->replot(QCustomPlot::rpQueuedReplot);
     //qCDebug(logDebug) << x_range << y_range;
-}
-
-void CustomPlot::context_menu_request(QPoint pos) {
-    QMenu *menu = new QMenu(this);
-    //menu->setStyleSheet("QMenu { background-color: white; }");
-    menu->setAttribute(Qt::WA_DeleteOnClose);
-
-    // qCDebug(logDebug) << "=== MENU DEBUG ===";
-    // qCDebug(logDebug) << "menu styleSheet:" << menu->styleSheet();
-    // qCDebug(logDebug) << "menu palette:" << menu->palette().color(QPalette::Window).name();
-    // qCDebug(logDebug) << "global styleSheet contains QMenu?:" << qApp->styleSheet().contains("QMenu");
-    // qCDebug(logDebug) << "menu parent:" << (menu->parent() ? menu->parent()->metaObject()->className() : "null");
-    // qCDebug(logDebug) << "menu test style:" << menu->style()->metaObject()->className();
-
-    if (this->legend->selectTest(pos, false) >= 0) // context menu on legend requested
-    {
-        menu->addAction("Переместить в верхний левый угол",  [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignLeft));});
-        menu->addAction("Переместить вверху по центру",      [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignHCenter));});
-        menu->addAction("Переместить в верхний правый угол", [this](){this->move_legend((int)(Qt::AlignTop|Qt::AlignRight));});
-        menu->addAction("Переместить в нижний правый угол",  [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignRight));});
-        menu->addAction("Переместить вниз по центру",        [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignHCenter));});
-        menu->addAction("Переместить в нижний левый угол",   [this](){this->move_legend((int)(Qt::AlignBottom|Qt::AlignLeft));});
-    } else { // general context menu on graphs requested
-        if (this->get_autorescale()) {
-            menu->addAction("Выключить автомасштаб", [this](){this->set_autorescale(false);});
-        } else {
-            menu->addAction("Включить автомасштаб", [this](){this->set_autorescale(true);});
-        }
-        // for (auto [name, en] : graph_en) {
-        //     if (!en) {
-        //         menu->addAction("Показать график \"" + name + "\"", [this, name](){
-        //             this->show_graph(name);
-        //         });
-        //     }
-        // }
-        for (size_t i = 0; i < graph_v.size(); ++i) {
-            if (!graph_visible[i]) {
-                menu->addAction(tr("Показать график \"%1\"").arg(graph_v[i]->name()),
-                                [this, i]() { show_graph(i); });
-            }
-        }
-        if (this->selectedGraphs().size() > 0)
-            menu->addAction("Скрыть выбранный график", this, &CustomPlot::remove_selected_graph);
-        if (this->graphCount() > 0)
-            menu->addAction("Скрыть все графики", this, &CustomPlot::remove_all_graphs);
-        if (this->get_legend_state()) {
-            menu->addAction("Скрыть легенду", [this](){this->set_legend_state(false);});
-        } else {
-            menu->addAction("Показать легенду", [this](){this->set_legend_state(true);});
-        }
-        menu->addAction("Очистить график", this, &CustomPlot::clear_all_graphs);
-
-        {
-            // --- Подменю "Курсор" ---
-            QMenu *cursorMenu = menu->addMenu(tr("Курсор"));
-            QAction *actionNo = cursorMenu->addAction(tr("Выключен"));
-            QAction *actionVert = cursorMenu->addAction(tr("Вертикальный"));
-            QAction *actionHor = cursorMenu->addAction(tr("Горизонтальный"));
-            QAction *actionCross = cursorMenu->addAction(tr("Перекрестие"));
-
-            actionNo->setCheckable(true);
-            actionVert->setCheckable(true);
-            actionHor->setCheckable(true);
-            actionCross->setCheckable(true);
-            QActionGroup *group = new QActionGroup(cursorMenu);
-            group->addAction(actionNo);
-            group->addAction(actionVert);
-            group->addAction(actionHor);
-            group->addAction(actionCross);
-
-            // Отметить текущий режим
-            switch (_cursorManager->mode()) {
-            case CursorManager::Mode::NoCursor: actionNo->setChecked(true); break;
-            case CursorManager::Mode::VerticalCursor: actionVert->setChecked(true); break;
-            case CursorManager::Mode::HorizontalCursor: actionHor->setChecked(true); break;
-            case CursorManager::Mode::CrossCursor: actionCross->setChecked(true); break;
-            }
-
-            connect(actionNo, &QAction::triggered, [this](){ setCursorMode(CursorManager::Mode::NoCursor); });
-            connect(actionVert, &QAction::triggered, [this](){ setCursorMode(CursorManager::Mode::VerticalCursor); });
-            connect(actionHor, &QAction::triggered, [this](){ setCursorMode(CursorManager::Mode::HorizontalCursor); });
-            connect(actionCross, &QAction::triggered, [this](){ setCursorMode(CursorManager::Mode::CrossCursor); });
-        }
-
-        {
-            // --- Подменю "Статистика" ---
-            QMenu *statsMenu = menu->addMenu(tr("Статистика"));
-            QAction *actionStatsOn = statsMenu->addAction(tr("Показывать статистику"));
-            actionStatsOn->setCheckable(true);
-            actionStatsOn->setChecked(_statsManager->isVisible());
-
-            QAction *actionStatsOnlyVisible = statsMenu->addAction(tr("Только по видимой области"));
-            actionStatsOnlyVisible->setCheckable(true);
-            actionStatsOnlyVisible->setChecked(_statsManager->showOnlyVisibleRange());
-
-            connect(actionStatsOn, &QAction::triggered, [this](bool checked) {
-                setStatsVisible(checked);
-            });
-            connect(actionStatsOnlyVisible, &QAction::triggered, [this](bool checked) {
-                setStatsOnlyVisibleRange(checked);
-                if (statsVisible()) updateStats(); // сразу обновить отображение
-            });
-        }
-
-        {
-            QMenu *exportMenu = menu->addMenu(tr("Экспорт"));
-            exportMenu->addAction("Экспортировать график в csv", this, &CustomPlot::export_csv);
-            exportMenu->addAction("Экспортировать график в png", this, &CustomPlot::export_png);
-        }
-    }
-    menu->popup(this->mapToGlobal(pos));
 }

@@ -8,8 +8,6 @@
 #include "CustomPlotSettings.h"
 
 #include "CustomAxisTag.h"
-#include "CursorManager.h"
-#include "StatsManager.h"
 
 #include "core-plot-lib-global.h"
 
@@ -20,20 +18,6 @@ Q_OBJECT
 public:
     explicit CustomPlot(QWidget *parent = nullptr, CustomPlotOrientation orientation = OrientationHorizontal, size_t graph_number = 1, size_t _axis_tag_number = 2);
     ~CustomPlot() override;
-
-    void export_data(QTextStream &stream) override;
-    void sync_selection() override;
-
-    void setCursorMode(CursorManager::Mode mode);
-    CursorManager::Mode cursorMode() const;
-
-    void setStatsVisible(bool visible);
-    bool statsVisible() const;
-    void setStatsOnlyVisibleRange(bool onlyVisible);
-    bool statsOnlyVisibleRange() const;
-    void updateStats(); // принудительное обновление
-protected:
-    void mouseMoveEvent(QMouseEvent *event) override;
 public slots:
     void set_labels(const QString& yAxisLabel, const QString& xAxisLabel, size_t index = 0);
     void set_cp_name(const QString& name, size_t index = 0);
@@ -49,7 +33,7 @@ public slots:
     void clear_all();
 
     void set_range(double x_upper, double x_lower, double y_upper, double y_lower, size_t index = 0);
-private slots:
+
     void remove_selected_graph();
     void remove_graph(size_t index = 0);
     void remove_all_graphs();
@@ -64,16 +48,16 @@ private slots:
     void clear_graph(size_t index = 0);
     void clear_all_axis_tag();
     void clear_all_graphs();
+private slots:
 
-    void context_menu_request(QPoint pos);
 private:
     CustomPlot(const CustomPlot&) = delete;
     CustomPlot& operator=(const CustomPlot&) = delete;
 
+    virtual void addGraphSpecificActions(QMenu *menu) override;
+
     void form_charts();
     void add_graph(size_t index);
-
-    void updateStatsIfVisible();
 
     // std::vector<QString> graph_names;
     // std::vector<std::pair<QString, bool>> graph_en;
@@ -88,9 +72,6 @@ private:
     CustomPlotOrientation _orientation = OrientationHorizontal;
     unsigned int _graph_number = 0;
     unsigned int _axis_tag_number = 0;
-
-    std::unique_ptr<CursorManager> _cursorManager;
-    std::unique_ptr<StatsManager> _statsManager;
 };
 
 #endif // CUSTOMPLOT_H

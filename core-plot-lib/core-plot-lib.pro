@@ -90,6 +90,7 @@ HEADERS += \
     CustomPlot.h \
     CustomPlotBase.h \
     CustomPlotCalibration.h \
+    CustomPlotDynamic.h \
     CustomPlotSettings.h \
     StatsManager.h \
     core-plot-lib-global.h \
@@ -101,5 +102,6 @@ SOURCES += \
     CustomPlot.cpp \
     CustomPlotBase.cpp \
     CustomPlotCalibration.cpp \
+    CustomPlotDynamic.cpp \
     CustomPlotSettings.cpp \
     StatsManager.cpp
