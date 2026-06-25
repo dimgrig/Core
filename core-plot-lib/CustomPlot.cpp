@@ -1,7 +1,6 @@
 #include "CustomPlot.h"
 
 #define HIDE_POSITION       -10000000
-#define EXPORT_KEY_TIME 1
 
 #include "CoreConfig.h"
 #include "Logger.h"

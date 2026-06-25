@@ -24,6 +24,7 @@ MultiSelectWidget::MultiSelectWidget(QWidget *parent)
     _addButton->setStyleSheet("QPushButton { font-weight: bold; font-size: 16px; }");
     _addButton->setIcon(ICON_PLUS);
     _addButton->setIconSize(ICON_SIZE_24);
+    _addButton->setToolTip("Добавить");
     mainLayout->addWidget(_addButton);
 
     _flowContainer = new QWidget(this);
@@ -165,6 +166,7 @@ QWidget* MultiSelectWidget::createChip(int id, const QString &name) {
     closeBtn->setStyleSheet("QToolButton { font-weight: bold; }");
     closeBtn->setIcon(ICON_BASKET);
     closeBtn->setIconSize(ICON_SIZE_16);
+    closeBtn->setToolTip("Удалить");
     layout->addWidget(closeBtn);
 
     connect(closeBtn, &QToolButton::clicked, this, [this, id]() {

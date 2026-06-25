@@ -124,7 +124,7 @@ QString CursorManager::formatKey(double key, QCPAxis *axis) const
         QDateTime dt = QDateTime::fromSecsSinceEpoch(static_cast<qint64>(key));
         QString format = dtTicker->dateTimeFormat();
         if (format.isEmpty())
-            format = DT_FORMAT_WITHOUT_MS;
+            format = DATE_TIME_FORMAT_WITHOUT_MS;
         return dt.toString(format);
     }
 

@@ -34,7 +34,7 @@ void CustomBarPlot::export_data(QTextStream &stream) {
         headers << this->xAxis->label() << this->yAxis->label();
     }
     QString headers_row = headers.join(ELEMENTS_DELIMETER);
-    headers_row += "\r\n";
+    headers_row += ROW_DELIMETER;
     stream << headers_row;
     for (unsigned int index = 0; index < this->bar_v.size(); ++index) {
         int i = 0;
@@ -47,7 +47,7 @@ void CustomBarPlot::export_data(QTextStream &stream) {
             sl << locale.toString(d.value);
 
             QString row = sl.join(ELEMENTS_DELIMETER);
-            row += "\r\n";
+            row += ROW_DELIMETER;
             stream << row;
             ++i;
         }

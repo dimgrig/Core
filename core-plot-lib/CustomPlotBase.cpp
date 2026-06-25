@@ -59,26 +59,69 @@ CustomPlotBase::~CustomPlotBase() {
     _cursorManager.reset();
 }
 
-void CustomPlotBase::export_data(QTextStream &stream) {
-    QLocale locale;
-    QStringList headers;
-    headers << this->xAxis->label() << this->yAxis->label();
-    QString headers_row = headers.join(ELEMENTS_DELIMETER);
-    headers_row += "\r\n";
-    stream << headers_row;
-    for (int index = 0; index < this->graphCount(); ++index) {
-        for (const auto &d : *this->graph(index)->data()) {
-            QStringList sl;
-#if EXPORT_KEY_TIME
-            sl << QDateTime::fromTime_t(d.key).toString(DT_FORMAT_WITHOUT_MS);
-#else
-            sl << locale.toString(d.key);
-#endif
-            sl << locale.toString(d.value);
+// void CustomPlotBase::export_data(QTextStream &stream) {
+//     // Проверяем, является ли тикер оси X датой/временем
+//     bool isDateTime = dynamic_cast<QCPAxisTickerDateTime*>(this->xAxis->ticker().data()) != nullptr;
 
-            QString row = sl.join(ELEMENTS_DELIMETER);
-            row += "\r\n";
-            stream << row;
+//     QLocale locale;
+//     QStringList headers;
+//     headers << this->xAxis->label();
+//     for (QCPAxis *ax : _rightAxes) {
+//         headers << ax->label();
+//     }
+
+//     QString headers_row = headers.join(ELEMENTS_DELIMETER);
+//     headers_row += ROW_DELIMETER;
+//     stream << headers_row;
+//     for (int index = 0; index < this->graphCount(); ++index) {
+//         QString graphName = this->graph(index)->name();
+//         QString graphSU = this->graph(index);
+//         for (const auto &d : *this->graph(index)->data()) {
+//             QStringList sl;
+//             sl << graphName;
+//             sl << graphSU;
+
+//             if (isDateTime) {
+//                 sl << QDateTime::fromSecsSinceEpoch(d.key).toString(DATE_TIME_FORMAT_WITHOUT_MS);
+//             } else {
+//                 sl << locale.toString(d.key);
+//             }
+
+//             sl << locale.toString(d.value);
+
+//             QString row = sl.join(ELEMENTS_DELIMETER);
+//             row += ROW_DELIMETER;
+//             stream << row;
+//         }
+//     }
+// }
+
+void CustomPlotBase::export_data(QTextStream &stream) {
+    bool isDateTime = dynamic_cast<QCPAxisTickerDateTime*>(xAxis->ticker().data()) != nullptr;
+    QLocale locale;
+
+    // Заголовки: имя графика, единица измерения, ось X, значение
+    QStringList headers = { tr("График"), tr("Единица"), xAxis->label(), tr("Значение") };
+    stream << headers.join(ELEMENTS_DELIMETER) << ROW_DELIMETER;
+
+    for (int i = 0; i < graphCount(); ++i) {
+        QCPGraph *graph = this->graph(i);
+        if (!graph->visible()) continue;          // только видимые
+
+        QString name = graph->name();
+        QString unit = graph->valueAxis()->label();  // берём подпись оси Y (например, "мг/л")
+
+        for (const auto &d : *graph->data()) {
+            QStringList row;
+            row << name << unit;
+
+            if (isDateTime)
+                row << QDateTime::fromSecsSinceEpoch(d.key).toString(DATE_TIME_FORMAT_WITHOUT_MS);
+            else
+                row << locale.toString(d.key);
+
+            row << locale.toString(d.value);
+            stream << row.join(ELEMENTS_DELIMETER) << ROW_DELIMETER;
         }
     }
 }
@@ -147,114 +190,6 @@ void CustomPlotBase::move_legend(int pos) {
     this->axisRect()->insetLayout()->setInsetAlignment(0, (Qt::Alignment)pos);
     this->replot();
 }
-
-// void CustomPlotBase::mouse_press() {
-//     // if an axis is selected, only allow the direction of that axis to be dragged
-//     // if no axis is selected, both directions may be dragged
-//     if (this->xAxis->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeDrag(this->xAxis->orientation());
-//     } else if (this->xAxis2->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis2, this->yAxis);
-//         this->axisRect()->setRangeDrag(this->yAxis->orientation());
-//     } else if (this->yAxis->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeDrag(this->yAxis->orientation());
-//     } else if (this->yAxis2->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis, this->yAxis2);
-//         this->axisRect()->setRangeDrag(this->yAxis2->orientation());
-//     } else if (this->axisRect()->axis(QCPAxis::atRight, 1)) {
-//         if (this->axisRect()->axis(QCPAxis::atRight, 1)->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 1));
-//         this->axisRect()->setRangeDrag(this->axisRect()->axis(QCPAxis::atRight, 1)->orientation());
-// //    } else if (this->axisRect()->axis(QCPAxis::atRight, 2)->selectedParts().testFlag(QCPAxis::spAxis)) {
-// //        this->axisRect()->setRangeDragAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 2));
-// //        this->axisRect()->setRangeDrag(this->axisRect()->axis(QCPAxis::atRight, 2)->orientation());
-// //    } else if (this->axisRect()->axis(QCPAxis::atRight, 3)->selectedParts().testFlag(QCPAxis::spAxis)) {
-// //        this->axisRect()->setRangeDragAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 3));
-// //        this->axisRect()->setRangeDrag(this->axisRect()->axis(QCPAxis::atRight, 3)->orientation());
-//         } else {
-//             this->axisRect()->setRangeDragAxes(this->xAxis, this->yAxis);
-//             this->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-//         }
-//     } else {
-//         this->axisRect()->setRangeDragAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-//     }
-// }
-
-// void CustomPlotBase::mouse_wheel()
-// {
-//     // if an axis is selected, only allow the direction of that axis to be zoomed
-//     // if no axis is selected, both directions may be zoomed
-
-//     if (this->xAxis->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeZoomAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeZoom(this->xAxis->orientation());
-//     } else if (this->xAxis2->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeDragAxes(this->xAxis2, this->yAxis);
-//         this->axisRect()->setRangeDrag(this->yAxis->orientation());
-//     } else if (this->yAxis->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeZoomAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeZoom(this->yAxis->orientation());
-//     } else if (this->yAxis2->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeZoomAxes(this->xAxis, this->yAxis2);
-//         this->axisRect()->setRangeZoom(this->yAxis2->orientation());
-//     } else if (this->axisRect()->axis(QCPAxis::atRight, 1)) {
-//         if (this->axisRect()->axis(QCPAxis::atRight, 1)->selectedParts().testFlag(QCPAxis::spAxis)) {
-//         this->axisRect()->setRangeZoomAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 1));
-//         this->axisRect()->setRangeZoom(this->axisRect()->axis(QCPAxis::atRight, 1)->orientation());
-// //    } else if (this->axisRect()->axis(QCPAxis::atRight, 2)->selectedParts().testFlag(QCPAxis::spAxis)) {
-// //        this->axisRect()->setRangeZoomAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 2));
-// //        this->axisRect()->setRangeZoom(this->axisRect()->axis(QCPAxis::atRight, 2)->orientation());
-// //    } else if (this->axisRect()->axis(QCPAxis::atRight, 3)->selectedParts().testFlag(QCPAxis::spAxis)) {
-// //        this->axisRect()->setRangeZoomAxes(this->xAxis, this->axisRect()->axis(QCPAxis::atRight, 3));
-// //        this->axisRect()->setRangeZoom(this->axisRect()->axis(QCPAxis::atRight, 3)->orientation());
-//         } else {
-//             this->axisRect()->setRangeZoomAxes(this->xAxis, this->yAxis);
-//             this->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-//         }
-//     } else {
-//         this->axisRect()->setRangeZoomAxes(this->xAxis, this->yAxis);
-//         this->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-//     }
-// }
-
-// void CustomPlotBase::selection_changed() {
-//     // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-//     if (this->xAxis->selectedParts().testFlag(QCPAxis::spAxis) ||
-//         this->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-//         this->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) ||
-//         this->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels)) {
-//         this->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//         this->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//     }
-
-//     // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-//     if (this->yAxis->selectedParts().testFlag(QCPAxis::spAxis) ||
-//         this->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-//         this->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) ||
-//         this->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels)    ) {
-//         this->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//         this->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//     }
-
-//     if (this->axisRect()->axis(QCPAxis::atRight, 1)) {
-//         if (this->axisRect()->axis(QCPAxis::atRight, 1)->selectedParts().testFlag(QCPAxis::spAxis) ||
-//             this->axisRect()->axis(QCPAxis::atRight, 1)->selectedParts().testFlag(QCPAxis::spTickLabels)) {
-//             this->axisRect()->axis(QCPAxis::atRight, 1)->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//     //    } else if (this->axisRect()->axis(QCPAxis::atRight, 2)->selectedParts().testFlag(QCPAxis::spAxis) ||
-//     //               this->axisRect()->axis(QCPAxis::atRight, 2)->selectedParts().testFlag(QCPAxis::spTickLabels)) {
-//     //        this->axisRect()->axis(QCPAxis::atRight, 2)->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//     //    } else if (this->axisRect()->axis(QCPAxis::atRight, 3)->selectedParts().testFlag(QCPAxis::spAxis) ||
-//     //               this->axisRect()->axis(QCPAxis::atRight, 3)->selectedParts().testFlag(QCPAxis::spTickLabels)) {
-//     //        this->axisRect()->axis(QCPAxis::atRight, 3)->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-//         }
-//     }
-
-//     // synchronize selection of graphs with selection of corresponding legend items:
-//     this->sync_selection();
-// }
 
 void CustomPlotBase::mouse_press() {
     QCPAxis *selectedAxis = nullptr;
@@ -408,7 +343,7 @@ void CustomPlotBase::autoscale_all() {
 }
 
 void CustomPlotBase::export_csv() {
-    QString dir = "График " + QDateTime::currentDateTime().toString(DT_FORMAT_WITHOUT_MS) + ".csv"; //cfg.TEST_RESULT_DIR +
+    QString dir = "График " + QDateTime::currentDateTime().toString(DATE_TIME_FORMAT_WITHOUT_MS) + ".csv"; //cfg.TEST_RESULT_DIR +
     QString filename = QFileDialog::getSaveFileName(this,
             tr("%1 - Сохранить").arg(QApplication::applicationDisplayName()),
             dir,
@@ -423,11 +358,13 @@ void CustomPlotBase::export_csv() {
             this->export_data(stream);
             file->close();
         }
+
+        QMessageBox::information(this, "Экспорт", QString("График успешно экспортирован в файл:\n%1").arg(filename));
     }
 }
 
 void CustomPlotBase::export_png() {
-    QString dir = "График " + QDateTime::currentDateTime().toString(DT_FORMAT_WITHOUT_MS) + ".png"; //cfg.TEST_RESULT_DIR +
+    QString dir = "График " + QDateTime::currentDateTime().toString(DATE_TIME_FORMAT_WITHOUT_MS) + ".png"; //cfg.TEST_RESULT_DIR +
     QString filename = QFileDialog::getSaveFileName(this,
             tr("%1 - Сохранить").arg(QApplication::applicationDisplayName()),
             dir,
@@ -437,6 +374,8 @@ void CustomPlotBase::export_png() {
 
     if (filename != "") {
         this->savePng(filename);
+
+        QMessageBox::information(this, "Экспорт", QString("График успешно экспортирован в файл:\n%1").arg(filename));
     }
 }
 

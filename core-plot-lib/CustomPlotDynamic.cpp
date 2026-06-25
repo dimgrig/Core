@@ -233,12 +233,8 @@ void CustomPlotDynamic::removeAllGraphs() {
         }
     }
 
-    // 3. Очищаем базовый список правых осей (_rightAxes) и оставляем только активную
+    // 3. Очищаем базовый список правых осей
     _rightAxes.clear();
-    if (_activeRightAxis) {
-        _activeRightAxis->setVisible(false);
-        _rightAxes.append(_activeRightAxis);
-    }
 
     // 4. Обновляем легенду и перерисовываем
     syncLegendVisibility();
