@@ -159,7 +159,8 @@ private:
     IUserRoleManager* _roleManager;
 
     bool _adding = false;
-    bool _editing = false;
+    bool _editing = false;    
+    bool _initializing = false;
 };
 
 #endif // USER_H

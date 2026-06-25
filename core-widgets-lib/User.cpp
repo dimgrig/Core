@@ -9,6 +9,9 @@
 #include "aqp.h"
 #include "MockUserRoleManager.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 User_singleton& User_singleton::instance() {
     static User_singleton inst;
     return inst;
@@ -247,6 +250,15 @@ void Users::save_user(const char *name, const char *level, const char *password)
                         ++i;
                     }
                     //qCDebug(logDebug()) << "password updated";
+
+                    if (auto* j = JournalAccess::journal()) {
+                        j->info(Category::Users,
+                                QString("Изменён пароль пользователя \"%1\" (роль \"%2\") инициатором \"%3\"")
+                                    .arg(name)
+                                    .arg(level)
+                                    .arg(auth_user.user.name));
+                    }
+
                     break;
                 }
             }
@@ -284,6 +296,13 @@ void Users::onSetDefault() {
     setDefaultUser(QString::fromStdString(user.name), password);
     this->ui->l_defaultUser->setText(user.name);
     AQP::information(this, tr("Информация"), tr("Пользователь %1 сохранён как пользователь по умолчанию").arg(user.name));
+
+    if (auto* j = JournalAccess::journal()) {
+        j->info(Category::Users,
+                QString("Пользователь по умолчанию изменён на \"%1\" (инициатор: \"%2\")")
+                    .arg(user.name)
+                    .arg(auth_user.user.name));
+    }
 }
 
 void Users::onClearDefault() {
@@ -302,6 +321,12 @@ void Users::onClearDefault() {
         clearDefaultUser();
         this->ui->l_defaultUser->setText("");
         AQP::information(this, tr("Информация"), tr("Пользователь по умолчанию сброшен"));
+    }
+
+    if (auto* j = JournalAccess::journal()) {
+        j->info(Category::Users,
+                QString("Пользователь по умолчанию сброшен (инициатор: \"%1\")")
+                    .arg(auth_user.user.name));
     }
 }
 
@@ -327,12 +352,14 @@ void Users::load() {
 
     if (_filename == CoreConfig::userFile().toStdString()) {
         if (_users.empty()) {
+            _initializing = true;   // ВРЕМЕННО ВКЛЮЧАЕМ ФЛАГ
             std::string password = "123";
             this->addUser("acs", "Разработчик", "5041511"); //developer
             this->addUser("admin", "Администратор", password.c_str()); //superuser
             this->addUser("Пользователь", "Пользователь", "Пользователь");
             this->setDefaultUser("admin", password.c_str());
             this->save();
+            _initializing = false;   // ВЫКЛЮЧАЕМ ПОСЛЕ ИНИЦИАЛИЗАЦИИ
         }
         User_s *default_user = this->find("Пользователь", "Пользователь");
         if (default_user == nullptr) {
@@ -360,6 +387,16 @@ void Users::addUser(const char* name, const char* level, const char* password) {
     }
 
     _users.push_back(user);
+
+    if (!_initializing) {
+        if (auto* j = JournalAccess::journal()) {
+            j->info(Category::Users,
+                    QString("Добавлен пользователь \"%1\" с ролью \"%2\" (инициатор: \"%3\")")
+                        .arg(name)
+                        .arg(level)
+                        .arg(auth_user.user.name));
+        }
+    }
 }
 
 void Users::deleteUser(const char* name, const char* level, const char* password) {
@@ -384,6 +421,17 @@ void Users::deleteUser(const char* name, const char* level, const char* password
     if ((index_to_delete != -1) && ((size_t)index_to_delete < _users.size())) {
         //qCDebug(logDebug()) << "accept deleting";
         _users.erase(_users.begin() + index_to_delete);
+
+        if (!_initializing) {
+            if (auto* j = JournalAccess::journal()) {
+                j->warning(Category::Users,
+                           QString("Удалён пользователь \"%1\" (роль \"%2\") инициатором \"%3\"")
+                               .arg(name)
+                               .arg(level)
+                               .arg(auth_user.user.name));
+            }
+        }
+
     }
 
     this->update_lw();

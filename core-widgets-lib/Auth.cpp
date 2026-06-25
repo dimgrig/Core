@@ -101,8 +101,14 @@ void Auth::enter(std::string login, std::string password) {
 
 bool Auth::tryAutoLogin() {
     QString login, password;
-    if (!_users->getDefaultUser(login, password))
+    if (!_users->getDefaultUser(login, password)) {
+        if (auto* j = JournalAccess::journal()) {
+            j->info(Category::Authorization,
+                    QString("Неудачная попытка автоматического входа для пользователя \"%1\"")
+                        .arg(login));
+        }
         return false;
+    }
 
     ui->le_name->setText(login);
     ui->le_password->setText(password);
@@ -153,7 +159,7 @@ void Auth::on_shake() {
 void Auth::onAuthOk() {
     if (auto* j = JournalAccess::journal()) {
         j->info(Category::Authorization,
-                QString("Авторизован пользователь - %1")
+                QString("Авторизован пользователь \"%1\"")
                     .arg(auth_user.user.get_text().c_str()));
     }
 }
@@ -161,12 +167,18 @@ void Auth::onAuthOk() {
 void Auth::onAuthFailed() {
     if (auto* j = JournalAccess::journal()) {
         j->info(Category::Authorization,
-                QString("Неудачная попытка авторизации с логином %1")
+                QString("Неудачная попытка авторизации с логином \"%1\"")
                     .arg(this->ui->le_name->text()));
     }
 }
 
 void Auth::exit() {
+    if (auto* j = JournalAccess::journal()) {
+        j->info(Category::Authorization,
+                QString("Пользователь \"%1\" вышел из системы")
+                    .arg(auth_user.user.name));
+    }
+
     User_s blanc_user;
     auth_user.user = blanc_user;
 }
