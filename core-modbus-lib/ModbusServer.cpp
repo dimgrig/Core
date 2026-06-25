@@ -14,6 +14,9 @@
 
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 #include "ModbusDataConverter.h"
 
 //sudo setcap 'cap_net_bind_service=+ep' HIMIK-SERVER-TEST
@@ -100,9 +103,11 @@ void ModbusServer::on_connect_type(int index) {
 
     if (!modbusDevice) {
         if (_connection_type == ConnectionTypeSerial) {
-            qCDebug(logDebug) << (tr("Could not create Modbus master."));
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::Modbus, "Не удалось создать Modbus RTU слейв");
         } else if (_connection_type == ConnectionTypeTCP) {
-            qCDebug(logDebug) << (tr("Could not create Modbus client."));
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::Modbus, "Не удалось создать Modbus TCP сервер");
         }
     } else {
         connect(modbusDevice.get(), &QModbusServer::stateChanged, this, &ModbusServer::onModbusStateChanged);
@@ -232,7 +237,8 @@ void ModbusServer::setRegister(int serverAddress, const QString &reg_name, doubl
     if (regType != QModbusDataUnit::Invalid) {
         this->setRegister(serverAddress, regType, reg_name, value);
     } else {
-        qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Не удалось определить тип регистра для \"%1\"").arg(reg_name));
     }
 }
 
@@ -241,7 +247,8 @@ void ModbusServer::setRegisterString(int serverAddress, const QString &reg_name,
     if (regType != QModbusDataUnit::Invalid) {
         this->setRegisterString(serverAddress, regType, reg_name, value);
     } else {
-        qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Не удалось определить тип регистра для \"%1\"").arg(reg_name));
     }
 }
 
@@ -292,10 +299,9 @@ void ModbusServer::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
                 break;
             }
             if (!ok) {
-                qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
+                if (auto* j = JournalAccess::journal())
+                    j->warning(Category::Modbus, QString("Не удалось установить регистр: %1").arg(modbusDevice->errorString()));
             }
-    //        if (!ok)
-    //            statusBar()->showMessage(tr("Could not set register: ") + modbusDevice->errorString());
         }
     }
 
@@ -335,12 +341,14 @@ void ModbusServer::setRegisterString(int serverAddress, QModbusDataUnit::Registe
             }
             break;
             default:
-                qCDebug(logWarning) << "String write not supported for register type:" << table;
+                if (auto* j = JournalAccess::journal())
+                    j->warning(Category::Modbus, QString("Запись строки не поддерживается для типа регистра %1").arg(table));
                 break;
             }
 
             if (!ok) {
-                qCDebug(logWarning) << "Could not set register: " << modbusDevice->errorString();
+                if (auto* j = JournalAccess::journal())
+                    j->warning(Category::Modbus, QString("Не удалось установить регистр: %1").arg(modbusDevice->errorString()));
             }
         }
     }

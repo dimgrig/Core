@@ -6,6 +6,9 @@
 
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 MQTTClient::MQTTClient(QObject *parent) :
     QObject(parent)
 {
@@ -110,7 +113,8 @@ void MQTTClient::connectToHost(QString host, int port) {
         if (_mqtt->error() != QMqttClient::ClientError::NoError) {
             emit host_error("MQTT: Error" + QString::number(_mqtt->error()));
             volatile QString str = QString::number(_mqtt->error());
-            qCDebug(logCritical()) << "MQTT: Error" << QString::number(_mqtt->error());
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::IO, QString("MQTT: ошибка %1").arg(QString::number(_mqtt->error())));
         }
     }
 }
@@ -125,7 +129,8 @@ void MQTTClient::disconnectFromHost() {
 void MQTTClient::subscribe(QString topic) {
     auto subscription = _mqtt->subscribe(topic);
     if (!subscription) {
-        qCDebug(logCritical()) << "MQTT: Could not subscribe";
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::IO, QString("MQTT: не удалось подписаться на топик %1").arg(topic));
     }
 }
 
@@ -135,7 +140,8 @@ void MQTTClient::unsubscribe(QString topic) {
 
 void MQTTClient::publish(QString topic, QByteArray message) {
     if (_mqtt->publish(topic, message) == -1) {
-        qCDebug(logCritical()) << "MQTT: Could not publish message";
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::IO, QString("MQTT: не удалось опубликовать в топик %1").arg(topic));
     }
 }
 

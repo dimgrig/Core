@@ -21,6 +21,7 @@ include(../qmake-destination-path.pri)
 exists(/etc/astra_version) {
     #LIBS += -lmosquitto
     LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
     LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
 
     DISTFILES += ../core-gcc10.pri
@@ -32,6 +33,7 @@ exists(/etc/astra_version) {
     unix {
         #LIBS += -lmosquitto
         LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
     }
 
@@ -39,12 +41,14 @@ exists(/etc/astra_version) {
         DEFINES += win32
         #LIBS += -L$${WIN_LIBS_PATH} -lmosquitto
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
     win64 {
         DEFINES += win64
         #LIBS += -L$${WIN_LIBS_PATH} -lmosquitto
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
     }
 }
@@ -64,6 +68,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/httpserver"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/QtWebApp/templateengine"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-journal-lib"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib"
 
 BUILD_DIR = $$PWD/../build/$${TARGET}-build/

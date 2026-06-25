@@ -17,6 +17,9 @@
 #include "FilterHeader.h"
 #include "TableShortcutHandler.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 LookupDelegate::LookupDelegate(const LookupConfig &config, QObject *parent)
     : QStyledItemDelegate(parent), m_config(config)
 {}
@@ -264,12 +267,13 @@ void LookupDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, co
             ctx->main_model->database().commit();
             ctx->main_model->select();
             ctx->main_model->set_modified(false);
-            qCDebug(logDebug()) << "Изменения успешно сохранены!";
+            //qCDebug(logDebug()) << "Изменения успешно сохранены!";
         } else {
             ctx->main_model->database().rollback();
             ctx->main_model->set_modified(true);
             AQP::warning(nullptr, tr("Внимание"), tr("Не удалось сохранить изменения."), QString(m_config.mainTableName) + " " +  ctx->main_model->lastError().text(), 0);
-            qCDebug(logWarning()) << "Не удалось сохранить изменения: " + QString(m_config.mainTableName) + " " +  ctx->main_model->lastError().text();
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::Database, QString("Не удалось сохранить изменения: " + QString(m_config.mainTableName) + " " +  ctx->main_model->lastError().text()));
         }
     }
 
@@ -310,7 +314,8 @@ void LookupDelegate::direct_sql_update(QAbstractItemModel* model, const QModelIn
         //qCDebug(logDebug) << "Direct SQL update successful";
     } catch (const std::exception& e) {
         db.rollback();
-        qCDebug(logWarning) << "Не удалось сохранить изменения:" << e.what();
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Database, QString("Не удалось сохранить изменения: %1").arg(e.what()));
     }
 }
 

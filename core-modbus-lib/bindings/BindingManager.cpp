@@ -12,6 +12,9 @@
 #include "LineEditBinding.h"
 #include "SpinBoxBinding.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 BindingManager::BindingManager(int serverAddress,
                                std::shared_ptr<ModbusClient> modbusClient,
                                QObject* parent)
@@ -126,13 +129,15 @@ void BindingManager::processModbusData(int serverAddress, const QModbusDataUnit&
                             if (m_bindings.contains(regName)) {
                                 for (auto& binding : m_bindings[regName]) {
                                     if (!binding) {
-                                        qCDebug(logWarning()) << "Binding is null for register:" << regName;
+                                        if (auto* j = JournalAccess::journal())
+                                            j->warning(Category::Modbus, QString("Привязка равна null для регистра \"%1\"").arg(regName));
                                         continue;
                                     }
 
                                     // Проверяем, что привязка валидна
                                     if (!binding->isValid()) {
-                                        qCDebug(logWarning()) << "Binding is invalid for register:" << regName;
+                                        if (auto* j = JournalAccess::journal())
+                                            j->warning(Category::Modbus, QString("Привязка недействительна для регистра \"%1\"").arg(regName));
                                         continue;
                                     }
 
@@ -166,7 +171,8 @@ void BindingManager::onBindingValueChanged() {
 
     auto regType = m_modbusClient->getRegisterType(m_serverAddress, regName);
     if (regType == QModbusDataUnit::DiscreteInputs || regType == QModbusDataUnit::InputRegisters) {
-        qCWarning(logWarning) << "Cannot write to read-only register" << regName;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Невозможно записать в регистр только для чтения \"%1\"").arg(regName));
         return;
     }
 
@@ -287,7 +293,8 @@ void BindingManager::requestRegisterRead(const QString& regName) {
 
 void BindingManager::registerWidgetsFromContainer(QWidget* container) {
     if (!container) {
-        qCWarning(logWarning()) << "Cannot register widgets: container is null";
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, "Не удалось зарегистрировать виджеты: контейнер равен null");
         return;
     }
 
@@ -466,9 +473,10 @@ std::shared_ptr<RegisterBinding> BindingManager::createAppropriateBinding(
             regName);
     }
 
-    qCWarning(logWarning()) << "Unsupported widget type for binding:"
-                            << widget->metaObject()->className()
-                            << "register:" << regName;
+    if (auto* j = JournalAccess::journal())
+        j->warning(Category::Modbus, QString("Неподдерживаемый тип виджета для привязки: %1, регистр: %2")
+                                         .arg(widget->metaObject()->className())
+                                         .arg(regName));
 
     return nullptr;
 }

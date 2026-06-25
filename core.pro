@@ -11,13 +11,13 @@ SUBDIRS = core-lib \
         qcustomplot \
         QtWebApp
 
-core-io-lib.depends = core-lib core-modbus-lib
 core-journal-lib.depends = core-lib
-core-mvc-lib.depends = core-lib core-utils-lib core-widgets-lib
-core-modbus-lib.depends = core-lib
-custom-plot-lib.depends = core-lib qcustomplot
-core-utils-lib.depends = core-lib core-widgets-lib muParser
-core-widgets-lib.depends = core-lib
+core-io-lib.depends = core-lib core-journal-lib core-modbus-lib
+core-mvc-lib.depends = core-lib core-journal-lib core-utils-lib core-widgets-lib
+core-modbus-lib.depends = core-lib core-journal-lib
+core-plot-lib.depends = core-lib core-journal-lib qcustomplot
+core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser
+core-widgets-lib.depends = core-lib core-journal-lib
 
 CONFIG(debug, debug|release) {
     SUBDIRS += tests

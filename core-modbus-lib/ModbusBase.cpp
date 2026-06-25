@@ -374,10 +374,10 @@ bool ModbusBase::isSerialPortAvailable(const QString &portName) {
         }
     }
 
-    // qCDebug(logWarning) << "Serial port not found:" << portName
+    // qCDebug(logDebug) << "Serial port not found:" << portName
     //                     << "Available ports:";
     // for (const QSerialPortInfo &port : ports) {
-    //     qCDebug(logWarning) << "  -" << port.portName()
+    //     qCDebug(logDebug) << "  -" << port.portName()
     //     << "(" << port.description() << ")";
     // }
 
@@ -400,7 +400,7 @@ void ModbusBase::checkSerialPorts() {
     }
     // Если порт исчез и мы подключены - отключаемся
     else if (!isAvailable && this->state() == QModbusDevice::ConnectedState) {
-        //qCDebug(logWarning) << "Serial port" << portName << "disappeared, disconnecting";
+        //qCDebug(logDebug) << "Serial port" << portName << "disappeared, disconnecting";
         this->device()->disconnectDevice();
         emit host_error(tr("Serial port %1 disconnected").arg(portName));
     }

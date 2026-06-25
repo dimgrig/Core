@@ -20,6 +20,7 @@ include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
     LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
 
     DISTFILES += ../core-gcc10.pri
     include(../core-gcc10.pri)
@@ -29,14 +30,18 @@ exists(/etc/astra_version) {
 } else {
     unix {
         LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
     }
 
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
     }
     win64 {
+        DEFINES += win64
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
     }
 }
 
@@ -49,6 +54,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/bindings"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-journal-lib"
 
 BUILD_DIR = $$PWD/../../build/$${TARGET}-build/
 DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH

@@ -13,6 +13,9 @@
 
 #include "ModbusDataConverter.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbus_settings)
     : ModbusBase(parent, config, modbus_settings)
 //    , ui(new Ui::fmodbus_client)
@@ -102,7 +105,8 @@ void ModbusClient::updatePollingGroups() {
 void ModbusClient::enqueueReadRequest(int serverAddress, const QModbusDataUnit& mdu, bool isPolling)
 {
     if (_requestQueue.size() >= MAX_QUEUE_SIZE) {
-        qCWarning(logWarning) << "Request queue full, dropping read request";
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, "Очередь запросов переполнена, запрос на чтение отброшен");
         return;
     }
     _requestQueue.enqueue({mdu, serverAddress, false, false, isPolling});
@@ -114,12 +118,15 @@ void ModbusClient::enqueueWriteRequest(int serverAddress, const QModbusDataUnit&
 {
     if (mdu.registerType() == QModbusDataUnit::DiscreteInputs ||
         mdu.registerType() == QModbusDataUnit::InputRegisters) {
-        qCWarning(logWarning) << "Refusing to write to read-only register type:" << mdu.registerType();
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Попытка записи в регистр только для чтения (тип %1)")
+                                             .arg(mdu.registerType()));
         return;
     }
 
     if (_requestQueue.size() >= MAX_QUEUE_SIZE) {
-        qCWarning(logWarning) << "Request queue full, dropping write request";
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, "Очередь запросов переполнена, запрос на запись отброшен");
         return;
     }
     if (highPriority) {
@@ -174,18 +181,13 @@ void ModbusClient::on_connect_type(int index) {
         modbusDevice = std::make_shared<QModbusTcpClient>();
     }
 
-    // connect(modbusDevice, &QModbusClient::errorOccurred, [this](QModbusDevice::Error) {
-    //     qCDebug(logDebug()) << modbusDevice->errorString();
-    //     QTimer::singleShot(1000, [=]() {
-    //         this->on_connect();
-    //     });
-    // });
-
     if (!modbusDevice) {
         if (_connection_type == ConnectionTypeSerial) {
-            qCDebug(logWarning) << (tr("Could not create Modbus master."));
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::Modbus, "Не удалось создать Modbus RTU мастер");
         } else if (_connection_type == ConnectionTypeTCP) {
-            qCDebug(logDebug) << (tr("Could not create Modbus client."));
+            if (auto* j = JournalAccess::journal())
+                j->warning(Category::Modbus, "Не удалось создать Modbus TCP клиент");
         }
     } else {
         connect(modbusDevice.get(), &QModbusClient::stateChanged, this, &ModbusClient::onModbusStateChanged);
@@ -401,7 +403,8 @@ void ModbusClient::setRegister(int serverAddress, const QString &reg_name, doubl
     if (regType != QModbusDataUnit::Invalid) {
         this->setRegister(serverAddress, regType, reg_name, value);
     } else {
-        qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Не удалось определить тип регистра для \"%1\"").arg(reg_name));
     }
 }
 
@@ -410,7 +413,8 @@ void ModbusClient::setRegisterString(int serverAddress, const QString &reg_name,
     if (regType != QModbusDataUnit::Invalid) {
         this->setRegisterString(serverAddress, regType, reg_name, value);
     } else {
-        qCDebug(logWarning) << "Unable to get register type from name" << reg_name;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Не удалось определить тип регистра для \"%1\"").arg(reg_name));
     }
 }
 
@@ -501,7 +505,8 @@ void ModbusClient::setRegisterString(int serverAddress, QModbusDataUnit::Registe
             }
             break;
             default:
-                qCDebug(logWarning) << "String write not supported for register type:" << table;
+                if (auto* j = JournalAccess::journal())
+                    j->warning(Category::Modbus, QString("Запись строки не поддерживается для типа регистра %1").arg(table));
                 break;
             }
         }
@@ -515,7 +520,8 @@ void ModbusClient::scheduleReconnect() {
         if (!isSerialPortAvailable(portName)) {
             // Если порта нет, увеличиваем интервал переподключения
             int delay = 5000; // 5 секунд для Serial, когда порта нет
-            qCDebug(logWarning) << "Serial port" << portName << "not available, retrying in" << delay << "ms";
+            if (auto* j = JournalAccess::journal())
+                j->debug(Category::Modbus, QString("Последовательный порт %1 недоступен, повтор через %2 мс").arg(portName).arg(delay));
             _reconnectTimer->start(delay);
             return;
         }
@@ -604,7 +610,9 @@ void ModbusClient::processNextRequest()
                 processNextRequest();
         });
     } else {
-        //qCWarning(logWarning) << "Failed to send request:" << modbusDevice->errorString();
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("Не удалось отправить запрос Modbus RTU мастер").arg(modbusDevice->errorString()));
+
         _requestInProgress = false;
         int addr = req.serverAddress;
         _serverRequestErrorCount[addr]++;

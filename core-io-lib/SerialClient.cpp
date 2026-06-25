@@ -3,6 +3,9 @@
 #include "ClientHelpers.h"
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 SerialClient::SerialClient(QObject *parent) :
     QObject(parent)
 {
@@ -54,8 +57,8 @@ void SerialClient::openSerialPort(QString port, int speed)
         _serial->clear();
     } else {
         emit port_error("Serial: " + _serial->errorString());
-        volatile QString str = _serial->errorString();
-        qCDebug(logCritical()) << "SERIAL: " << _serial->errorString();
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::IO, QString("SerialPort: ошибка %1").arg(_serial->errorString()));
     }
 }
 
@@ -71,7 +74,8 @@ void SerialClient::closeSerialPort()
 
 void SerialClient::handleError(QSerialPort::SerialPortError error) {
     if (error == QSerialPort::ResourceError) {
-        qCDebug(logCritical()) << "SerialPortError" << _serial->errorString();
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::IO, QString("SerialPort: ошибка %1").arg(_serial->errorString()));
         emit port_error("Serial: " + _serial->errorString());
         closeSerialPort();
     }

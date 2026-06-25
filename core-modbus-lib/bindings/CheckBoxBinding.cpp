@@ -2,6 +2,9 @@
 
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 CheckBoxBinding::CheckBoxBinding(QCheckBox* checkBox,
                                  const QString& registerName,
                                  int bitPosition,
@@ -46,7 +49,8 @@ QVector<quint16> CheckBoxBinding::getRegisterData() const
 {
     // Этот метод не должен использоваться напрямую для записи в BindingManager
     // Вместо этого мы должны получать текущее значение из кэша и изменять только нужный бит
-    qDebug(logWarning()) << "CheckBoxBinding::getRegisterData should not be called directly";
+    if (auto* j = JournalAccess::journal())
+        j->warning(Category::Modbus, QString("CheckBoxBinding: метод getRegisterData не должен быть вызван напрямую"));
     return QVector<quint16>(1, 0);
 }
 

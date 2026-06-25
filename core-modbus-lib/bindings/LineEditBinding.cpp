@@ -4,6 +4,9 @@
 
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 LineEditBinding::LineEditBinding(QLineEdit* lineEdit,
                                  const QString& registerName,
                                  int stringLength,
@@ -220,7 +223,9 @@ QByteArray LineEditBinding::stringToBytes(const QString& str) const
     }
 
     if (!codec) {
-        qCDebug(logWarning) << "LineEditBinding: Codec not found for encoding" << m_encoding;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("LineEditBinding: не найден кодек для %1").arg(m_encoding));
+
         return str.toLatin1();
     }
 
@@ -235,7 +240,8 @@ QString LineEditBinding::bytesToString(const QByteArray& bytes) const
     }
 
     if (!codec) {
-        qCDebug(logWarning) << "LineEditBinding: Codec not found for encoding" << m_encoding;
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Modbus, QString("LineEditBinding: не найден кодек для %1").arg(m_encoding));
         return QString::fromLatin1(bytes);
     }
 

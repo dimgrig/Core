@@ -15,6 +15,9 @@
 #include "ClientHelpers.h"
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 static std::chrono::steady_clock::time_point rx_st;
 static std::chrono::steady_clock::time_point prev_rx_st;
 static std::chrono::steady_clock::time_point tx_end;
@@ -92,20 +95,24 @@ void TCPClient::handleError(QAbstractSocket::SocketError socketError){
 
     }
 
+    QString errorStr;
     switch(socketError){
         case QAbstractSocket::RemoteHostClosedError:
-            qCDebug(logWarning()) << "TCP: RemoteHostClosedError";
+            errorStr = "RemoteHostClosedError";
         break;
         case QAbstractSocket::HostNotFoundError:
-            qCDebug(logWarning()) << "TCP: HostNotFoundError. Connection was refused. Server is not working";
+            errorStr = "HostNotFoundError. Connection was refused. Server is not working";
         break;
         case QAbstractSocket::ConnectionRefusedError:
-            qCDebug(logWarning()) << "TCP: ConnectionRefusedError. Client. The host was not found";
+            errorStr = "ConnectionRefusedError. Client. The host was not found";
         break;
         default:
-            qCDebug(logWarning()) << "TCP: Error" << _socket->errorString();
+            errorStr = _socket->errorString();
         break;
     }
+
+    if (auto* j = JournalAccess::journal())
+        j->warning(Category::IO, QString("TCP: ошибка %1").arg(errorStr));
 
 //    if(!(QAbstractSocket::ConnectedState == _socket->state())){
 //        //_socket->connectToHost(cfg.IP, cfg.PORT, QIODevice::ReadWrite);

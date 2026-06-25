@@ -3,6 +3,9 @@
 #include "ClientHelpers.h"
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 UDPClient::UDPClient(QWidget *parent) :
         QWidget(parent)
 {
@@ -37,20 +40,25 @@ void UDPClient::handleError(QAbstractSocket::SocketError socketError){
 
     }
 
+    QString errorStr;
+
     switch(socketError){
         case QAbstractSocket::RemoteHostClosedError:
-            qCDebug(logWarning()) << "UDP: RemoteHostClosedError";
+            errorStr = "RemoteHostClosedError";
         break;
         case QAbstractSocket::HostNotFoundError:
-            qCDebug(logWarning()) << "UDP: HostNotFoundError. Connection was refused. Server is not working";
+            errorStr = "HostNotFoundError. Connection was refused. Server is not working";
         break;
         case QAbstractSocket::ConnectionRefusedError:
-            qCDebug(logWarning()) << "UDP: ConnectionRefusedError. Client. The host was not found";
+            errorStr = "ConnectionRefusedError. Client. The host was not found";
         break;
         default:
-            qCDebug(logWarning()) << "UDP: Error" << _socket->errorString();
+            errorStr = _socket->errorString();
         break;
     }
+
+    if (auto* j = JournalAccess::journal())
+        j->warning(Category::IO, QString("UDP: ошибка %1").arg(errorStr));
 }
 #endif
 

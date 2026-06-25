@@ -16,6 +16,7 @@ namespace Category {
     inline const QString Devices       = QStringLiteral("Устройства");
     inline const QString Calibration   = QStringLiteral("Калибровка");
     inline const QString Database      = QStringLiteral("База данных");
+    inline const QString IO            = QStringLiteral("IO");
     // inline const QString Utils         = QStringLiteral("Utils");
     // inline const QString Network       = QStringLiteral("Network");
 }

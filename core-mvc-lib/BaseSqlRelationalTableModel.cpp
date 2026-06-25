@@ -12,6 +12,9 @@
 #include "aqp.h"
 #include "Logger.h"
 
+#include "Categories.h"
+#include "JournalAccess.h"
+
 BaseSqlRelationalTableModel::BaseSqlRelationalTableModel(QObject *parent)
     : QSqlRelationalTableModel(parent)
 {
@@ -341,11 +344,12 @@ bool BaseSqlRelationalTableModel::cleanUpOldEntries(const QString& table, const 
     query.prepare(QString("DELETE FROM %1 WHERE %2 < :threshold").arg(table).arg(timestamp));
     query.bindValue(":threshold", thresholdSecs);
 
-    if (query.exec()) {
+    if (query.exec()) {       
         return true;
     }
 
-    qCDebug(logWarning()) << "Failed to clean up :" << this->lastError().text();
+    if (auto* j = JournalAccess::journal())
+        j->warning(Category::Database, QString("Не удалось очистить старые данные : %1").arg(this->lastError().text()));
 
     return false;
 }

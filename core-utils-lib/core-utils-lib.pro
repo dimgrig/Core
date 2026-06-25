@@ -20,6 +20,7 @@ include(../qmake-destination-path.pri)
 
 exists(/etc/astra_version) {
     LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+    LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
     LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
     LIBS += -L/usr/local/lib/ -lmuParser
 
@@ -31,6 +32,7 @@ exists(/etc/astra_version) {
 } else {
     unix {
         LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
+        LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
         LIBS += -L$${LINUX_LIBS_PATH} -lmuParser
     }
@@ -38,11 +40,13 @@ exists(/etc/astra_version) {
     win32 {
         DEFINES += win32
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
         LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
     win64 {
         LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
+        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
         LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
         LIBS += -L$${WIN_LIBS_PATH} -lmuParser
     }
@@ -56,6 +60,7 @@ DEFINES += NOUSER
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib"
+INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-journal-lib"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-widgets-lib"
 INCLUDEPATH += "$$_PRO_FILE_PWD_/../muParser/include"
 

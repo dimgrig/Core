@@ -232,21 +232,21 @@ EditBar::EditBar(QWidget *parent) :
             buttons[i]->setObjectName(edit_tb_names[i]);
         }
     } else {
-        qCDebug(logWarning) << "EditBar vectors size mismath";
+        qCDebug(logDebug) << "EditBar vectors size mismath";
     }
     if (buttons.size() == (sizeof(tooltips_v) / sizeof(tooltips_v[0]))) {
         for (int i = 0; i < buttons.size(); ++i) {
             buttons[i]->setToolTip(tooltips_v[i]);
         }
     } else {
-        qCDebug(logWarning) << "EditBar vectors size mismath";
+        qCDebug(logDebug) << "EditBar vectors size mismath";
     }
     if (widget_actions.size() == (sizeof(edit_action_names) / sizeof(edit_action_names[0]))) {
         for (int i = 0; i < widget_actions.size(); ++i) {
             widget_actions[i]->setObjectName(edit_action_names[i]);
         }
     } else {
-        qCDebug(logWarning) << "EditBar vectors size mismath";
+        qCDebug(logDebug) << "EditBar vectors size mismath";
     }
 }
 
