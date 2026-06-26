@@ -7,6 +7,8 @@
 
 #include "CoreConfig.h"
 
+#include "CustomAxisTag.h"
+
 #include "CursorManager.h"
 #include "StatsManager.h"
 
@@ -44,6 +46,20 @@ struct GraphStyle {
     }
 };
 
+struct ThresholdLine {
+    QCPItemStraightLine* line = nullptr;
+    QCPItemText* label = nullptr;
+    QCPAxis* axis = nullptr;   // ось Y, к которой привязана
+    double value = 0.0;
+    QColor color = Qt::red;
+    Qt::PenStyle style = Qt::DashLine;
+    int width = 1;
+    QString text;
+    // Для сериализации
+    void saveSettings(QSettings& settings, int index) const;
+    bool loadSettings(QSettings& settings, int index, const QList<QCPAxis*>& availableAxes);
+};
+
 class CORE_PLOT_LIB_EXPORT CustomPlotBase : public QCustomPlot {
 Q_OBJECT
 public:
@@ -77,6 +93,17 @@ public:
     void updateStatsIfVisible();
 
     void syncLegendVisibility();
+
+    void addThresholdLine(QCPAxis* axis, double value,
+                          const QColor& color = Qt::red,
+                          Qt::PenStyle style = Qt::DashLine,
+                          int width = 1,
+                          const QString& text = QString());
+    void removeThresholdLine(int index);
+    void clearThresholdLines();
+    void updateThresholdLines();
+    void saveThresholdLines();
+    void loadThresholdLines(const QList<QCPAxis*>& availableAxes);
 
     void rescale(int index = 0);
     void autoscale_all();
@@ -122,11 +149,17 @@ protected:
     std::unique_ptr<StatsManager> _statsManager;
 
     QList<QCPAxis*> _rightAxes;   // все правые оси (включая активную)
+    QList<ThresholdLine> _thresholdLines;
 private:
+
     virtual void addGraphSpecificActions(QMenu *menu) {Q_UNUSED(menu)}
     void addAxisActions(QMenu *menu);
+    void addThresholdLinesActions(QMenu *menu);
 
     void showAxisRangeDialog(QCPAxis* axis);
+
+    void showAddThresholdDialog();
+    void showEditThresholdDialog(int index);
 
     bool _autorescale = true;
     bool _legend_state = true;

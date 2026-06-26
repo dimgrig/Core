@@ -10,6 +10,35 @@
 #include <QLabel>
 #include <QPointer>
 
+// Сохранение ThresholdLine
+void ThresholdLine::saveSettings(QSettings& settings, int index) const {
+    settings.setValue(QString("value_%1").arg(index), value);
+    settings.setValue(QString("color_%1").arg(index), color);
+    settings.setValue(QString("style_%1").arg(index), static_cast<int>(style));
+    settings.setValue(QString("width_%1").arg(index), width);
+    settings.setValue(QString("text_%1").arg(index), text);
+    settings.setValue(QString("axisLabel_%1").arg(index), axis->label());
+}
+
+bool ThresholdLine::loadSettings(QSettings& settings, int index, const QList<QCPAxis*>& availableAxes) {
+    value = settings.value(QString("value_%1").arg(index)).toDouble();
+    color = settings.value(QString("color_%1").arg(index)).value<QColor>();
+    style = static_cast<Qt::PenStyle>(settings.value(QString("style_%1").arg(index), static_cast<int>(Qt::DashLine)).toInt());
+    width = settings.value(QString("width_%1").arg(index), 1).toInt();
+    text = settings.value(QString("text_%1").arg(index)).toString();
+    QString axisLabel = settings.value(QString("axisLabel_%1").arg(index)).toString();
+
+    // Ищем ось с такой меткой
+    axis = nullptr;
+    for (QCPAxis* ax : availableAxes) {
+        if (ax->label() == axisLabel) {
+            axis = ax;
+            break;
+        }
+    }
+    return axis != nullptr;
+}
+
 CustomPlotBase::CustomPlotBase(QWidget *parent) :
     QCustomPlot(parent)
 {
@@ -62,49 +91,15 @@ CustomPlotBase::CustomPlotBase(QWidget *parent) :
             connect(rightAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, updateStatsLambda);
         }
     }
+    {
+        connect(xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, &CustomPlotBase::updateThresholdLines);
+    }
 }
 
 CustomPlotBase::~CustomPlotBase() {
     _statsManager.reset();
     _cursorManager.reset();
 }
-
-// void CustomPlotBase::export_data(QTextStream &stream) {
-//     // Проверяем, является ли тикер оси X датой/временем
-//     bool isDateTime = dynamic_cast<QCPAxisTickerDateTime*>(this->xAxis->ticker().data()) != nullptr;
-
-//     QLocale locale;
-//     QStringList headers;
-//     headers << this->xAxis->label();
-//     for (QCPAxis *ax : _rightAxes) {
-//         headers << ax->label();
-//     }
-
-//     QString headers_row = headers.join(ELEMENTS_DELIMETER);
-//     headers_row += ROW_DELIMETER;
-//     stream << headers_row;
-//     for (int index = 0; index < this->graphCount(); ++index) {
-//         QString graphName = this->graph(index)->name();
-//         QString graphSU = this->graph(index);
-//         for (const auto &d : *this->graph(index)->data()) {
-//             QStringList sl;
-//             sl << graphName;
-//             sl << graphSU;
-
-//             if (isDateTime) {
-//                 sl << QDateTime::fromSecsSinceEpoch(d.key).toString(DATE_TIME_FORMAT_WITHOUT_MS);
-//             } else {
-//                 sl << locale.toString(d.key);
-//             }
-
-//             sl << locale.toString(d.value);
-
-//             QString row = sl.join(ELEMENTS_DELIMETER);
-//             row += ROW_DELIMETER;
-//             stream << row;
-//         }
-//     }
-// }
 
 void CustomPlotBase::export_data(QTextStream &stream) {
     bool isDateTime = dynamic_cast<QCPAxisTickerDateTime*>(xAxis->ticker().data()) != nullptr;
@@ -194,6 +189,134 @@ void CustomPlotBase::syncLegendVisibility() {
     if (axisRect()->insetLayout()) {
         axisRect()->insetLayout()->update(QCPLayoutElement::upLayout);
     }
+}
+
+void CustomPlotBase::addThresholdLine(QCPAxis* axis, double value,
+                                      const QColor& color, Qt::PenStyle style,
+                                      int width, const QString& text)
+{
+    ThresholdLine tl;
+    tl.axis = axis;
+    tl.value = value;
+    tl.color = color;
+    tl.style = style;
+    tl.width = width;
+    tl.text = text;
+
+    // Создаём линию
+    auto* line = new QCPItemStraightLine(this);
+    line->setPen(QPen(color, width, style));
+    line->point1->setCoords(xAxis->range().lower, value);
+    line->point2->setCoords(xAxis->range().upper, value);
+    line->point1->setAxes(xAxis, axis);
+    line->point2->setAxes(xAxis, axis);
+    line->setClipToAxisRect(true);
+    tl.line = line;
+
+    // Метка (если задан текст)
+    if (!text.isEmpty()) {
+        auto* textItem = new QCPItemText(this);
+        textItem->setText(text);
+        QCPRange yRange = axis->range();
+        double offset = (yRange.upper - yRange.lower) * 0.02;
+        if (qFuzzyIsNull(offset)) offset = 1.0;   // страховка при нулевом диапазоне
+        textItem->position->setCoords(xAxis->range().upper, value + offset);
+        textItem->position->setAxes(xAxis, axis);
+        textItem->setPositionAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        textItem->setPen(QPen(color));
+        textItem->setBrush(Qt::NoBrush);
+        textItem->setClipToAxisRect(false);
+        tl.label = textItem;
+    }
+
+    _thresholdLines.append(tl);
+    replot();
+    saveThresholdLines(); // сохраняем немедленно
+}
+
+void CustomPlotBase::removeThresholdLine(int index) {
+    if (index < 0 || index >= _thresholdLines.size()) return;
+    ThresholdLine& tl = _thresholdLines[index];
+    if (tl.line) {
+        removeItem(tl.line); // QCustomPlot::removeItem
+        // removeItem удаляет элемент и освобождает память
+    }
+    if (tl.label) removeItem(tl.label);
+    _thresholdLines.removeAt(index);
+    replot();
+    saveThresholdLines();
+}
+
+void CustomPlotBase::clearThresholdLines() {
+    while (!_thresholdLines.isEmpty())
+        removeThresholdLine(0);
+}
+
+void CustomPlotBase::updateThresholdLines() {
+    QCPRange xRange = xAxis->range();
+    for (ThresholdLine& tl : _thresholdLines) {
+        if (!tl.line) continue;
+        tl.line->point1->setCoords(xRange.lower, tl.value);
+        tl.line->point2->setCoords(xRange.upper, tl.value);
+        if (tl.label) {
+            QCPRange yRange = tl.axis->range();
+            double offset = (yRange.upper - yRange.lower) * 0.02;
+            if (qFuzzyIsNull(offset)) offset = 1.0;
+            tl.label->position->setCoords(xRange.upper, tl.value + offset);
+        }
+    }
+    replot(QCustomPlot::rpQueuedReplot);
+}
+
+void CustomPlotBase::saveThresholdLines() {
+    QSettings settings;
+    settings.beginGroup("ThresholdLines");
+    settings.beginWriteArray("lines");
+    for (int i = 0; i < _thresholdLines.size(); ++i) {
+        settings.setArrayIndex(i);
+        _thresholdLines[i].saveSettings(settings, i);
+    }
+    settings.endArray();
+    settings.endGroup();
+}
+
+void CustomPlotBase::loadThresholdLines(const QList<QCPAxis*>& availableAxes) {
+    clearThresholdLines();
+    QSettings settings;
+    settings.beginGroup("ThresholdLines");
+    int size = settings.beginReadArray("lines");
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        ThresholdLine tl;
+        if (tl.loadSettings(settings, i, availableAxes)) {
+            // Создаём графические элементы
+            auto* line = new QCPItemStraightLine(this);
+            line->setPen(QPen(tl.color, tl.width, tl.style));
+            line->point1->setCoords(xAxis->range().lower, tl.value);
+            line->point2->setCoords(xAxis->range().upper, tl.value);
+            line->point1->setAxes(xAxis, tl.axis);
+            line->point2->setAxes(xAxis, tl.axis);
+            line->setClipToAxisRect(true);
+            tl.line = line;
+
+            if (!tl.text.isEmpty()) {
+                auto* textItem = new QCPItemText(this);
+                textItem->setText(tl.text);
+                textItem->position->setCoords(xAxis->range().upper, tl.value);
+                textItem->position->setAxes(xAxis, tl.axis);
+                textItem->setPositionAlignment(Qt::AlignRight | Qt::AlignVCenter);
+                textItem->setPen(QPen(tl.color));
+                textItem->setBrush(Qt::NoBrush);
+                textItem->setClipToAxisRect(false);
+                tl.label = textItem;
+            }
+
+            _thresholdLines.append(tl);
+        }
+    }
+    settings.endArray();
+    settings.endGroup();
+    updateThresholdLines(); // установить правильные координаты
 }
 
 void CustomPlotBase::move_legend(int pos) {
@@ -420,6 +543,7 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         addGraphSpecificActions(menu);
 
         addAxisActions(menu);
+        addThresholdLinesActions(menu);
 
         if (selectedGraphs().size() == 1) {
             QCPGraph *selected = selectedGraphs().first();
@@ -588,6 +712,23 @@ void CustomPlotBase::addAxisActions(QMenu *menu) {
     }
 }
 
+void CustomPlotBase::addThresholdLinesActions(QMenu *menu) {
+    QMenu* thresholdMenu = menu->addMenu(tr("Пороги"));
+    thresholdMenu->addAction(tr("Добавить пороговую линию..."), this, &CustomPlotBase::showAddThresholdDialog);
+    if (!_thresholdLines.isEmpty()) {
+        thresholdMenu->addSeparator();
+        for (int i = 0; i < _thresholdLines.size(); ++i) {
+            QString desc = _thresholdLines[i].text.isEmpty()
+            ? QString("Y = %1").arg(_thresholdLines[i].value)
+            : _thresholdLines[i].text;
+            thresholdMenu->addAction(tr("Редактировать %1...").arg(desc),
+                                     this, [this, i]() { showEditThresholdDialog(i); });
+            thresholdMenu->addAction(tr("Удалить %1").arg(desc),
+                                     this, [this, i]() { removeThresholdLine(i); });
+        }
+    }
+}
+
 void CustomPlotBase::showAxisRangeDialog(QCPAxis* axis) {
     if (!axis) return;
 
@@ -691,4 +832,153 @@ void CustomPlotBase::showAxisRangeDialog(QCPAxis* axis) {
     mainLayout->addWidget(buttonBox);
 
     dlg.exec();
+}
+
+void CustomPlotBase::showAddThresholdDialog() {
+    // Сбор видимых осей Y
+    QList<QCPAxis*> yAxes;
+    yAxes << yAxis;
+    for (QCPAxis* ax : _rightAxes) {
+        if (ax->visible()) yAxes << ax;
+    }
+    if (yAxes.isEmpty()) return;
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Новая пороговая линия"));
+    QFormLayout* form = new QFormLayout(&dlg);
+
+    QComboBox* axisCombo = new QComboBox;
+    for (QCPAxis* ax : yAxes)
+        axisCombo->addItem(ax->label());
+    form->addRow(tr("Ось:"), axisCombo);
+
+    QDoubleSpinBox* valueSpin = new QDoubleSpinBox;
+    valueSpin->setRange(-1e9, 1e9);
+    valueSpin->setDecimals(4);
+    form->addRow(tr("Значение:"), valueSpin);
+
+    QPushButton* colorBtn = new QPushButton;
+    QColor color = Qt::red;
+    colorBtn->setStyleSheet(QString("background-color: %1").arg(color.name()));
+    form->addRow(tr("Цвет:"), colorBtn);
+    QObject::connect(colorBtn, &QPushButton::clicked, &dlg, [&color, colorBtn]() {
+        QColor newColor = QColorDialog::getColor(color, nullptr, tr("Цвет линии"));
+        if (newColor.isValid()) {
+            color = newColor;
+            colorBtn->setStyleSheet(QString("background-color: %1").arg(color.name()));
+        }
+    });
+
+    QComboBox* styleCombo = new QComboBox;
+    styleCombo->addItems({ tr("Сплошная"), tr("Пунктир"), tr("Тире"), tr("Штрих-пунктир") });
+    form->addRow(tr("Стиль:"), styleCombo);
+
+    QSpinBox* widthSpin = new QSpinBox;
+    widthSpin->setRange(1, 10);
+    widthSpin->setValue(1);
+    form->addRow(tr("Толщина:"), widthSpin);
+
+    // QLineEdit* textEdit = new QLineEdit;
+    // form->addRow(tr("Метка:"), textEdit);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    form->addRow(buttons);
+    QObject::connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        QCPAxis* axis = yAxes[axisCombo->currentIndex()];
+        QString axisName = axisCombo->currentText();
+        double value = valueSpin->value();
+        Qt::PenStyle style = static_cast<Qt::PenStyle>(Qt::SolidLine + styleCombo->currentIndex()); // простой маппинг
+        int width = widthSpin->value();
+        QString text = QString("%1 %2").arg(QLocale::system().toString(value, 'f', 3), axisName); //textEdit->text();
+        addThresholdLine(axis, value, color, style, width, text);
+    }
+}
+
+void CustomPlotBase::showEditThresholdDialog(int index) {
+    if (index < 0 || index >= _thresholdLines.size()) return;
+    ThresholdLine& tl = _thresholdLines[index];
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Редактировать пороговую линию"));
+    QFormLayout* form = new QFormLayout(&dlg);
+
+    // Ось (только просмотр)
+    QLineEdit* axisEdit = new QLineEdit(tl.axis->label());
+    axisEdit->setReadOnly(true);
+    form->addRow(tr("Ось:"), axisEdit);
+
+    QDoubleSpinBox* valueSpin = new QDoubleSpinBox;
+    valueSpin->setRange(-1e9, 1e9);
+    valueSpin->setDecimals(4);
+    valueSpin->setValue(tl.value);
+    form->addRow(tr("Значение:"), valueSpin);
+
+    QPushButton* colorBtn = new QPushButton;
+    QColor color = tl.color;
+    colorBtn->setStyleSheet(QString("background-color: %1").arg(color.name()));
+    form->addRow(tr("Цвет:"), colorBtn);
+    QObject::connect(colorBtn, &QPushButton::clicked, &dlg, [&color, colorBtn]() {
+        QColor newColor = QColorDialog::getColor(color, nullptr, tr("Цвет линии"));
+        if (newColor.isValid()) {
+            color = newColor;
+            colorBtn->setStyleSheet(QString("background-color: %1").arg(color.name()));
+        }
+    });
+
+    QComboBox* styleCombo = new QComboBox;
+    styleCombo->addItems({ tr("Сплошная"), tr("Пунктир"), tr("Тире"), tr("Штрих-пунктир") });
+    styleCombo->setCurrentIndex(tl.style - Qt::SolidLine);
+    form->addRow(tr("Стиль:"), styleCombo);
+
+    QSpinBox* widthSpin = new QSpinBox;
+    widthSpin->setRange(1, 10);
+    widthSpin->setValue(tl.width);
+    form->addRow(tr("Толщина:"), widthSpin);
+
+    // QLineEdit* textEdit = new QLineEdit(tl.text);
+    // form->addRow(tr("Метка:"), textEdit);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QPushButton* deleteBtn = buttons->addButton(tr("Удалить"), QDialogButtonBox::DestructiveRole);
+    form->addRow(buttons);
+    QObject::connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    QObject::connect(deleteBtn, &QPushButton::clicked, &dlg, [&]() {
+        removeThresholdLine(index);
+        dlg.reject();
+    });
+
+    if (dlg.exec() == QDialog::Accepted) {
+        tl.value = valueSpin->value();
+        tl.color = color;
+        tl.style = static_cast<Qt::PenStyle>(Qt::SolidLine + styleCombo->currentIndex());
+        tl.width = widthSpin->value();
+        tl.text = QString("%1 %2").arg(QLocale::system().toString(tl.value, 'f', 3), tl.axis->label()); //textEdit->text();
+
+        // Обновить графические элементы
+        if (tl.line) {
+            tl.line->setPen(QPen(tl.color, tl.width, tl.style));
+            // Обновим координаты сразу
+            QCPRange xRange = xAxis->range();
+            tl.line->point1->setCoords(xRange.lower, tl.value);
+            tl.line->point2->setCoords(xRange.upper, tl.value);
+        }
+        if (tl.label) {
+            tl.label->setText(tl.text);
+            if (tl.text.isEmpty())
+                tl.label->setVisible(false);
+            else
+                tl.label->setVisible(true);
+            QCPRange yRange = tl.axis->range();
+            double offset = (yRange.upper - yRange.lower) * 0.02;
+            if (qFuzzyIsNull(offset)) offset = 1.0;
+            tl.label->position->setCoords(xAxis->range().upper, tl.value + offset);
+            tl.label->setPen(QPen(tl.color));
+        }
+        replot();
+        saveThresholdLines();
+    }
 }
