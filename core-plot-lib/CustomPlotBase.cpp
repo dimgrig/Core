@@ -57,9 +57,11 @@ bool VerticalCursor::loadSettings(QSettings& settings, int index) {
     return true;
 }
 
-CustomPlotBase::CustomPlotBase(QWidget *parent) :
+CustomPlotBase::CustomPlotBase(const QString &objectName, QWidget *parent) :
     QCustomPlot(parent)
 {
+    this->setObjectName(objectName);
+
     this->setWindowFlags(Qt::Window);
 
     this->setMinimumSize(QSize(200, 200));
@@ -164,6 +166,7 @@ void CustomPlotBase::sync_selection() {
 
 void CustomPlotBase::saveAllSettings() {
     QSettings settings;
+    settings.beginGroup(this->objectName());
 
     // 1. Диапазон оси X
     settings.setValue("xAxis_lower", xAxis->range().lower);
@@ -205,10 +208,12 @@ void CustomPlotBase::saveAllSettings() {
     saveVerticalCursors();
 
     // Стили графиков сохраняются отдельно при изменении, здесь не дублируем.
+    settings.endGroup();
 }
 
 void CustomPlotBase::loadAllSettings() {
     QSettings settings;
+    settings.beginGroup(this->objectName());
 
     // 1. Автомасштаб и легенда
     _autorescale = settings.value("autoScale", true).toBool();
@@ -266,6 +271,8 @@ void CustomPlotBase::loadAllSettings() {
     loadVerticalCursors();
 
     // Стили графиков будут применены при создании каждого графика через applySavedStyle().
+    settings.endGroup();
+
     replot();
 }
 
@@ -397,6 +404,7 @@ void CustomPlotBase::updateThresholdLines() {
 
 void CustomPlotBase::saveThresholdLines() {
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("ThresholdLines");
     settings.beginWriteArray("lines");
     for (int i = 0; i < _thresholdLines.size(); ++i) {
@@ -405,11 +413,13 @@ void CustomPlotBase::saveThresholdLines() {
     }
     settings.endArray();
     settings.endGroup();
+    settings.endGroup();
 }
 
 void CustomPlotBase::loadThresholdLines(const QList<QCPAxis*>& availableAxes) {
     clearThresholdLines();
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("ThresholdLines");
     int size = settings.beginReadArray("lines");
     for (int i = 0; i < size; ++i) {
@@ -442,6 +452,7 @@ void CustomPlotBase::loadThresholdLines(const QList<QCPAxis*>& availableAxes) {
         }
     }
     settings.endArray();
+    settings.endGroup();
     settings.endGroup();
     updateThresholdLines(); // установить правильные координаты
 }
@@ -511,6 +522,7 @@ void CustomPlotBase::updateCursorLabels() {
 
 void CustomPlotBase::saveVerticalCursors() {
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("VerticalCursors");
     settings.beginWriteArray("cursors");
     for (int i = 0; i < _verticalCursors.size(); ++i) {
@@ -519,11 +531,13 @@ void CustomPlotBase::saveVerticalCursors() {
     }
     settings.endArray();
     settings.endGroup();
+    settings.endGroup();
 }
 
 void CustomPlotBase::loadVerticalCursors() {
     clearVerticalCursors();
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("VerticalCursors");
     int size = settings.beginReadArray("cursors");
     for (int i = 0; i < size; ++i) {
@@ -554,6 +568,7 @@ void CustomPlotBase::loadVerticalCursors() {
         }
     }
     settings.endArray();
+    settings.endGroup();
     settings.endGroup();
 }
 
@@ -883,16 +898,19 @@ void CustomPlotBase::applySavedStyle(QCPGraph* graph, const QString& styleKey) {
 
 void CustomPlotBase::saveStyle(const QString& styleKey, const GraphStyle& style) {
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("GraphStyles");
     settings.setValue(styleKey + "_color", style.color);
     settings.setValue(styleKey + "_width", style.width);
     settings.setValue(styleKey + "_lineStyle", (int)style.lineStyle);
     settings.setValue(styleKey + "_penStyle", (int)style.penStyle);
     settings.endGroup();
+    settings.endGroup();
 }
 
 GraphStyle CustomPlotBase::loadStyle(const QString& styleKey, int colorIndex) const {
     QSettings settings;
+    settings.beginGroup(this->objectName());
     settings.beginGroup("GraphStyles");
     GraphStyle style;
     style.color = settings.value(styleKey + "_color", defaultGraphColor(colorIndex)).value<QColor>();
@@ -903,6 +921,7 @@ GraphStyle CustomPlotBase::loadStyle(const QString& styleKey, int colorIndex) co
     style.penStyle = static_cast<Qt::PenStyle>(
         settings.value(styleKey + "_penStyle", (int)defaultGraphPenStyle()).toInt()
         );
+    settings.endGroup();
     settings.endGroup();
     return style;
 }

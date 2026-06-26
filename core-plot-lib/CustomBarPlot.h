@@ -8,7 +8,7 @@
 class CORE_PLOT_LIB_EXPORT CustomBarPlot : public CustomPlotBase {
 Q_OBJECT
 public:
-    explicit CustomBarPlot(QWidget *parent = nullptr, CustomPlotOrientation orientation = OrientationHorizontal, size_t bar_number = 1, bool text_x_ticker = true);
+    explicit CustomBarPlot(const QString &objectName, QWidget *parent = nullptr, CustomPlotOrientation orientation = OrientationHorizontal, size_t bar_number = 1, bool text_x_ticker = true);
     ~CustomBarPlot() override;
 
     void export_data(QTextStream &stream) override;

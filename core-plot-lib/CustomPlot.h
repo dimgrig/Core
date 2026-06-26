@@ -16,7 +16,7 @@
 class CORE_PLOT_LIB_EXPORT CustomPlot : public CustomPlotBase {
 Q_OBJECT
 public:
-    explicit CustomPlot(QWidget *parent = nullptr, CustomPlotOrientation orientation = OrientationHorizontal, size_t graph_number = 1, size_t _axis_tag_number = 2);
+    explicit CustomPlot(const QString &objectName, QWidget *parent = nullptr, CustomPlotOrientation orientation = OrientationHorizontal, size_t graph_number = 1, size_t _axis_tag_number = 2);
     ~CustomPlot() override;
 public slots:
     void set_labels(const QString& yAxisLabel, const QString& xAxisLabel, size_t index = 0);

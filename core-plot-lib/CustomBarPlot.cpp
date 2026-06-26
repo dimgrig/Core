@@ -3,8 +3,8 @@
 #include "CoreConfig.h"
 #include "Logger.h"
 
-CustomBarPlot::CustomBarPlot(QWidget *parent, CustomPlotOrientation orientation, size_t bar_number, bool text_x_ticker) :
-        CustomPlotBase(parent),
+CustomBarPlot::CustomBarPlot(const QString &objectName, QWidget *parent, CustomPlotOrientation orientation, size_t bar_number, bool text_x_ticker) :
+        CustomPlotBase(objectName, parent),
         _orientation(orientation),
         _bar_number(bar_number),
         _text_x_ticker(text_x_ticker)

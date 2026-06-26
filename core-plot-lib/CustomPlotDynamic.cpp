@@ -7,8 +7,8 @@
 #include "CoreConfig.h"
 #include "Logger.h"
 
-CustomPlotDynamic::CustomPlotDynamic(QWidget *parent, CustomPlotOrientation orientation)
-    : CustomPlotBase(parent)
+CustomPlotDynamic::CustomPlotDynamic(const QString &objectName, QWidget *parent, CustomPlotOrientation orientation)
+    : CustomPlotBase(objectName, parent)
 {
     setObjectName("CustomPlotDynamic");
     setupUi();

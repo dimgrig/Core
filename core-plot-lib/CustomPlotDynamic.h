@@ -16,7 +16,7 @@ class CustomAxisTag; // forward
 class CORE_PLOT_LIB_EXPORT CustomPlotDynamic : public CustomPlotBase {
     Q_OBJECT
 public:
-    explicit CustomPlotDynamic(QWidget *parent = nullptr,
+    explicit CustomPlotDynamic(const QString &objectName, QWidget *parent = nullptr,
                                CustomPlotOrientation orientation = OrientationHorizontal);
     ~CustomPlotDynamic() override;
 

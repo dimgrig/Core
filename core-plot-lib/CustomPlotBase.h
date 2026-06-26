@@ -77,7 +77,7 @@ struct VerticalCursor {
 class CORE_PLOT_LIB_EXPORT CustomPlotBase : public QCustomPlot {
 Q_OBJECT
 public:
-    explicit CustomPlotBase(QWidget *parent = nullptr);
+    explicit CustomPlotBase(const QString &objectName, QWidget *parent = nullptr);
     ~CustomPlotBase() override;
 
     enum CustomPlotOrientation {

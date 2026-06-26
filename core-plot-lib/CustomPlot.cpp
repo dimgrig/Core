@@ -7,8 +7,8 @@
 #include "Profiler.h"
 #include "templates.h"
 
-CustomPlot::CustomPlot(QWidget *parent, CustomPlotOrientation orientation, size_t graph_number, size_t axis_tag_number) :
-        CustomPlotBase(parent),
+CustomPlot::CustomPlot(const QString &objectName, QWidget *parent, CustomPlotOrientation orientation, size_t graph_number, size_t axis_tag_number) :
+        CustomPlotBase(objectName, parent),
         _orientation(orientation),
         _graph_number(graph_number),
         _axis_tag_number(axis_tag_number)
