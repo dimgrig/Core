@@ -136,8 +136,11 @@ void CustomPlot::form_charts() {
 //    connect(this->yAxis, SIGNAL(rangeChanged(QCPRange)), this->yAxis2, SLOT(setRange(QCPRange))); // left axis only mirrors inner right axis
 
     for (size_t i = 0; i < _graph_number; ++i) {
-        this->add_graph(i);
+        // Генерируем уникальный ключ для каждого графика по его индексу
+        QString styleKey = QString("graph_%1").arg(i);
+        this->add_graph(i, styleKey, i);   // colorIndex = i
     }
+
 
     // give the axes some labels:
     this->xAxis->setLabel("Sample");
@@ -180,23 +183,6 @@ void CustomPlot::add_graph(size_t index, const QString& styleKey, int colorIndex
         graph->setProperty("colorIndex", colorIndex);
         applySavedStyle(graph, styleKey);   // загружает из QSettings и применяет поверх
     }
-
-    // QString PEN_COLOR = G_COLOR;
-    // QString SELECTION_PEN_COLOR = DG_COLOR;
-    // if (index < PEN_COLOR_v.size()) {
-    //     PEN_COLOR = PEN_COLOR_v.at(index);
-    //     SELECTION_PEN_COLOR = SELECTION_PEN_COLOR_v.at(index);
-    // }
-    // // if (index < graph_v.size()) {
-    // //     graph_v.at(index)->setName(graph_names.at(index));
-    // //     graph_v.at(index)->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
-    // //     graph_v.at(index)->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
-    // //     graph_v.at(index)->setLineStyle(QCPGraph::lsLine);
-    // //     graph_en.push_back(std::make_pair(graph_names.at(index), true));
-    // // }
-    // graph_v.back()->setPen(QPen((QColor)PEN_COLOR, this->get_width()));
-    // graph_v.back()->selectionDecorator()->setPen(QPen((QColor)SELECTION_PEN_COLOR, 1));
-    // graph_v.back()->setLineStyle(QCPGraph::lsLine);
 }
 
 void CustomPlot::remove_selected_graph()

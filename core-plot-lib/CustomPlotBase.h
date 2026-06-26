@@ -98,7 +98,8 @@ public:
     bool get_legend_state() const {return this->_legend_state;}
     void set_legend_state(bool state);
 
-    int get_width() const {return _width;}
+    void set_width(int width) {this->_width = width;}
+    int get_width() const {return this->_width;}
 
     void setCursorMode(CursorManager::Mode mode);
     CursorManager::Mode cursorMode() const;
@@ -146,10 +147,10 @@ protected slots:
     void contextMenuRequested(QPoint pos);
 
     // Статические умолчания
-    static QColor defaultGraphColor(int index);
-    static int defaultGraphWidth() { return 1; }
-    static Qt::PenStyle defaultGraphPenStyle() { return Qt::PenStyle::SolidLine; }
-    static QCPGraph::LineStyle defaultGraphLineStyle() { return QCPGraph::LineStyle::lsLine; }
+    QColor defaultGraphColor(int index) const;
+    int defaultGraphWidth() const { return this->get_width(); }
+    Qt::PenStyle defaultGraphPenStyle() const { return Qt::PenStyle::SolidLine; }
+    QCPGraph::LineStyle defaultGraphLineStyle() const { return QCPGraph::LineStyle::lsLine; }
 
     // Применить стиль (без сохранения)
     void applyGraphStyle(QCPGraph* graph, const GraphStyle& style);
@@ -178,6 +179,8 @@ protected:
     QList<QCPAxis*> _rightAxes;
     QList<ThresholdLine> _thresholdLines;
     QList<VerticalCursor> _verticalCursors;
+
+    int _width = 1;
 private:
     virtual void addGraphSpecificActions(QMenu *menu) {Q_UNUSED(menu)}
     void addScaleActions(QMenu *menu);
@@ -196,8 +199,6 @@ private:
     bool _autorescale = true;
     bool _legend_state = true;
     bool _zoomRectMode = false;
-
-    int _width = 1;
 };
 
 #endif // CUSTOMPLOTBASE_H

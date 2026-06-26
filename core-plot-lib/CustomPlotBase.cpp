@@ -116,9 +116,12 @@ CustomPlotBase::CustomPlotBase(const QString &objectName, QWidget *parent) :
     {
         connect(xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, &CustomPlotBase::updateThresholdLines);
     }
+
+    this->loadAllSettings();
 }
 
 CustomPlotBase::~CustomPlotBase() {
+    saveAllSettings(); //before reset managers
     _statsManager.reset();
     _cursorManager.reset();
 }
@@ -876,7 +879,7 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
     menu->popup(mapToGlobal(pos));
 }
 
-QColor CustomPlotBase::defaultGraphColor(int index) {
+QColor CustomPlotBase::defaultGraphColor(int index) const {
     return (index < PEN_COLOR_EXT_v.size()) ? QColor(PEN_COLOR_EXT_v[index])
                                         : QColor::fromHsv(index * 50 % 360, 255, 200);
 }
@@ -1211,8 +1214,9 @@ void CustomPlotBase::showAddThresholdDialog() {
     widthSpin->setValue(1);
     form->addRow(tr("Толщина:"), widthSpin);
 
-    // QLineEdit* textEdit = new QLineEdit;
-    // form->addRow(tr("Метка:"), textEdit);
+    QLineEdit* textEdit = new QLineEdit;
+    form->addRow(tr("Метка:"), textEdit);
+    textEdit->setText(QString("%1 %2").arg(QLocale::system().toString(valueSpin->value(), 'f', 3), axisCombo->currentText()));
 
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     form->addRow(buttons);
@@ -1221,11 +1225,10 @@ void CustomPlotBase::showAddThresholdDialog() {
 
     if (dlg.exec() == QDialog::Accepted) {
         QCPAxis* axis = yAxes[axisCombo->currentIndex()];
-        QString axisName = axisCombo->currentText();
         double value = valueSpin->value();
         Qt::PenStyle style = static_cast<Qt::PenStyle>(Qt::SolidLine + styleCombo->currentIndex()); // простой маппинг
         int width = widthSpin->value();
-        QString text = QString("%1 %2").arg(QLocale::system().toString(value, 'f', 3), axisName); //textEdit->text();
+        QString text = textEdit->text();
         addThresholdLine(axis, value, color, style, width, text);
     }
 }
@@ -1271,8 +1274,8 @@ void CustomPlotBase::showEditThresholdDialog(int index) {
     widthSpin->setValue(tl.width);
     form->addRow(tr("Толщина:"), widthSpin);
 
-    // QLineEdit* textEdit = new QLineEdit(tl.text);
-    // form->addRow(tr("Метка:"), textEdit);
+    QLineEdit* textEdit = new QLineEdit(tl.text);
+    form->addRow(tr("Метка:"), textEdit);
 
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     QPushButton* deleteBtn = buttons->addButton(tr("Удалить"), QDialogButtonBox::DestructiveRole);
@@ -1289,7 +1292,7 @@ void CustomPlotBase::showEditThresholdDialog(int index) {
         tl.color = color;
         tl.style = static_cast<Qt::PenStyle>(Qt::SolidLine + styleCombo->currentIndex());
         tl.width = widthSpin->value();
-        tl.text = QString("%1 %2").arg(QLocale::system().toString(tl.value, 'f', 3), tl.axis->label()); //textEdit->text();
+        tl.text = textEdit->text();
 
         // Обновить графические элементы
         if (tl.line) {
