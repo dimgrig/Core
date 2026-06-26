@@ -74,6 +74,9 @@ public:
     virtual void export_data(QTextStream &stream);
     virtual void sync_selection();
 
+    void saveAllSettings();
+    void loadAllSettings();
+
     bool get_autorescale() const {return this->_autorescale;}
     void set_autorescale(bool autorescale) {this->_autorescale = autorescale;}
 

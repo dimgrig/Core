@@ -142,6 +142,107 @@ void CustomPlotBase::sync_selection() {
     }
 }
 
+void CustomPlotBase::saveAllSettings() {
+    QSettings settings;
+
+    // 1. Диапазон оси X
+    settings.setValue("xAxis_lower", xAxis->range().lower);
+    settings.setValue("xAxis_upper", xAxis->range().upper);
+
+    // 2. Диапазон левой оси Y
+    settings.setValue("yAxis_lower", yAxis->range().lower);
+    settings.setValue("yAxis_upper", yAxis->range().upper);
+
+    // 3. Диапазоны правых осей (ключ – метка оси, она же единица измерения)
+    for (QCPAxis* ax : _rightAxes) {
+        if (!ax->visible()) continue; // сохраняем только видимые
+        QString key = QString("rightAxis_%1").arg(ax->label());
+        settings.setValue(key + "_lower", ax->range().lower);
+        settings.setValue(key + "_upper", ax->range().upper);
+    }
+
+    // 4. Состояние автомасштаба и легенды
+    settings.setValue("autoScale", _autorescale);
+    settings.setValue("legendVisible", _legend_state);
+
+    // 5. Позиция легенды
+    if (axisRect()->insetLayout()->elementCount() > 0) {
+        Qt::Alignment align = axisRect()->insetLayout()->insetAlignment(0);
+        settings.setValue("legendAlignment", (int)align);
+    }
+
+    // 6. Режим курсора
+    settings.setValue("cursorMode", (int)_cursorManager->mode());
+
+    // 7. Статистика
+    settings.setValue("statsVisible", _statsManager->isVisible());
+    settings.setValue("statsOnlyVisibleRange", _statsManager->showOnlyVisibleRange());
+
+    // 8. Пороговые линии
+    saveThresholdLines();
+
+    // 9. Стили графиков сохраняются отдельно при изменении, здесь не дублируем.
+}
+
+void CustomPlotBase::loadAllSettings() {
+    QSettings settings;
+
+    // 1. Автомасштаб и легенда
+    _autorescale = settings.value("autoScale", true).toBool();
+    _legend_state = settings.value("legendVisible", true).toBool();
+    legend->setVisible(_legend_state);
+    if (axisRect()->insetLayout()->elementCount() > 0) {
+        Qt::Alignment align = (Qt::Alignment)settings.value("legendAlignment",
+                                                             (int)(Qt::AlignBottom | Qt::AlignRight)).toInt();
+        axisRect()->insetLayout()->setInsetAlignment(0, align);
+    }
+
+    // 2. Диапазон оси X
+    if (!_autorescale) {
+        double xLower = settings.value("xAxis_lower", xAxis->range().lower).toDouble();
+        double xUpper = settings.value("xAxis_upper", xAxis->range().upper).toDouble();
+        if (xLower < xUpper)
+            xAxis->setRange(xLower, xUpper);
+    }
+
+    // 3. Левая ось Y
+    if (!_autorescale) {
+        double yLower = settings.value("yAxis_lower", yAxis->range().lower).toDouble();
+        double yUpper = settings.value("yAxis_upper", yAxis->range().upper).toDouble();
+        if (yLower < yUpper)
+            yAxis->setRange(yLower, yUpper);
+    }
+
+    // 4. Правые оси (восстанавливаем, только если автомасштаб выключен)
+    if (!_autorescale) {
+        for (QCPAxis* ax : _rightAxes) {
+            if (!ax->visible()) continue;
+            QString key = QString("rightAxis_%1").arg(ax->label());
+            double lower = settings.value(key + "_lower", ax->range().lower).toDouble();
+            double upper = settings.value(key + "_upper", ax->range().upper).toDouble();
+            if (lower < upper)
+                ax->setRange(lower, upper);
+        }
+    }
+
+    // 5. Режим курсора
+    _cursorManager->setMode((CursorManager::Mode)settings.value("cursorMode",
+                                                                 (int)CursorManager::Mode::NoCursor).toInt());
+
+    // 6. Статистика
+    _statsManager->setVisible(settings.value("statsVisible", false).toBool());
+    _statsManager->setShowOnlyVisibleRange(settings.value("statsOnlyVisibleRange", true).toBool());
+
+    // 7. Пороговые линии
+    QList<QCPAxis*> availableAxes;
+    availableAxes << yAxis;
+    for (QCPAxis* ax : _rightAxes) availableAxes << ax;
+    loadThresholdLines(availableAxes);
+
+    // 8. Стили графиков будут применены при создании каждого графика через applySavedStyle().
+    replot();
+}
+
 void CustomPlotBase::setCursorMode(CursorManager::Mode mode) {
     _cursorManager->setMode(mode);
 }
