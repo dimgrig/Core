@@ -116,6 +116,7 @@ private slots:
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
     std::unique_ptr<CursorManager> _cursorManager;
     std::unique_ptr<StatsManager> _statsManager;
@@ -123,8 +124,9 @@ protected:
     QList<QCPAxis*> _rightAxes;   // все правые оси (включая активную)
 private:
     virtual void addGraphSpecificActions(QMenu *menu) {Q_UNUSED(menu)}
+    void addAxisActions(QMenu *menu);
 
-    void mousePressEvent(QMouseEvent *event) override;
+    void showAxisRangeDialog(QCPAxis* axis);
 
     bool _autorescale = true;
     bool _legend_state = true;

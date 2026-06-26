@@ -1,5 +1,15 @@
 #include "CustomPlotBase.h"
 
+#include <QDialog>
+#include <QCheckBox>
+#include <QDialogButtonBox>
+#include <QDateTimeEdit>
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QPointer>
+
 CustomPlotBase::CustomPlotBase(QWidget *parent) :
     QCustomPlot(parent)
 {
@@ -409,6 +419,8 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         // Специфические для наследников пункты
         addGraphSpecificActions(menu);
 
+        addAxisActions(menu);
+
         if (selectedGraphs().size() == 1) {
             QCPGraph *selected = selectedGraphs().first();
             menu->addAction(tr("Настроить стиль графика..."), this, [this, selected]() {
@@ -548,4 +560,135 @@ void CustomPlotBase::showStyleDialog(QCPGraph* graph) {
     GraphStyle newStyle { newColor, newWidth, this->defaultGraphLineStyle(), penStyles[idx] };
     applyGraphStyle(graph, newStyle);
     saveStyle(key, newStyle);
+}
+
+void CustomPlotBase::addAxisActions(QMenu *menu) {
+    // Сбор всех видимых осей
+    QList<QCPAxis*> visibleAxes;
+    visibleAxes << xAxis << yAxis;
+    for (QCPAxis* ax : _rightAxes) {
+        if (ax->visible())
+            visibleAxes << ax;
+    }
+
+    if (!visibleAxes.isEmpty()) {
+        QMenu* axisMenu = menu->addMenu(tr("Оси"));
+        for (QCPAxis* ax : visibleAxes) {
+            QString label;
+            if (ax == xAxis)
+                label = tr("Ось X (%1)").arg(ax->label());
+            else if (ax == yAxis)
+                label = tr("Ось Y (%1)").arg(ax->label());
+            else
+                label = tr("Правая ось (%1)").arg(ax->label());
+            axisMenu->addAction(label, this, [this, ax]() {
+                showAxisRangeDialog(ax);
+            });
+        }
+    }
+}
+
+void CustomPlotBase::showAxisRangeDialog(QCPAxis* axis) {
+    if (!axis) return;
+
+    bool isTimeAxis = dynamic_cast<QCPAxisTickerDateTime*>(axis->ticker().data()) != nullptr;
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Диапазон оси"));
+    QVBoxLayout* mainLayout = new QVBoxLayout(&dlg);
+
+    QCheckBox* autoCheck = new QCheckBox(tr("Автомасштаб"));
+    mainLayout->addWidget(autoCheck);
+
+    QWidget* rangeWidget = new QWidget;
+    QHBoxLayout* rangeLayout = new QHBoxLayout(rangeWidget);
+    rangeLayout->setContentsMargins(0,0,0,0);
+    mainLayout->addWidget(rangeWidget);
+
+    // Переменные для захвата в лямбды
+    QPointer<QDateTimeEdit> minTimeEdit, maxTimeEdit;
+    QPointer<QDoubleSpinBox> minSpin, maxSpin;
+
+    if (isTimeAxis) {
+        minTimeEdit = new QDateTimeEdit;
+        maxTimeEdit = new QDateTimeEdit;
+        minTimeEdit->setDisplayFormat(DATE_TIME_FORMAT_WITHOUT_MS);
+        maxTimeEdit->setDisplayFormat(DATE_TIME_FORMAT_WITHOUT_MS);
+        minTimeEdit->setCalendarPopup(true);
+        maxTimeEdit->setCalendarPopup(true);
+
+        rangeLayout->addWidget(new QLabel(tr("От:")));
+        rangeLayout->addWidget(minTimeEdit);
+        rangeLayout->addWidget(new QLabel(tr("До:")));
+        rangeLayout->addWidget(maxTimeEdit);
+
+        // Текущий диапазон
+        QCPRange range = axis->range();
+        minTimeEdit->setDateTime(QDateTime::fromSecsSinceEpoch(range.lower));
+        maxTimeEdit->setDateTime(QDateTime::fromSecsSinceEpoch(range.upper));
+
+        auto applyFunc = [this, axis, autoCheck, minTimeEdit, maxTimeEdit, &dlg]() {
+            if (autoCheck->isChecked()) {
+                set_autorescale(true);
+                axis->rescale();
+            } else {
+                set_autorescale(false);
+                qint64 lower = minTimeEdit->dateTime().toSecsSinceEpoch();
+                qint64 upper = maxTimeEdit->dateTime().toSecsSinceEpoch();
+                if (lower < upper)
+                    axis->setRange(lower, upper);
+            }
+            replot();
+        };
+
+        QObject::connect(autoCheck, &QCheckBox::toggled, rangeWidget, [rangeWidget](bool checked) {
+            rangeWidget->setEnabled(!checked); // при авто поля ввода недоступны
+        });
+        QObject::connect(&dlg, &QDialog::accepted, applyFunc);
+    } else {
+        minSpin = new QDoubleSpinBox;
+        maxSpin = new QDoubleSpinBox;
+        minSpin->setRange(-1e9, 1e9);
+        maxSpin->setRange(-1e9, 1e9);
+        minSpin->setDecimals(6);
+        maxSpin->setDecimals(6);
+
+        rangeLayout->addWidget(new QLabel(tr("От:")));
+        rangeLayout->addWidget(minSpin);
+        rangeLayout->addWidget(new QLabel(tr("До:")));
+        rangeLayout->addWidget(maxSpin);
+
+        QCPRange range = axis->range();
+        minSpin->setValue(range.lower);
+        maxSpin->setValue(range.upper);
+
+        auto applyFunc = [this, axis, autoCheck, minSpin, maxSpin, &dlg]() {
+            if (autoCheck->isChecked()) {
+                set_autorescale(true);
+                axis->rescale();
+            } else {
+                set_autorescale(false);
+                double lower = minSpin->value();
+                double upper = maxSpin->value();
+                if (lower < upper)
+                    axis->setRange(lower, upper);
+            }
+            replot();
+        };
+
+        QObject::connect(autoCheck, &QCheckBox::toggled, rangeWidget, [rangeWidget](bool checked) {
+            rangeWidget->setEnabled(!checked);
+        });
+        QObject::connect(&dlg, &QDialog::accepted, applyFunc);
+    }
+
+    autoCheck->setChecked(_autorescale);
+    rangeWidget->setEnabled(!_autorescale);
+
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    mainLayout->addWidget(buttonBox);
+
+    dlg.exec();
 }
