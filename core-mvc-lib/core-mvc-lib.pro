@@ -103,6 +103,7 @@ HEADERS += \
     DateTimeUTCDelegate.h \
     DoubleSpinBoxDelegate.h \
     EditBar.h \
+    EnumFilterWidget.h \
     FilterHeader.h \
     LineEditDelegate.h \
     ListEditDelegate.h \
@@ -132,6 +133,7 @@ SOURCES += \
     DateTimeUTCDelegate.cpp \
     DoubleSpinBoxDelegate.cpp \
     EditBar.cpp \
+    EnumFilterWidget.cpp \
     FilterHeader.cpp \
     LineEditDelegate.cpp \
     ListEditDelegate.cpp \
