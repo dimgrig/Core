@@ -63,31 +63,33 @@ QString ModbusSettingsConverter::modbus_state_to_str(int state) {
     return state_str;
 }
 
-ModbusSettings ModbusSettingsConverter::modbus_settings_from_str(QString data) {
+ModbusSettings ModbusSettingsConverter::modbus_settings_from_str(QString data, bool exclude_state) {
     ModbusSettings modbus_settings;
     QJsonDocument document = QJsonDocument::fromJson(data.toUtf8());
     if (!document.isNull()) {
         if (document.isObject()) {
             QJsonObject modbus_settings_object = document.object();
-            modbus_settings.MODBUS_ENABLE = modbus_settings_object["MODBUS_ENABLE"].toBool();
-            modbus_settings.MODBUS_POLL_TIMER = modbus_settings_object["MODBUS_POLL_TIMER"].toInt();
-            modbus_settings.MODBUS_ADDRESS = modbus_settings_object["MODBUS_ADDRESS"].toInt();
-            modbus_settings.MODBUS_TYPE = modbus_settings_object["MODBUS_TYPE"].toString();
-            modbus_settings.MODBUS_IP = modbus_settings_object["MODBUS_IP"].toString();
-            modbus_settings.MODBUS_PORT = modbus_settings_object["MODBUS_PORT"].toInt();
-            modbus_settings.MODBUS_SERIAL_PORT = modbus_settings_object["MODBUS_SERIAL_PORT"].toString();
-            modbus_settings.MODBUS_BAUDRATE = modbus_settings_object["MODBUS_BAUDRATE"].toInt();
-            modbus_settings.MODBUS_DATA_BITS = modbus_settings_object["MODBUS_DATA_BITS"].toInt();
-            modbus_settings.MODBUS_STOP_BITS = modbus_settings_object["MODBUS_STOP_BITS"].toInt();
-            modbus_settings.MODBUS_PARITY = modbus_settings_object["MODBUS_PARITY"].toString();
-            modbus_settings.MODBUS_STATE = modbus_settings_object["MODBUS_STATE"].toString();
-            modbus_settings.MODBUS_FORMAT = modbus_settings_object["MODBUS_FORMAT"].toString();
+            modbus_settings.MODBUS_ENABLE = modbus_settings_object["MODBUS_ENABLE"].toBool(modbus_settings.MODBUS_ENABLE);
+            modbus_settings.MODBUS_POLL_TIMER = modbus_settings_object["MODBUS_POLL_TIMER"].toInt(modbus_settings.MODBUS_POLL_TIMER);
+            modbus_settings.MODBUS_ADDRESS = modbus_settings_object["MODBUS_ADDRESS"].toInt(modbus_settings.MODBUS_ADDRESS);
+            modbus_settings.MODBUS_TYPE = modbus_settings_object["MODBUS_TYPE"].toString(modbus_settings.MODBUS_TYPE);
+            modbus_settings.MODBUS_IP = modbus_settings_object["MODBUS_IP"].toString(modbus_settings.MODBUS_IP);
+            modbus_settings.MODBUS_PORT = modbus_settings_object["MODBUS_PORT"].toInt(modbus_settings.MODBUS_PORT);
+            modbus_settings.MODBUS_SERIAL_PORT = modbus_settings_object["MODBUS_SERIAL_PORT"].toString(modbus_settings.MODBUS_SERIAL_PORT);
+            modbus_settings.MODBUS_BAUDRATE = modbus_settings_object["MODBUS_BAUDRATE"].toInt(modbus_settings.MODBUS_BAUDRATE);
+            modbus_settings.MODBUS_DATA_BITS = modbus_settings_object["MODBUS_DATA_BITS"].toInt(modbus_settings.MODBUS_DATA_BITS);
+            modbus_settings.MODBUS_STOP_BITS = modbus_settings_object["MODBUS_STOP_BITS"].toInt(modbus_settings.MODBUS_STOP_BITS);
+            modbus_settings.MODBUS_PARITY = modbus_settings_object["MODBUS_PARITY"].toString(modbus_settings.MODBUS_PARITY);
+            if (!exclude_state) {
+                modbus_settings.MODBUS_STATE = modbus_settings_object["MODBUS_STATE"].toString(modbus_settings.MODBUS_STATE);
+            }
+            modbus_settings.MODBUS_FORMAT = modbus_settings_object["MODBUS_FORMAT"].toString(modbus_settings.MODBUS_FORMAT);
         }
     }
     return modbus_settings;
 }
 
-QString ModbusSettingsConverter::modbus_settings_to_str(const ModbusSettings&  modbus_settings) {
+QString ModbusSettingsConverter::modbus_settings_to_str(const ModbusSettings&  modbus_settings, bool exclude_state) {
     QJsonObject modbus_settings_object;
 
     modbus_settings_object.insert("MODBUS_ENABLE", QJsonValue(modbus_settings.MODBUS_ENABLE));
@@ -101,7 +103,9 @@ QString ModbusSettingsConverter::modbus_settings_to_str(const ModbusSettings&  m
     modbus_settings_object.insert("MODBUS_DATA_BITS", QJsonValue(modbus_settings.MODBUS_DATA_BITS));
     modbus_settings_object.insert("MODBUS_STOP_BITS", QJsonValue(modbus_settings.MODBUS_STOP_BITS));
     modbus_settings_object.insert("MODBUS_PARITY", QJsonValue(modbus_settings.MODBUS_PARITY));
-    modbus_settings_object.insert("MODBUS_STATE", QJsonValue(modbus_settings.MODBUS_STATE));
+    if (!exclude_state) {
+        modbus_settings_object.insert("MODBUS_STATE", QJsonValue(modbus_settings.MODBUS_STATE));
+    }
     modbus_settings_object.insert("MODBUS_FORMAT", QJsonValue(modbus_settings.MODBUS_FORMAT));
 
     QJsonDocument document(modbus_settings_object);
@@ -223,26 +227,8 @@ int ModbusSettingsUI::get_poll_timer() const {
 }
 
 void ModbusSettingsUI::onModbusStateChanged(int state) {
-    QString state_str;
-    switch (state) {
-    case QModbusDevice::UnconnectedState:
-        state_str = "Отключено";
-        break;
-    case QModbusDevice::ConnectingState:
-        state_str = "Подключение";
-        break;
-    case QModbusDevice::ConnectedState:
-        state_str = "Подключено";
-        break;
-    case QModbusDevice::ClosingState:
-        state_str = "Отключение";
-        break;
-    }
-
-    this->ui->le_state->setText(state_str);
-    //qCDebug(logDebug()) << modbusDevice->state();
+    this->ui->le_state->setText(ModbusSettingsConverter::modbus_state_to_str(state));
 }
-
 
 void ModbusSettingsUI::initializeComboboxes() {
     this->ui->cb_connect_type->addItems(ConnectionType_sl);

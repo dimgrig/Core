@@ -24,7 +24,7 @@ void LogLevelDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     QColor bgColor;
     switch (level) {
     case LOG_LEV::DEBUG:
-        bgColor = LG_COLOR;
+        bgColor = LGRAY_COLOR;
         break;
     case LOG_LEV::INFO:
         bgColor = LG_COLOR;

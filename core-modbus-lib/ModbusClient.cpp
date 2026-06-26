@@ -520,8 +520,8 @@ void ModbusClient::scheduleReconnect() {
         if (!isSerialPortAvailable(portName)) {
             // Если порта нет, увеличиваем интервал переподключения
             int delay = 5000; // 5 секунд для Serial, когда порта нет
-            if (auto* j = JournalAccess::journal())
-                j->debug(Category::Modbus, QString("Последовательный порт %1 недоступен, повтор через %2 мс").arg(portName).arg(delay));
+//            if (auto* j = JournalAccess::journal())
+//                j->debug(Category::Modbus, QString("Последовательный порт %1 недоступен, повтор через %2 мс").arg(portName).arg(delay));
             _reconnectTimer->start(delay);
             return;
         }

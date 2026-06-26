@@ -19,7 +19,7 @@ struct ModbusSettings {
     int MODBUS_DATA_BITS = 8;
     int MODBUS_STOP_BITS = 1;
     QString MODBUS_PARITY = "NoParity";
-    QString MODBUS_STATE = "";
+    QString MODBUS_STATE = "Подключение";
     QString MODBUS_FORMAT = "ABCD";
 };
 
@@ -31,8 +31,8 @@ public:
     static int modbus_state_from_str(QString state_str);
     static QString modbus_state_to_str(int state);
 
-    static ModbusSettings modbus_settings_from_str(QString data);
-    static QString modbus_settings_to_str(const ModbusSettings&  modbus_settings);
+    static ModbusSettings modbus_settings_from_str(QString data, bool exclude_state = false);
+    static QString modbus_settings_to_str(const ModbusSettings&  modbus_settings, bool exclude_state = false);
 
     static QVariantMap modbus_settings_to_variant_map(const ModbusSettings& modbus_settings);
     static ModbusSettings modbus_settings_from_variant_map(const QVariantMap& map);
