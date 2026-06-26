@@ -60,6 +60,20 @@ struct ThresholdLine {
     bool loadSettings(QSettings& settings, int index, const QList<QCPAxis*>& availableAxes);
 };
 
+struct VerticalCursor {
+    QCPItemStraightLine* line = nullptr;
+    QCPItemText* label = nullptr;
+    double xValue = 0.0;
+    QColor color = Qt::blue;
+    int width = 1;
+    Qt::PenStyle style = Qt::DashDotLine;
+    bool visible = true;
+    QString labelText; // автоматически формируется из xValue
+
+    void saveSettings(QSettings& settings, int index) const;
+    bool loadSettings(QSettings& settings, int index);
+};
+
 class CORE_PLOT_LIB_EXPORT CustomPlotBase : public QCustomPlot {
 Q_OBJECT
 public:
@@ -108,6 +122,14 @@ public:
     void saveThresholdLines();
     void loadThresholdLines(const QList<QCPAxis*>& availableAxes);
 
+    const QList<VerticalCursor>& verticalCursors() const { return _verticalCursors; }
+    void addVerticalCursor(double xValue, const QColor& color = Qt::blue, int width = 1);
+    void removeVerticalCursor(int index);
+    void clearVerticalCursors();
+    void updateCursorLabels();
+    void saveVerticalCursors();
+    void loadVerticalCursors();
+
     void rescale(int index = 0);
     void autoscale_all();
 protected slots:
@@ -151,18 +173,23 @@ protected:
     std::unique_ptr<CursorManager> _cursorManager;
     std::unique_ptr<StatsManager> _statsManager;
 
-    QList<QCPAxis*> _rightAxes;   // все правые оси (включая активную)
+    QList<QCPAxis*> _rightAxes;
     QList<ThresholdLine> _thresholdLines;
+    QList<VerticalCursor> _verticalCursors;
 private:
 
     virtual void addGraphSpecificActions(QMenu *menu) {Q_UNUSED(menu)}
     void addAxisActions(QMenu *menu);
     void addThresholdLinesActions(QMenu *menu);
+    void addVerticalCursorActions(QMenu* menu);
 
     void showAxisRangeDialog(QCPAxis* axis);
 
     void showAddThresholdDialog();
     void showEditThresholdDialog(int index);
+
+    void showAddVerticalCursorDialog();
+    void showEditVerticalCursorDialog(int index);
 
     bool _autorescale = true;
     bool _legend_state = true;

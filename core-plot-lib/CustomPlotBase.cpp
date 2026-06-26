@@ -39,6 +39,24 @@ bool ThresholdLine::loadSettings(QSettings& settings, int index, const QList<QCP
     return axis != nullptr;
 }
 
+void VerticalCursor::saveSettings(QSettings& settings, int index) const {
+    settings.setValue(QString("xValue_%1").arg(index), xValue);
+    settings.setValue(QString("color_%1").arg(index), color);
+    settings.setValue(QString("width_%1").arg(index), width);
+    settings.setValue(QString("style_%1").arg(index), static_cast<int>(style));
+    settings.setValue(QString("visible_%1").arg(index), visible);
+}
+
+bool VerticalCursor::loadSettings(QSettings& settings, int index) {
+    xValue = settings.value(QString("xValue_%1").arg(index)).toDouble();
+    color  = settings.value(QString("color_%1").arg(index), QColor(Qt::blue)).value<QColor>();
+    width  = settings.value(QString("width_%1").arg(index), 1).toInt();
+    style  = static_cast<Qt::PenStyle>(settings.value(QString("style_%1").arg(index), static_cast<int>(Qt::DashDotLine)).toInt());
+    visible = settings.value(QString("visible_%1").arg(index), true).toBool();
+    labelText = QDateTime::fromSecsSinceEpoch(xValue).toString(DATE_TIME_FORMAT_WITHOUT_MS);
+    return true;
+}
+
 CustomPlotBase::CustomPlotBase(QWidget *parent) :
     QCustomPlot(parent)
 {
@@ -181,7 +199,10 @@ void CustomPlotBase::saveAllSettings() {
     // 8. Пороговые линии
     saveThresholdLines();
 
-    // 9. Стили графиков сохраняются отдельно при изменении, здесь не дублируем.
+    // 9. Вертикальные курсоры
+    saveVerticalCursors();
+
+    // Стили графиков сохраняются отдельно при изменении, здесь не дублируем.
 }
 
 void CustomPlotBase::loadAllSettings() {
@@ -239,7 +260,10 @@ void CustomPlotBase::loadAllSettings() {
     for (QCPAxis* ax : _rightAxes) availableAxes << ax;
     loadThresholdLines(availableAxes);
 
-    // 8. Стили графиков будут применены при создании каждого графика через applySavedStyle().
+    // 8. Вертикальные курсоры
+    loadVerticalCursors();
+
+    // Стили графиков будут применены при создании каждого графика через applySavedStyle().
     replot();
 }
 
@@ -418,6 +442,117 @@ void CustomPlotBase::loadThresholdLines(const QList<QCPAxis*>& availableAxes) {
     settings.endArray();
     settings.endGroup();
     updateThresholdLines(); // установить правильные координаты
+}
+
+void CustomPlotBase::addVerticalCursor(double xValue, const QColor& color, int width) {
+    VerticalCursor vc;
+    vc.xValue = xValue;
+    vc.color = color;
+    vc.width = width;
+    vc.visible = true;
+    vc.labelText = QDateTime::fromSecsSinceEpoch(xValue).toString(DATE_TIME_FORMAT_WITHOUT_MS);
+
+    // Линия
+    auto* line = new QCPItemStraightLine(this);
+    line->setPen(QPen(color, width, Qt::DashDotLine));
+    line->point1->setCoords(xValue, yAxis->range().lower);
+    line->point2->setCoords(xValue, yAxis->range().upper);
+    line->point1->setAxes(xAxis, yAxis);
+    line->point2->setAxes(xAxis, yAxis);
+    line->setClipToAxisRect(true);
+    vc.line = line;
+
+    // Метка вверху
+    auto* text = new QCPItemText(this);
+    text->setText(vc.labelText);
+    text->position->setCoords(xValue, yAxis->range().upper);
+    text->position->setAxes(xAxis, yAxis);
+    text->setPositionAlignment(Qt::AlignBottom | Qt::AlignHCenter);
+    text->setPen(QPen(color));
+    text->setBrush(Qt::NoBrush);
+    text->setClipToAxisRect(false);
+    vc.label = text;
+
+    _verticalCursors.append(vc);
+    replot();
+    saveVerticalCursors();
+}
+
+void CustomPlotBase::removeVerticalCursor(int index) {
+    if (index < 0 || index >= _verticalCursors.size()) return;
+    VerticalCursor& vc = _verticalCursors[index];
+    if (vc.line)  removeItem(vc.line);
+    if (vc.label) removeItem(vc.label);
+    _verticalCursors.removeAt(index);
+    replot();
+    saveVerticalCursors();
+}
+
+void CustomPlotBase::clearVerticalCursors() {
+    while (!_verticalCursors.isEmpty())
+        removeVerticalCursor(0);
+}
+
+void CustomPlotBase::updateCursorLabels() {
+    // Обновляет метки после изменения масштаба оси Y
+    QCPRange yRange = yAxis->range();
+    for (auto& vc : _verticalCursors) {
+        if (vc.line) {
+            vc.line->point1->setCoords(vc.xValue, yRange.lower);
+            vc.line->point2->setCoords(vc.xValue, yRange.upper);
+        }
+        if (vc.label) {
+            vc.label->position->setCoords(vc.xValue, yRange.upper);
+        }
+    }
+}
+
+void CustomPlotBase::saveVerticalCursors() {
+    QSettings settings;
+    settings.beginGroup("VerticalCursors");
+    settings.beginWriteArray("cursors");
+    for (int i = 0; i < _verticalCursors.size(); ++i) {
+        settings.setArrayIndex(i);
+        _verticalCursors[i].saveSettings(settings, i);
+    }
+    settings.endArray();
+    settings.endGroup();
+}
+
+void CustomPlotBase::loadVerticalCursors() {
+    clearVerticalCursors();
+    QSettings settings;
+    settings.beginGroup("VerticalCursors");
+    int size = settings.beginReadArray("cursors");
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        VerticalCursor vc;
+        if (vc.loadSettings(settings, i)) {
+            // Создаём графические элементы
+            auto* line = new QCPItemStraightLine(this);
+            line->setPen(QPen(vc.color, vc.width, vc.style));
+            line->point1->setCoords(vc.xValue, yAxis->range().lower);
+            line->point2->setCoords(vc.xValue, yAxis->range().upper);
+            line->point1->setAxes(xAxis, yAxis);
+            line->point2->setAxes(xAxis, yAxis);
+            line->setClipToAxisRect(true);
+            vc.line = line;
+
+            auto* text = new QCPItemText(this);
+            text->setText(vc.labelText);
+            text->position->setCoords(vc.xValue, yAxis->range().upper);
+            text->position->setAxes(xAxis, yAxis);
+            text->setPositionAlignment(Qt::AlignBottom | Qt::AlignHCenter);
+            text->setPen(QPen(vc.color));
+            text->setBrush(Qt::NoBrush);
+            text->setClipToAxisRect(false);
+            vc.label = text;
+
+            _verticalCursors.append(vc);
+        }
+    }
+    settings.endArray();
+    settings.endGroup();
 }
 
 void CustomPlotBase::move_legend(int pos) {
@@ -645,6 +780,7 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
 
         addAxisActions(menu);
         addThresholdLinesActions(menu);
+        //addVerticalCursorActions(menu);
 
         if (selectedGraphs().size() == 1) {
             QCPGraph *selected = selectedGraphs().first();
@@ -827,6 +963,23 @@ void CustomPlotBase::addThresholdLinesActions(QMenu *menu) {
             thresholdMenu->addAction(tr("Удалить %1").arg(desc),
                                      this, [this, i]() { removeThresholdLine(i); });
         }
+    }
+}
+
+void CustomPlotBase::addVerticalCursorActions(QMenu* menu) {
+    QMenu* cursorMenu = menu->addMenu(tr("Вертикальные курсоры"));
+    cursorMenu->addAction(tr("Добавить курсор..."), this, &CustomPlotBase::showAddVerticalCursorDialog);
+    if (!_verticalCursors.isEmpty()) {
+        cursorMenu->addSeparator();
+        for (int i = 0; i < _verticalCursors.size(); ++i) {
+            QString desc = tr("Курсор %1 (%2)").arg(i+1).arg(_verticalCursors[i].labelText);
+            cursorMenu->addAction(tr("Редактировать %1...").arg(desc),
+                                  this, [this, i]() { showEditVerticalCursorDialog(i); });
+            cursorMenu->addAction(tr("Удалить %1").arg(desc),
+                                  this, [this, i]() { removeVerticalCursor(i); });
+        }
+        cursorMenu->addSeparator();
+        cursorMenu->addAction(tr("Удалить все курсоры"), this, &CustomPlotBase::clearVerticalCursors);
     }
 }
 
@@ -1081,5 +1234,65 @@ void CustomPlotBase::showEditThresholdDialog(int index) {
         }
         replot();
         saveThresholdLines();
+    }
+}
+
+void CustomPlotBase::showAddVerticalCursorDialog() {
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Новый вертикальный курсор"));
+    QFormLayout* form = new QFormLayout(&dlg);
+
+    QDateTimeEdit* dateEdit = new QDateTimeEdit;
+    dateEdit->setDisplayFormat(DATE_TIME_FORMAT_WITHOUT_MS);
+    dateEdit->setDateTime(QDateTime::currentDateTime());
+    form->addRow(tr("Время:"), dateEdit);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    form->addRow(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        double x = dateEdit->dateTime().toSecsSinceEpoch();
+        addVerticalCursor(x, Qt::blue, 1);
+    }
+}
+
+void CustomPlotBase::showEditVerticalCursorDialog(int index) {
+    if (index < 0 || index >= _verticalCursors.size()) return;
+    VerticalCursor& vc = _verticalCursors[index];
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Редактировать курсор"));
+    QFormLayout* form = new QFormLayout(&dlg);
+
+    QDateTimeEdit* dateEdit = new QDateTimeEdit;
+    dateEdit->setDisplayFormat(DATE_TIME_FORMAT_WITHOUT_MS);
+    dateEdit->setDateTime(QDateTime::fromSecsSinceEpoch(vc.xValue));
+    form->addRow(tr("Время:"), dateEdit);
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QPushButton* deleteBtn = buttons->addButton(tr("Удалить"), QDialogButtonBox::DestructiveRole);
+    form->addRow(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    connect(deleteBtn, &QPushButton::clicked, &dlg, [&]() { removeVerticalCursor(index); dlg.reject(); });
+
+    if (dlg.exec() == QDialog::Accepted) {
+        double newX = dateEdit->dateTime().toSecsSinceEpoch();
+        if (newX != vc.xValue) {
+            vc.xValue = newX;
+            vc.labelText = dateEdit->dateTime().toString(DATE_TIME_FORMAT_WITHOUT_MS);
+            if (vc.line) {
+                vc.line->point1->setCoords(newX, vc.line->point1->coords().y());
+                vc.line->point2->setCoords(newX, vc.line->point2->coords().y());
+            }
+            if (vc.label) {
+                vc.label->setText(vc.labelText);
+                vc.label->position->setCoords(newX, vc.label->position->coords().y());
+            }
+            replot();
+            saveVerticalCursors();
+        }
     }
 }
