@@ -111,19 +111,25 @@ void FilterHeader::mouseDoubleClickEvent(QMouseEvent* event) {
 }
 
 void FilterHeader::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const {
-    painter->save(); // Сохраняем настройки пера
+    painter->save();
+
+    // // Если фильтр активен, заливаем фон другим цветом
+    // if (filters.contains(logicalIndex) && isFilterEnabled(logicalIndex)) {
+    //     painter->fillRect(rect.adjusted(1, 1, -1, -1), QColor(220, 240, 255)); // светло-голубой
+    // }
+
+    // Стандартная прорисовка секции
     QHeaderView::paintSection(painter, rect, logicalIndex);
-    painter->restore(); // Восстанавливаем настройки
+    painter->restore();
 
     // Рисуем иконку фильтра, если он применен
     if (filters.contains(logicalIndex) && isFilterEnabled(logicalIndex)) {
-        // Настраиваем цвет и шрифт
-        painter->setPen(QColor(DGRAY_COLOR));
-        painter->setFont(QFont("Arial", 8, QFont::Bold));
-
-        // Рисуем иконку ▼ справа
-        QRect iconRect = rect.adjusted(rect.width() - 20, 0, -5, 0);
+        painter->save();
+        painter->setPen(DGRAY_COLOR);
+        painter->setFont(QFont("Arial", 14, QFont::Bold));
+        QRect iconRect = rect.adjusted(rect.width() - 24, 0, -4, 0);
         painter->drawText(iconRect, Qt::AlignRight | Qt::AlignVCenter, "▼");
+        painter->restore();
     }
 }
 
