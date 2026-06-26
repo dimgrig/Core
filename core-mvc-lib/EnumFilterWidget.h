@@ -7,7 +7,9 @@
 #include <QVector>
 #include <QPair>
 
-class EnumFilterWidget : public QWidget {
+#include "core-mvc-lib-global.h"
+
+class CORE_MVC_LIB_EXPORT EnumFilterWidget : public QWidget {
     Q_OBJECT
 public:
     // Параметр items: список {отображаемый_текст, значение_ключа}

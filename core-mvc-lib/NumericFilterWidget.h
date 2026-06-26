@@ -7,7 +7,9 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-class NumericFilterWidget : public QWidget {
+#include "core-mvc-lib-global.h"
+
+class CORE_MVC_LIB_EXPORT NumericFilterWidget : public QWidget {
     Q_OBJECT
 public:
     explicit NumericFilterWidget(QWidget *parent = nullptr);

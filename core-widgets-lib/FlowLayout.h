@@ -5,7 +5,9 @@
 #include <QStyle>
 #include <QList>
 
-class FlowLayout : public QLayout
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT FlowLayout : public QLayout
 {
 public:
     explicit FlowLayout(QWidget *parent = nullptr, int margin = -1, int hSpacing = -1, int vSpacing = -1);

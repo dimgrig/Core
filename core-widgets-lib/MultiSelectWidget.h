@@ -16,7 +16,9 @@ class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 
-class MultiSelectWidget : public QWidget {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT MultiSelectWidget : public QWidget {
     Q_OBJECT
 public:
     explicit MultiSelectWidget(QWidget *parent = nullptr);
