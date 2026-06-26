@@ -12,7 +12,11 @@
 class CORE_MVC_LIB_EXPORT FilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    FilterHeader(QWidget* parent = nullptr);
+    FilterHeader(const QString &objectName, QWidget* parent = nullptr);
+    ~FilterHeader();
+
+    void saveFilters() const;
+    void restoreFilters();
 
     void setFilterEnabled(int section, bool enabled);
     bool isFilterEnabled(int section) const;

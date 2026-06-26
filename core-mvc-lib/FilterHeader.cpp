@@ -5,6 +5,7 @@
 #include <QDateTimeEdit>
 #include <QPainter>
 #include <QPushButton>
+#include <QSettings>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -13,11 +14,47 @@
 #include "DateTimeRangeWidget.h"
 #include "Logger.h"
 
-FilterHeader::FilterHeader(QWidget* parent) :
+FilterHeader::FilterHeader(const QString &objectName, QWidget* parent) :
     QHeaderView(Qt::Horizontal, parent)
 {
+    this->setObjectName(objectName);
+
     setSectionsClickable(true);
     setHighlightSections(true);
+
+    this->restoreFilters();
+}
+
+FilterHeader::~FilterHeader() {
+    this->saveFilters();
+}
+
+void FilterHeader::saveFilters() const {
+    QSettings settings;
+    settings.beginGroup(this->objectName());
+    settings.remove(""); // очищаем предыдущие ключи в этой группе
+    for (auto it = filters.cbegin(); it != filters.cend(); ++it) {
+        settings.setValue(QString::number(it.key()), it.value());
+    }
+    settings.endGroup();
+}
+
+void FilterHeader::restoreFilters() {
+    QSettings settings;
+    settings.beginGroup(this->objectName());
+    QMap<int, QString> saved;
+    const QStringList keys = settings.childKeys();
+    for (const QString &key : keys) {
+        bool ok;
+        int col = key.toInt(&ok);
+        if (ok)
+            saved.insert(col, settings.value(key).toString());
+    }
+    settings.endGroup();
+
+    for (auto it = saved.cbegin(); it != saved.cend(); ++it) {
+        setFilter(it.key(), it.value()); // внутри уже вызывает QTimer::singleShot и фильтрацию
+    }
 }
 
 void FilterHeader::setFilterEnabled(int section, bool enabled) {

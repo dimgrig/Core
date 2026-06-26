@@ -113,7 +113,8 @@ QWidget* LookupDelegate::createEditor(QWidget *parent, const QStyleOptionViewIte
 
         // Фильтр (опционально)
         if (m_config.useFilterHeader) {
-            auto *filterHeader = new FilterHeader(view);
+            static int lookupDelegateCnt = 0;
+            auto *filterHeader = new FilterHeader("LookupDelegate_" + QString::number(lookupDelegateCnt++), view);
             view->setHorizontalHeader(filterHeader);
 
             disconnect(view->horizontalHeader(), &QHeaderView::customContextMenuRequested, view, &BaseTableView::slotHeaderCustomMenuRequested);
