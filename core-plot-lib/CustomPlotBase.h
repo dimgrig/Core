@@ -93,6 +93,7 @@ public:
 
     bool get_autorescale() const {return this->_autorescale;}
     void set_autorescale(bool autorescale) {this->_autorescale = autorescale;}
+    void set_scale_home();
 
     bool get_legend_state() const {return this->_legend_state;}
     void set_legend_state(bool state);
@@ -169,6 +170,7 @@ private slots:
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
     std::unique_ptr<CursorManager> _cursorManager;
     std::unique_ptr<StatsManager> _statsManager;
@@ -177,8 +179,8 @@ protected:
     QList<ThresholdLine> _thresholdLines;
     QList<VerticalCursor> _verticalCursors;
 private:
-
     virtual void addGraphSpecificActions(QMenu *menu) {Q_UNUSED(menu)}
+    void addScaleActions(QMenu *menu);
     void addAxisActions(QMenu *menu);
     void addThresholdLinesActions(QMenu *menu);
     void addVerticalCursorActions(QMenu* menu);
@@ -193,6 +195,7 @@ private:
 
     bool _autorescale = true;
     bool _legend_state = true;
+    bool _zoomRectMode = false;
 
     int _width = 1;
 };

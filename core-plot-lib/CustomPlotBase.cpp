@@ -74,6 +74,8 @@ CustomPlotBase::CustomPlotBase(QWidget *parent) :
         this->axisRect()->axis(QCPAxis::atRight, 0)->setPadding(75); //must be for axis tag
     }
 
+    setSelectionRectMode(QCP::srmNone);
+
     connect(this, &CustomPlotBase::selectionChangedByUser, this, &CustomPlotBase::selection_changed);
 
     // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
@@ -663,16 +665,7 @@ void CustomPlotBase::mouseMoveEvent(QMouseEvent *event) {
 void CustomPlotBase::mousePressEvent(QMouseEvent *event) {
     switch (event->button()) {
         case Qt::MiddleButton:
-            this->yAxis->rescale();
-            this->yAxis2->rescale();
-            this->xAxis->rescale();
-            for (QCPAxis *ax : _rightAxes) {
-                ax->rescale();
-            }
-            // if (this->axisRect()->axis(QCPAxis::atRight, 1)) {
-            //     this->axisRect()->axis(QCPAxis::atRight, 1)->rescale();
-            // }
-            this->replot();
+            this->set_scale_home();
             return;
             break;
         default:
@@ -681,6 +674,49 @@ void CustomPlotBase::mousePressEvent(QMouseEvent *event) {
     }
 
     QCustomPlot::mousePressEvent(event);
+}
+
+void CustomPlotBase::mouseDoubleClickEvent(QMouseEvent *event) {
+    // Если клик пришёлся по легенде
+    if (legend->selectTest(event->pos(), false) >= 0) {
+        // Перебираем все элементы легенды и проверяем, в какой попала точка
+        for (int i = 0; i < legend->itemCount(); ++i) {
+            QCPAbstractLegendItem *item = legend->item(i);
+            if (item && item->rect().contains(event->pos())) {
+                QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
+                if (plItem) {
+                    QCPAbstractPlottable *plottable = plItem->plottable();
+                    QCPGraph *graph = qobject_cast<QCPGraph*>(plottable);
+                    if (graph) {
+                        showStyleDialog(graph);   // открываем диалог настройки стиля
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    // Иначе стандартная обработка
+    QCustomPlot::mouseDoubleClickEvent(event);
+}
+
+void CustomPlotBase::set_scale_home() {
+    // this->yAxis->rescale();
+    // this->yAxis2->rescale();
+    // this->xAxis->rescale();
+    // for (QCPAxis *ax : _rightAxes) {
+    //     ax->rescale();
+    // }
+    // // if (this->axisRect()->axis(QCPAxis::atRight, 1)) {
+    // //     this->axisRect()->axis(QCPAxis::atRight, 1)->rescale();
+    // // }
+    // this->replot();
+    xAxis->rescale();
+    this->yAxis2->rescale();
+    yAxis->rescale();
+    for (QCPAxis *ax : _rightAxes) ax->rescale();
+    updateThresholdLines();
+    updateCursorLabels();
+    this->replot();
 }
 
 void CustomPlotBase::set_legend_state(bool state) {
@@ -761,24 +797,11 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         menu->addAction(tr("Вниз по центру"),      [this](){ move_legend((int)(Qt::AlignBottom|Qt::AlignHCenter));});
         menu->addAction(tr("Нижний левый угол"),   [this](){ move_legend((int)(Qt::AlignBottom|Qt::AlignLeft)); });
     } else {
-        // Автомасштаб
-        if (get_autorescale()) {
-            menu->addAction(tr("Выключить автомасштаб"), [this](){ set_autorescale(false); });
-        } else {
-            menu->addAction(tr("Включить автомасштаб"), [this](){ set_autorescale(true); });
-        }
-
-        // Показать/скрыть легенду
-        if (get_legend_state()) {
-            menu->addAction(tr("Скрыть легенду"), [this](){ set_legend_state(false); });
-        } else {
-            menu->addAction(tr("Показать легенду"), [this](){ set_legend_state(true); });
-        }
+        addScaleActions(menu);
 
         // Специфические для наследников пункты
         addGraphSpecificActions(menu);
 
-        addAxisActions(menu);
         addThresholdLinesActions(menu);
         //addVerticalCursorActions(menu);
 
@@ -787,6 +810,13 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
             menu->addAction(tr("Настроить стиль графика..."), this, [this, selected]() {
                 showStyleDialog(selected);
             });
+        }
+
+        // Показать/скрыть легенду
+        if (get_legend_state()) {
+            menu->addAction(tr("Скрыть легенду"), [this](){ set_legend_state(false); });
+        } else {
+            menu->addAction(tr("Показать легенду"), [this](){ set_legend_state(true); });
         }
 
         // Общие подменю
@@ -921,6 +951,36 @@ void CustomPlotBase::showStyleDialog(QCPGraph* graph) {
     GraphStyle newStyle { newColor, newWidth, this->defaultGraphLineStyle(), penStyles[idx] };
     applyGraphStyle(graph, newStyle);
     saveStyle(key, newStyle);
+}
+
+void CustomPlotBase::addScaleActions(QMenu *menu) {
+    //Масштаб
+    QMenu *scaleMenu = menu->addMenu(tr("Масштаб"));
+    // Автомасштаб
+    if (get_autorescale()) {
+        scaleMenu->addAction(tr("Выключить автомасштаб"), [this](){ set_autorescale(false); });
+    } else {
+        scaleMenu->addAction(tr("Включить автомасштаб"), [this](){ set_autorescale(true); });
+    }
+
+    QAction *resetScale = scaleMenu->addAction(tr("Сбросить масштаб"));
+    connect(resetScale, &QAction::triggered, this, &CustomPlotBase::set_scale_home);
+
+    QAction *zoomAction = scaleMenu->addAction(tr("Режим \"Лупа\""));
+    zoomAction->setCheckable(true);
+    zoomAction->setChecked(_zoomRectMode);
+    connect(zoomAction, &QAction::toggled, this, [this](bool enabled) {
+        _zoomRectMode = enabled;
+        if (enabled) {
+            setSelectionRectMode(QCP::srmZoom);
+            setCursor(Qt::CrossCursor);
+        } else {
+            setSelectionRectMode(QCP::srmNone);
+            setCursor(Qt::ArrowCursor);
+        }
+    });
+
+    addAxisActions(scaleMenu);
 }
 
 void CustomPlotBase::addAxisActions(QMenu *menu) {
