@@ -238,7 +238,7 @@ void EnumMacroTest();
     constexpr unsigned int name##_strings_size = 16; \
     constexpr const unsigned int name##_numbers[] = {d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16}; \
     constexpr const char *name##_strings[] = {#r1, #r2, #r3, #r4, #r5, #r6, #r7, #r8, #r9, #r10, #r11, #r12, #r13, #r14, #r15, #r16}; \
-    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, e16}; \
+    constexpr const char *name##_strings_EN[] = {#e1, #e2, #e3, #e4, #e5, #e6, #e7, #e8, #e9, #e10, #e11, #e12, #e13, #e14, #e15, #e16}; \
     ENUM_MACRO_FUN(name)
 
 #define ENUM_MACRO17(name, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, \
