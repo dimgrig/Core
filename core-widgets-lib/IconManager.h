@@ -148,6 +148,12 @@ private:
 #define PIXMAP_K_ON                 IconManager::getPixmap(":/icons/K_ON.svg")
 #define PIXMAP_N_OFF                IconManager::getPixmap(":/icons/N_OFF.svg")
 #define PIXMAP_N_ON                 IconManager::getPixmap(":/icons/N_ON.svg")
+#define PIXMAP_VN_OFF               IconManager::getPixmap(":/icons/VN_OFF.svg")
+#define PIXMAP_VN_ON                IconManager::getPixmap(":/icons/VN_ON.svg")
+#define PIXMAP_N_INV_OFF            IconManager::getPixmap(":/icons/N_INV_OFF.svg")
+#define PIXMAP_N_INV_ON             IconManager::getPixmap(":/icons/N_INV_ON.svg")
+#define PIXMAP_VN_R_OFF             IconManager::getPixmap(":/icons/VN_R_OFF.svg")
+#define PIXMAP_VN_R_ON              IconManager::getPixmap(":/icons/VN_R_ON.svg")
 
 #define PIXMAP_IDLE                 IconManager::getPixmap(":/icons/idle.svg")
 #define PIXMAP_MODE_READY           IconManager::getPixmap(":/icons/mode_ready.svg")

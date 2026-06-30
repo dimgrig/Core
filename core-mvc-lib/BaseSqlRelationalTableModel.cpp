@@ -31,15 +31,17 @@ bool BaseSqlRelationalTableModel::save() {
         this->database().commit();
         this->select(); // Важно: обновляем данные модели
         this->set_modified(false);
-        qCDebug(logDebug()) << "Изменения успешно сохранены!";
+        //qCDebug(logDebug()) << "Изменения успешно сохранены!";
 
         emit saved();
 
         return true;
     } else {
         this->database().rollback();
-        qCDebug(logDebug()) << "Ошибка, не удалось сохранить изменения: " + this->lastError().text();
+        //qCDebug(logDebug()) << "Ошибка, не удалось сохранить изменения: " + this->lastError().text();
         AQP::warning(nullptr, tr("Внимание"), tr("Не удалось сохранить изменения: ") + this->lastError().text(), 0, 10000);
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::Database, QString("Не удалось сохранить изменения : %1").arg(this->lastError().text()));
     }
 
     return false;

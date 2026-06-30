@@ -39,6 +39,33 @@ public:
                                                                        RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
                                                                        BytesFormat modbus_format = BigEndian);
 
+    std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableNIndicator(QLabel* label,
+                                                                       const QString& registerName,
+                                                                       int bitPosition,
+                                                                       const QSize& size = QSize(32, 32),
+                                                                       RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
+                                                                       BytesFormat modbus_format = BigEndian);
+
+    std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableNINVIndicator(QLabel* label,
+                                                                      const QString& registerName,
+                                                                      int bitPosition,
+                                                                      const QSize& size = QSize(32, 32),
+                                                                      RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
+                                                                      BytesFormat modbus_format = BigEndian);
+
+    std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableVNIndicator(QLabel* label,
+                                                                    const QString& registerName,
+                                                                    int bitPosition,
+                                                                    const QSize& size = QSize(20, 11),
+                                                                    RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
+                                                                    BytesFormat modbus_format = BigEndian);
+
+    std::shared_ptr<AdvancedClickablePixmapLabelBinding> createClickableVNRIndicator(QLabel* label,
+                                                                     const QString& registerName,
+                                                                     int bitPosition,
+                                                                     const QSize& size = QSize(11, 20),
+                                                                     RegisterBinding::BindingDirection direction = RegisterBinding::ReadWrite,
+                                                                     BytesFormat modbus_format = BigEndian);
 private:
     std::shared_ptr<BindingManager> m_bindingManager;
 };
