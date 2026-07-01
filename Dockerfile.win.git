@@ -1,7 +1,9 @@
 # ---------- загрузка готовых Core библиотек (с секретом) ----------
-FROM base-deps-win:latest AS core-downloader-win
+FROM base-deps-win:latest AS core-downloader-libs-win
 
-RUN mkdir -p /usr/lib/qt
+ENV QT_LIB_DIR=/usr/lib/qt
+
+RUN mkdir -p $QT_LIB_DIR
 WORKDIR /tmp
 
 # ASSETS нужно получить вручную
@@ -23,12 +25,19 @@ RUN --mount=type=secret,id=github_token \
 RUN tar -xzf core-windows-v1.0.0.tar.gz && \
     ls -la && \
     # Копируем библиотеки из папки bin (именно она появилась после распаковки)
-    cp -d /tmp/bin/* /usr/lib/qt/ && \
+    cp -d /tmp/bin/* $QT_LIB_DIR && \
     rm -rf /tmp/*
 
-RUN ls -la /usr/lib/qt/*core-*.dll* || (echo "ОШИБКА: Core не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/*mu* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/*qcustomplot* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/*QtWebApp* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*core-*.dll* || (echo "ОШИБКА: Core не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*mu* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*qcustomplot* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*QtWebApp* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+
+# ---------- Stage 2: копирование Core библиотек ----------
+FROM scratch AS core-builder-win-git
+
+COPY --from=core-downloader-libs-win /usr/lib/qt/*.dll /usr/lib/qt/
+COPY --from=core-downloader-libs-win /usr/lib/qt/*.a   /usr/lib/qt/
+
 
 # docker build -t core-builder-win-git:latest   -f ../Core/Dockerfile.win.git ..

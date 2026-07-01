@@ -1,7 +1,9 @@
 # ---------- Stage 1: сборка Core библиотек ----------
-FROM base-deps-win:latest AS core-builder-win
+FROM base-deps-win:latest AS core-builder-libs-win
 
-RUN mkdir -p /usr/lib/qt
+ENV QT_LIB_DIR=/usr/lib/qt
+
+RUN mkdir -p $QT_LIB_DIR
 
 WORKDIR /app
 
@@ -36,66 +38,73 @@ RUN mkdir -p /usr/lib/qt5/bin && ln -sf /usr/bin/qmake /usr/lib/qt5/bin/qmake
 RUN cd Core/core-lib && \
     i686-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../core-lib-binaries/windows/gcc/x86/release/core-lib.dll /usr/lib/qt/
+    cp -v ../../core-lib-binaries/windows/gcc/x86/release/core-lib.dll $QT_LIB_DIR
 
 # Сборка core-journal-lib (зависит от core-lib)
 RUN cd Core/core-journal-lib && \
-    i686-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-journal-lib-binaries/windows/gcc/x86/release/core-journal-lib.dll /usr/lib/qt/
+    cp -v ../../core-journal-lib-binaries/windows/gcc/x86/release/core-journal-lib.dll $QT_LIB_DIR
 
 # Сборка core-modbus-lib (зависит от core-lib)
 RUN cd Core/core-modbus-lib && \
-    i686-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-modbus-lib-binaries/windows/gcc/x86/release/core-modbus-lib.dll /usr/lib/qt/
+    cp -v ../../core-modbus-lib-binaries/windows/gcc/x86/release/core-modbus-lib.dll $QT_LIB_DIR
 
 # Сборка core-io-lib (зависит от core-lib, core-modbus-lib)
 RUN cd Core/core-io-lib && \
-    i686-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-io-lib-binaries/windows/gcc/x86/release/core-io-lib.dll /usr/lib/qt/
+    cp -v ../../core-io-lib-binaries/windows/gcc/x86/release/core-io-lib.dll $QT_LIB_DIR
 
 # Сборка muParser (статическая, но скопируем .a)
 RUN cd Core/muParser && \
     i686-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../muParser-binaries/windows/gcc/x86/release/libmuParser.a /usr/lib/qt/
+    cp -v ../../muParser-binaries/windows/gcc/x86/release/libmuParser.a $QT_LIB_DIR
 
 # Сборка core-widgets-lib (зависит от core-lib, core-journal-lib)
 RUN cd Core/core-widgets-lib && \
-    i686-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-widgets-lib-binaries/windows/gcc/x86/release/core-widgets-lib.dll /usr/lib/qt/
+    cp -v ../../core-widgets-lib-binaries/windows/gcc/x86/release/core-widgets-lib.dll $QT_LIB_DIR
 
 # Сборка core-utils-lib (зависит от core-lib, core-widgets-lib, muParser)
 RUN cd Core/core-utils-lib && \
-    i686-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-utils-lib-binaries/windows/gcc/x86/release/core-utils-lib.dll /usr/lib/qt/
+    cp -v ../../core-utils-lib-binaries/windows/gcc/x86/release/core-utils-lib.dll $QT_LIB_DIR
 
 # Сборка core-mvc-lib (зависит от core-lib, core-utils-lib, core-widgets-lib)
 RUN cd Core/core-mvc-lib && \
-    i686-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-mvc-lib-binaries/windows/gcc/x86/release/core-mvc-lib.dll /usr/lib/qt/
+    cp -v ../../core-mvc-lib-binaries/windows/gcc/x86/release/core-mvc-lib.dll $QT_LIB_DIR
 
 # Сборка qcustomplot (статическая библиотека)
 RUN cd Core/qcustomplot && \
     i686-w64-mingw32-qmake-qt5 qcustomplot.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll /usr/lib/qt/
+    cp -v ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll $QT_LIB_DIR
 
 # Сборка core-plot-lib (зависит от qcustomplot, core-lib)
 RUN cd Core/core-plot-lib && \
-    i686-w64-mingw32-qmake-qt5 core-plot-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L/usr/lib/qt" "WIN_LIBS_PATH=/usr/lib/qt" && \
+    i686-w64-mingw32-qmake-qt5 core-plot-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
-    cp -v ../../core-plot-lib-binaries/windows/gcc/x86/release/core-plot-lib.dll /usr/lib/qt/
+    cp -v ../../core-plot-lib-binaries/windows/gcc/x86/release/core-plot-lib.dll $QT_LIB_DIR
 
 # Сборка QtWebApp (статическая, но скопируем .a)
 RUN cd Core/QtWebApp && \
     i686-w64-mingw32-qmake-qt5 QtWebApp.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll /usr/lib/qt/
+    cp -v ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll $QT_LIB_DIR
+
+# ---------- Stage 2: копирование Core библиотек ----------
+FROM busybox:latest AS core-builder-win
+
+COPY --from=core-builder-libs-win /usr/lib/qt/*.dll /usr/lib/qt/
+COPY --from=core-builder-libs-win /usr/lib/qt/*.a   /usr/lib/qt/
+
 
 # docker build -t core-builder-win:latest -f ../Core/Dockerfile.win ..    

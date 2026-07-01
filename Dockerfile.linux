@@ -1,7 +1,9 @@
 # ---------- сборка Core библиотек ----------
-FROM base-deps-linux:latest AS core-builder-linux
+FROM base-deps-linux:latest AS core-builder-libs-linux
 
-RUN mkdir -p /usr/lib/qt
+ENV QT_LIB_DIR=/usr/lib/qt
+
+RUN mkdir -p $QT_LIB_DIR
 WORKDIR /app
 
 #COPY . .
@@ -49,21 +51,29 @@ RUN ls -la /app/muParser-binaries/linux/gcc/x64/release/
 RUN ls -la /app/qcustomplot-binaries/linux/gcc/x64/release/ 
 RUN ls -la /app/QtWebApp-binaries/linux/gcc/x64/release/ 
 
-# Копируем все .so и .a в /usr/lib/qt
-RUN mkdir -p /usr/lib/qt
-RUN cp -d /app/core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ || true
-RUN cp -d /app/muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-RUN cp -d /app/qcustomplot-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
+# Копируем все .so и .a в $QT_LIB_DIR
+RUN mkdir -p $QT_LIB_DIR
+RUN cp -d /app/core-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-io-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-journal-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-modbus-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-mvc-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-plot-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-utils-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/core-widgets-lib-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR || true
+RUN cp -d /app/muParser-binaries/linux/gcc/x64/release/*.a $QT_LIB_DIR 2>/dev/null || true
+RUN cp -d /app/qcustomplot-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR 2>/dev/null || true
+RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a $QT_LIB_DIR 2>/dev/null || true
 
 # Проверяем, что libcore-lib.so теперь есть
-RUN ls -la /usr/lib/qt/libcore-lib.so*
+RUN ls -la $QT_LIB_DIR/libcore-lib.so*
+
+# ---------- Stage 2: копирование Core библиотек ----------
+FROM busybox:latest AS core-builder-linux
+
+COPY --from=core-builder-libs-linux /usr/lib/qt/*.so* /usr/lib/qt/
+COPY --from=core-builder-libs-linux /usr/lib/qt/*.a  /usr/lib/qt/
+
 
 # docker build -t core-builder-linux:latest -f ../Core/Dockerfile.linux .. 
+

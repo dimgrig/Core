@@ -1,7 +1,9 @@
-# ---------- загрузка готовых Core библиотек (с секретом) ----------
-FROM base-deps-linux:latest AS core-downloader-linux
+# ---------- Stage 1: загрузка готовых Core библиотек (с секретом) ----------
+FROM base-deps-linux:latest AS core-downloader-libs-linux
 
-RUN mkdir -p /usr/lib/qt
+ENV QT_LIB_DIR=/usr/lib/qt
+
+RUN mkdir -p $QT_LIB_DIR
 WORKDIR /tmp
 
 # ASSETS нужно получить вручную
@@ -23,12 +25,19 @@ RUN --mount=type=secret,id=github_token \
 RUN tar -xzf core-linux-v1.0.0.tar.gz && \
     ls -la && \
     # Копируем библиотеки из папки lib (именно она появилась после распаковки)
-    cp -d /tmp/lib/* /usr/lib/qt/ && \
+    cp -d /tmp/lib/* $QT_LIB_DIR && \
     rm -rf /tmp/*
 
-RUN ls -la /usr/lib/qt/libcore-*.so* || (echo "ОШИБКА: Core не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/libmu* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/*qcustomplot* || (echo "ОШИБКА: qcustomplot не скопировались в download-core" && exit 1)
-RUN ls -la /usr/lib/qt/*QtWebApp* || (echo "ОШИБКА: QtWebApp не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/libcore-*.so* || (echo "ОШИБКА: Core не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/libmu* || (echo "ОШИБКА: muParser не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*qcustomplot* || (echo "ОШИБКА: qcustomplot не скопировались в download-core" && exit 1)
+RUN ls -la $QT_LIB_DIR/*QtWebApp* || (echo "ОШИБКА: QtWebApp не скопировались в download-core" && exit 1)
+
+# ---------- Stage 2: копирование Core библиотек ----------
+FROM scratch AS core-builder-linux-git
+
+COPY --from=core-downloader-libs-linux /usr/lib/qt/*.so /usr/lib/qt/
+COPY --from=core-downloader-libs-linux /usr/lib/qt/*.a  /usr/lib/qt/
+
 
 # docker build -t core-builder-linux-git:latest -f ../Core/Dockerfile.linux.git .. 

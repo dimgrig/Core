@@ -1,6 +1,8 @@
 # ---------- Базовый образ с зависимостями ----------
 FROM ghcr.io/mdimura/docker-mingw-arch:qt5
 
+WORKDIR /tmp
+
 # Сборка qtserialbus (для Windows)
 RUN git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus && \
     cd /tmp/qtserialbus && \
@@ -18,8 +20,6 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
     rm -rf /tmp/qtmqtt
 
 #сборка libxerces из исходников
-WORKDIR /tmp
-
 RUN pacman -S --noconfirm --needed autoconf automake libtool
 
 # Сборка статической Xerces-C для Windows (i686)
@@ -41,6 +41,11 @@ RUN cd /tmp/xerces-c-3.2.5 && \
         CXXFLAGS="-static-libgcc -static-libstdc++ -O2 -fpermissive" && \
     make -j$(nproc) && \
     make install 
+
+# Очистка
+RUN rm -rf /tmp/
+RUN pacman -S --noconfirm --needed autoconf automake libtool \
+    && pacman -Scc --noconfirm   # очистка кэша pacman
 
 # docker build -t base-deps-win:latest -f Dockerfile.base-deps-win ..
 
