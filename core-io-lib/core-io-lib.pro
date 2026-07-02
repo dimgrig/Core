@@ -106,6 +106,7 @@ HEADERS += \
     ClientHelpers.h \
     HTTPClient.h \
     MQTTClient.h \
+    MockMQTTClient.h \
     ResourceManager.h \
     SCPISettings.h \
     ScpiDevice.h \
@@ -121,6 +122,7 @@ HEADERS += \
 SOURCES += \
     HTTPClient.cpp \
     MQTTClient.cpp \
+    MockMQTTClient.cpp \
     ResourceManager.cpp \
     SCPISettings.cpp \
     ScpiDevice.cpp \

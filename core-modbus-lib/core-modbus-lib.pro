@@ -125,6 +125,7 @@ win64 {
 
 HEADERS += \
     IModbusService.h \
+    MockModbusClient.h \
     ModbusBase.h \
     ModbusClient.h \
     ModbusClientService.h \
@@ -150,6 +151,7 @@ HEADERS += \
 
 SOURCES += \
     IModbusService.cpp \
+    MockModbusClient.cpp \
     ModbusBase.cpp \
     ModbusClient.cpp \
     ModbusClientService.cpp \
