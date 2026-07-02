@@ -117,4 +117,7 @@ static std::map<std::string, std::string> translations_RU_EN {
 static std::function<bool(double, double)> equal_to_double = [](double x, double y) { return std::abs(x - y) < value_epsilon; };
 static std::function<bool(double, double)> not_equal_to_double = [](double x, double y) { return !(std::abs(x - y) < value_epsilon); };
 
+#define COMPARE_DOUBLE(actual, expected) \
+    QVERIFY(equal_to_double(actual, expected))
+
 #endif // FUNCTIONS_H
