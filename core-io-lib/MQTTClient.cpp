@@ -37,7 +37,10 @@ MQTTClient::MQTTClient(QObject *parent) :
     });
     connect(_mqtt, &QMqttClient::messageReceived, this, &MQTTClient::onMessageReceived);
     connect(_mqtt, &QMqttClient::errorChanged, [=](QMqttClient::ClientError error){
-        qCDebug(logInfo()) << "mqtt_client error" << error;
+        emit host_error(QString::number(error));
+
+        if (auto* j = JournalAccess::journal())
+            j->warning(Category::IO, QString("MQTT: ошибка %1").arg(error));
 
         // if (error != QMqttClient::NoError) {
         //     // Можно попробовать исправить ошибку "на лету"
@@ -54,7 +57,7 @@ MQTTClient::MQTTClient(QObject *parent) :
         //     }
         // }
 
-        if (error == QMqttClient::TransportInvalid) {
+        //if (error == QMqttClient::TransportInvalid) {
             if (!_reconnecting) {
                 _reconnecting = true;
                 // Не вызываем disconnectFromHost() — клиент уже отключён
@@ -67,9 +70,9 @@ MQTTClient::MQTTClient(QObject *parent) :
                     }
                 });
             }
-        } else if (error != QMqttClient::NoError) {
-            emit host_error(QString::number(error));
-        }
+        // } else if (error != QMqttClient::NoError) {
+        //     emit host_error(QString::number(error));
+        // }
     });
 }
 
