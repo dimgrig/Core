@@ -24,16 +24,16 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
         value = QVariant(toUInt64(data, format));
     } else if (type.contains("long")) {
         value = QVariant(toInt64(data, format));
+    } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
+        if (data.size() >= 1)
+            value = QVariant(data[0]);
+    } else if ((type.contains("short")) || (type.contains("int16"))) {
+        if (data.size() >= 1)
+            value = QVariant(qint16(data[0]));
     } else if (type.contains("uint")) {
         value = QVariant(toUInt32(data, format));
     } else if (type.contains("int")) {
         value = QVariant(toInt32(data, format));
-    } else if (type.contains("ushort")) {
-        if (data.size() >= 1)
-            value = QVariant(data[0]);
-    } else if (type.contains("short")) {
-        if (data.size() >= 1)
-            value = QVariant(qint16(data[0]));
     } else if (type.contains("bool")) {
         value = QVariant(toBool(data)); // по умолчанию бит 0
     } else if (type.contains("string")) {
@@ -83,14 +83,14 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
         result = fromUInt64(_value.toULongLong(), format);
     } else if (type.contains("long")) {
         result = fromInt64(_value.toLongLong(), format);
+    } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
+        result = { static_cast<quint16>(_value.toUInt()) };
+    } else if ((type.contains("short")) || (type.contains("int16"))) {
+        result = { static_cast<quint16>(_value.toInt()) };
     } else if (type.contains("uint")) {
         result = fromUInt32(_value.toUInt(), format);
     } else if (type.contains("int")) {
         result = fromInt32(_value.toInt(), format);
-    } else if (type.contains("ushort")) {
-        result = { static_cast<quint16>(_value.toUInt()) };
-    } else if (type.contains("short")) {
-        result = { static_cast<quint16>(_value.toInt()) };
     } else if (type.contains("bool")) {
         result = fromBool(_value.toBool());
     } else if (type.contains("string")) {
