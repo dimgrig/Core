@@ -6,7 +6,9 @@
 
 #include "MQTTClient.h"
 
-class MockMQTTClient : public MQTTClient {
+#include "core-io-lib-global.h"
+
+class CORE_IO_LIB_EXPORT MockMQTTClient : public MQTTClient {
     Q_OBJECT
 public:
     explicit MockMQTTClient(QObject *parent = nullptr);

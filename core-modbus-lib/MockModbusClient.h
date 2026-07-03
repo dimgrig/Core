@@ -6,7 +6,9 @@
 
 #include "ModbusClient.h"
 
-class MockModbusClient : public ModbusClient {
+#include "core-modbus-lib-global.h"
+
+class CORE_MODBUS_LIB_EXPORT MockModbusClient : public ModbusClient {
     Q_OBJECT
 public:
     explicit MockModbusClient(QWidget *parent = nullptr);

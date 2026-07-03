@@ -144,6 +144,14 @@ public:
             refcounts_map.erase(ref_it);
         }
     }
+
+    // Задать mock клиент для ut
+    template<typename ClientType>
+    void set_client(const QString& resource_id, std::shared_ptr<ClientType> client) {
+        std::lock_guard<std::mutex> lock(get_mutex<ClientType>());
+        auto& clients_map = get_clients_map<ClientType>();
+        clients_map[resource_id] = client;
+    }
 private:
     ResourceManager();
     ResourceManager(const ResourceManager&) = delete;
