@@ -33,6 +33,8 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+    int findRowById(int id, int column = 0) const;
+
     void setRelation(int column, const QSqlRelation &relation) override;
     void updateRelations();
     void updateRelations(int column);

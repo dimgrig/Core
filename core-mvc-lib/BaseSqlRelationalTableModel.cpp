@@ -100,6 +100,17 @@ Qt::ItemFlags BaseSqlRelationalTableModel::flags(const QModelIndex& index) const
     return default_flags;
 }
 
+int BaseSqlRelationalTableModel::findRowById(int id, int column) const
+{
+    for (int row = 0; row < this->rowCount(); ++row) {
+        QSqlRecord record = this->record(row);
+        if (record.value(column).toInt() == id) {
+            return row;
+        }
+    }
+    return -1;
+}
+
 void BaseSqlRelationalTableModel::setRawFilterColumn(int column) {
     _rawFilterColumns.insert(column);
 }
