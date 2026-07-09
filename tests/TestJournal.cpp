@@ -28,10 +28,6 @@ void TestJournal::insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
     loggedEntries.append({timestamp, level, categoryId, msg});
 }
 
-void TestJournal::cleanUpOldEntries(int keepDays) {
-    Q_UNUSED(keepDays);
-}
-
 void TestJournal::loadCategoriesFromModel() {
 
 }

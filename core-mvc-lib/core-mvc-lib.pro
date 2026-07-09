@@ -98,6 +98,7 @@ HEADERS += \
     BaseSqlRelationalTableModel.h \
     BaseTableModel.h \
     BaseTableView.h \
+    CleanupManager.h \
     Completer.h \
     DateDelegate.h \
     DateTimeUTCDelegate.h \
@@ -129,6 +130,7 @@ SOURCES += \
     BaseSqlRelationalTableModel.cpp \
     BaseTableModel.cpp \
     BaseTableView.cpp \
+    CleanupManager.cpp \
     Completer.cpp \
     DateDelegate.cpp \
     DateTimeUTCDelegate.cpp \

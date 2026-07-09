@@ -18,7 +18,6 @@ public:
     CategoryId insertCategory(const QString& name) override;
     void insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
                         CategoryId categoryId, const QString& msg) override;
-    void cleanUpOldEntries(int keepDays) override;
     void loadCategoriesFromModel() override;
 
     // Структура для записи лога

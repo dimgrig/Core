@@ -49,7 +49,6 @@ protected:
     virtual CategoryId insertCategory(const QString& name) = 0;
     virtual void insertLogEntry(const QDateTime& timestamp, LOG_LEV level,
                                 CategoryId categoryId, const QString& msg) = 0;
-    virtual void cleanUpOldEntries(int keepDays) = 0;
     virtual void loadCategoriesFromModel() = 0;
 
     // Запись в файл через Logger (может использоваться наследниками)

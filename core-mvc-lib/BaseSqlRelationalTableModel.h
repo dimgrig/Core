@@ -40,7 +40,11 @@ public:
     void updateRelations(int column);
     QString buildTimestampCondition(const QString& fieldName, const QString& filterExpr);
 
-    bool cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays);
+    //bool cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays);
+    static int cleanUpOldEntriesAsync(const QString& table, const QString& timestampField,
+                                       int keepDays,
+                                       std::function<void(int,int)> progressCallback = nullptr,
+                                       bool* cancelFlag = nullptr);
 
     QString getFullFilter() const {return _fullFilter;};
     QString getTimestampOp() const {return _timestampOp;};

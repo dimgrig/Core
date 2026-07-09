@@ -6,6 +6,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QTimer>
+#include <QThread>
 
 #include <QRegularExpression>
 
@@ -349,20 +350,94 @@ QString BaseSqlRelationalTableModel::buildTimestampCondition(const QString& fiel
     return QString();
 }
 
-bool BaseSqlRelationalTableModel::cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays) {
-    QDateTime threshold = QDateTime::currentDateTimeUtc().addDays(-keepDays);
-    volatile qint64 thresholdSecs = threshold.toSecsSinceEpoch();
+// bool BaseSqlRelationalTableModel::cleanUpOldEntries(const QString& table, const QString& timestamp, int keepDays) {
+//     QDateTime threshold = QDateTime::currentDateTimeUtc().addDays(-keepDays);
+//     volatile qint64 thresholdSecs = threshold.toSecsSinceEpoch();
 
-    QSqlQuery query;
-    query.prepare(QString("DELETE FROM %1 WHERE %2 < :threshold").arg(table).arg(timestamp));
-    query.bindValue(":threshold", thresholdSecs);
+//     QSqlQuery query;
+//     query.prepare(QString("DELETE FROM %1 WHERE %2 < :threshold").arg(table).arg(timestamp));
+//     query.bindValue(":threshold", thresholdSecs);
 
-    if (query.exec()) {       
-        return true;
+//     if (query.exec()) {
+//         return true;
+//     }
+
+//     if (auto* j = JournalAccess::journal())
+//         j->warning(Category::Database, QString("Не удалось очистить старые данные : %1").arg(this->lastError().text()));
+
+//     return false;
+// }
+
+int BaseSqlRelationalTableModel::cleanUpOldEntriesAsync(
+    const QString& table, const QString& timestampField, int keepDays,
+    std::function<void(int,int)> progressCallback, bool* cancelFlag)
+{
+    const int BATCH_SIZE = 50000;
+    qint64 threshold = QDateTime::currentDateTimeUtc().addDays(-keepDays).toSecsSinceEpoch();
+
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isOpen()) {
+        db = QSqlDatabase::addDatabase("QSQLITE", "cleanup_conn");
+        db.setDatabaseName(CoreConfig::databaseFile());
+        if (!db.open()) return -1;
     }
 
-    if (auto* j = JournalAccess::journal())
-        j->warning(Category::Database, QString("Не удалось очистить старые данные : %1").arg(this->lastError().text()));
+    // Подсчёт общего количества записей для удаления
+    QSqlQuery countQuery(db);
+    countQuery.prepare(QString("SELECT COUNT(*) FROM %1 WHERE %2 < :threshold").arg(table).arg(timestampField));
+    countQuery.bindValue(":threshold", threshold);
+    if (!countQuery.exec() || !countQuery.next()) {
+        qWarning() << "Count query failed:" << countQuery.lastError().text();
+        return -1;
+    }
+    int total = countQuery.value(0).toInt();
+    if (total == 0) {
+        if (progressCallback) progressCallback(0, 0);
+        return 0;
+    }
 
-    return false;
+    // Если записей мало – удаляем одним запросом
+    if (total <= BATCH_SIZE) {
+        QSqlQuery deleteQuery(db);
+        deleteQuery.prepare(QString("DELETE FROM %1 WHERE %2 < :threshold").arg(table).arg(timestampField));
+        deleteQuery.bindValue(":threshold", threshold);
+        if (!deleteQuery.exec()) {
+            qWarning() << "Single delete failed:" << deleteQuery.lastError().text();
+            return -1;
+        }
+        if (progressCallback) {
+            progressCallback(total, total);
+        }
+        return total;
+    }
+
+    // Пакетное удаление
+    int deleted = 0;
+    bool success = true;
+
+    while (deleted < total) {
+        if (cancelFlag && *cancelFlag) {
+            return -1; // прервано
+        }
+
+        QSqlQuery deleteQuery(db);
+        QString queryStr = QString("DELETE FROM %1 WHERE %2 < :threshold LIMIT %3")
+                               .arg(table).arg(timestampField).arg(BATCH_SIZE);
+        deleteQuery.prepare(queryStr);
+        deleteQuery.bindValue(":threshold", threshold);
+        if (!deleteQuery.exec()) {
+            qWarning() << "Batch delete failed:" << deleteQuery.lastError().text();
+            success = false;
+            break;
+        }
+
+        int affected = deleteQuery.numRowsAffected();
+        deleted += affected;
+
+        if (progressCallback) {
+            progressCallback(deleted, total);
+        }
+    }
+
+    return success ? deleted : -1;
 }
