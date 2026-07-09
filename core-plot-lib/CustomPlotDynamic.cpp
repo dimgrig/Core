@@ -253,6 +253,8 @@ void CustomPlotDynamic::setGraphData(QCPGraph* graph, const QVector<double> &val
     if (!graph || !_graphs.contains(graph))
         return;
     graph->setData(ticks, values, true);
-    graph->rescaleAxes();
+    if (this->get_autorescale()) {
+        graph->rescaleAxes();
+    }
     replot(QCustomPlot::rpQueuedReplot);
 }

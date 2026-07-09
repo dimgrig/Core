@@ -12,6 +12,7 @@
 
 #include "aqp.h"
 #include "Logger.h"
+#include "Profiler.h"
 
 #include "Categories.h"
 #include "JournalAccess.h"
@@ -27,10 +28,16 @@ BaseSqlRelationalTableModel::BaseSqlRelationalTableModel(QObject *parent)
 }
 
 bool BaseSqlRelationalTableModel::save() {
+    Profiler pr2("BaseSqlRelationalTableModel::save()");
     this->database().transaction();
     if (this->submitAll()) {
         this->database().commit();
-        this->select(); // Важно: обновляем данные модели
+        if (_autoReload) {
+            this->select(); // Важно: обновляем данные модели
+        } else {
+            // только пересортировать данные в памяти, не трогая БД
+            sort(_sortColumn, _sortOrder);
+        }
         this->set_modified(false);
         //qCDebug(logDebug()) << "Изменения успешно сохранены!";
 
@@ -89,6 +96,12 @@ void BaseSqlRelationalTableModel::set_modified(bool is_modified) {
 
 void BaseSqlRelationalTableModel::set_editable(bool is_editable) {
     _is_editable = is_editable;
+}
+
+void BaseSqlRelationalTableModel::setSort(int column, Qt::SortOrder order) {
+    _sortColumn = column;
+    _sortOrder = order;
+    QSqlRelationalTableModel::setSort(column, order);
 }
 
 Qt::ItemFlags BaseSqlRelationalTableModel::flags(const QModelIndex& index) const {

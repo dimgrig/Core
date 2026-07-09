@@ -25,11 +25,18 @@ public:
     int virtualColumnIndex(int column) const;
     int virtualColumnAbsoluteIndex(int virtualColumnIndex) const;
 
-    bool is_modified() const {return _is_modified;};
+    bool is_modified() const {return _is_modified;}
     void set_modified(bool is_modified = false);
 
-    bool is_editable() const {return _is_editable;};
+    bool is_editable() const {return _is_editable;}
     void set_editable(bool is_editable = false);
+
+    void setAutoReloadOnSave(bool on) { _autoReload = on; }
+    bool autoReloadOnSave() const { return _autoReload; }
+
+    void setSort(int column, Qt::SortOrder order);
+    int getSortColumn() const {return _sortColumn;}
+    Qt::SortOrder getSortOrder() const {return _sortOrder;}
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
@@ -81,6 +88,10 @@ private:
     QString _timestampOp;
     qint64 _startSecs = 0;
     qint64 _endSecs = 0;
+
+    bool _autoReload = true;
+    int _sortColumn = 0;
+    Qt::SortOrder _sortOrder = Qt::AscendingOrder;
 };
 
 #endif // BASESQLRELATIONALTABLEMODEL_H
