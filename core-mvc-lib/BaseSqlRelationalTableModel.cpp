@@ -28,7 +28,7 @@ BaseSqlRelationalTableModel::BaseSqlRelationalTableModel(QObject *parent)
 }
 
 bool BaseSqlRelationalTableModel::save() {
-    Profiler pr2("BaseSqlRelationalTableModel::save()");
+    //Profiler pr2("BaseSqlRelationalTableModel::save()");
     this->database().transaction();
     if (this->submitAll()) {
         this->database().commit();
