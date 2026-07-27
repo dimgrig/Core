@@ -7,10 +7,13 @@
 #include <QMouseEvent>
 #include <QWidgetAction>
 
+#include "CoreConfig.h"
+
 #include "core-mvc-lib-global.h"
 
 class CORE_MVC_LIB_EXPORT FilterHeader : public QHeaderView {
     Q_OBJECT
+    Q_PROPERTY(QColor iconColor READ iconColor WRITE setIconColor)
 public:
     FilterHeader(const QString &objectName, QWidget* parent = nullptr);
     ~FilterHeader();
@@ -31,6 +34,14 @@ public:
 
     void setFilter(int section, const QString& text);
     QString getFilter(int section);
+
+    QColor iconColor() const { return m_iconColor; }
+    void setIconColor(const QColor &color) {
+        if (m_iconColor != color) {
+            m_iconColor = color;
+            viewport()->update(); // перерисовываем при изменении
+        }
+    }
 signals:
     void filterChanged(int section, const QString& text);
 private slots:
@@ -60,6 +71,8 @@ private:
 
     QMap<int, std::function<QWidget*()>>         customWidgetFactories;
     QMap<int, std::function<void(QWidget*)>>     customApplyHandlers;
+
+    QColor m_iconColor = DGRAY_COLOR;
 };
 
 #endif // FILTERHEADER_H

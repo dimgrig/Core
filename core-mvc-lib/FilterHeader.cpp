@@ -125,7 +125,7 @@ void FilterHeader::paintSection(QPainter* painter, const QRect& rect, int logica
     // Рисуем иконку фильтра, если он применен
     if (filters.contains(logicalIndex) && isFilterEnabled(logicalIndex)) {
         painter->save();
-        painter->setPen(DGRAY_COLOR);
+        painter->setPen(m_iconColor);
         painter->setFont(QFont("Arial", 14, QFont::Bold));
         QRect iconRect = rect.adjusted(rect.width() - 24, 0, -4, 0);
         painter->drawText(iconRect, Qt::AlignRight | Qt::AlignVCenter, "▼");
