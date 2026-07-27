@@ -4,13 +4,15 @@
 #include "IconManager.h"
 
 AboutPanel::AboutPanel(QWidget *parent,
-                       QPixmap pixmap,
+                       QPixmap organization_pixmap,
+                       QPixmap application_pixmap,
                        QString organizationName,
                        QString applicationName,
                        QString version)
     : QWidget(parent)
     , ui(new Ui::fabout)
-    , _pixmap(pixmap)
+    , _organization_pixmap(organization_pixmap)
+    , _application_pixmap(application_pixmap)
     , _organizationName(organizationName)
     , _applicationName(applicationName)
     , _version(version) {
@@ -20,8 +22,8 @@ AboutPanel::AboutPanel(QWidget *parent,
 
     this->setWindowFlags(Qt::Window);
 
-    this->ui->l_organization_pixmap->setPixmap(PIXMAP_ORGANIZATION);
-    this->ui->l_application_pixmap->setPixmap(_pixmap);
+    this->ui->l_organization_pixmap->setPixmap(_organization_pixmap);
+    this->ui->l_application_pixmap->setPixmap(_application_pixmap);
 }
 
 AboutPanel::~AboutPanel()

@@ -13,7 +13,8 @@ class CORE_WIDGETS_LIB_EXPORT AboutPanel : public QWidget {
 Q_OBJECT
 public:
     explicit AboutPanel(QWidget *parent = nullptr,
-                       QPixmap pixmap = QPixmap(),
+                       QPixmap organization_pixmap = QPixmap(),
+                       QPixmap application_pixmap = QPixmap(),
                        QString organizationName = "",
                        QString applicationName = "",
                        QString version= "");
@@ -27,7 +28,8 @@ private:
 
     Ui::fabout *ui;
 
-    QPixmap _pixmap;
+    QPixmap _organization_pixmap;
+    QPixmap _application_pixmap;
     QString _organizationName;
     QString _applicationName;
     QString _version;
