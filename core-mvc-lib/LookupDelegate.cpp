@@ -128,7 +128,7 @@ QWidget* LookupDelegate::createEditor(QWidget *parent, const QStyleOptionViewIte
 
         // --- Панель инструментов (аналог EditBar) ---
         EditBar *edit_bar = new EditBar(editor);
-        edit_bar->setButtonVisible(EditBar::Button::Add, false);
+        edit_bar->setButtonVisible(EditBar::Button::Add, true);
         edit_bar->setButtonVisible(EditBar::Button::AddBefore, false);
         edit_bar->setButtonVisible(EditBar::Button::AddAfter, false);
         edit_bar->setButtonVisible(EditBar::Button::Copy, true);
@@ -136,12 +136,12 @@ QWidget* LookupDelegate::createEditor(QWidget *parent, const QStyleOptionViewIte
         edit_bar->setButtonVisible(EditBar::Button::Paste, true);
         edit_bar->setButtonVisible(EditBar::Button::PasteBefore, false);
         edit_bar->setButtonVisible(EditBar::Button::PasteAfter, false);
-        edit_bar->setButtonVisible(EditBar::Button::Delete, false);
-        edit_bar->setButtonVisible(EditBar::Button::Save, false);
+        edit_bar->setButtonVisible(EditBar::Button::Delete, true);
+        edit_bar->setButtonVisible(EditBar::Button::Save, true);
         edit_bar->setButtonVisible(EditBar::Button::Print, false);
         edit_bar->setButtonVisible(EditBar::Button::Export, false);
-        edit_bar->setButtonVisible(EditBar::Button::Cancel, false);
-        edit_bar->setButtonVisible(EditBar::Button::Ok, false);
+        edit_bar->setButtonVisible(EditBar::Button::Cancel, true);
+        edit_bar->setButtonVisible(EditBar::Button::Ok, true);
         edit_bar->setButtonVisible(EditBar::Button::Custom1, false);
         edit_bar->setButtonVisible(EditBar::Button::Custom2, false);
         edit_bar->setButtonVisible(EditBar::Button::Custom3, false);
