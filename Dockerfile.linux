@@ -65,8 +65,17 @@ RUN cp -d /app/muParser-binaries/linux/gcc/x64/release/*.a $QT_LIB_DIR 2>/dev/nu
 RUN cp -d /app/qcustomplot-binaries/linux/gcc/x64/release/*.so* $QT_LIB_DIR 2>/dev/null || true
 RUN cp -d /app/QtWebApp-binaries/linux/gcc/x64/release/*.a $QT_LIB_DIR 2>/dev/null || true
 
+# Находим динамическую библиотеку 
+RUN find /usr -name "libxerces*.so*" 2>/dev/null | head -5
+
+# Если библиотека найдена, скопируем её в /usr/lib/qt (или куда вам нужно)
+RUN cp -d /usr/lib/x86_64-linux-gnu/libxerces*.so* $QT_LIB_DIR/ 2>/dev/null || \
+    cp -d /usr/lib/libxerces*.so* $QT_LIB_DIR/ 2>/dev/null || \
+    echo "libxerces-c.so не найдена, возможно, нужно установить libxerces"
+
 # Проверяем, что libcore-lib.so теперь есть
 RUN ls -la $QT_LIB_DIR/libcore-lib.so*
+RUN ls -la $QT_LIB_DIR/libxerces*.so*
 
 # ---------- Stage 2: копирование Core библиотек ----------
 FROM busybox:latest AS core-builder-linux

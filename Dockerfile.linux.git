@@ -33,6 +33,17 @@ RUN ls -la $QT_LIB_DIR/libmu* || (echo "ОШИБКА: muParser не скопир
 RUN ls -la $QT_LIB_DIR/*qcustomplot* || (echo "ОШИБКА: qcustomplot не скопировались в download-core" && exit 1)
 RUN ls -la $QT_LIB_DIR/*QtWebApp* || (echo "ОШИБКА: QtWebApp не скопировались в download-core" && exit 1)
 
+# Находим динамическую библиотеку 
+RUN find /usr -name "libxerces*.so*" 2>/dev/null | head -5
+
+# Если библиотека найдена, скопируем её в /usr/lib/qt (или куда вам нужно)
+RUN cp -d /usr/lib/x86_64-linux-gnu/libxerces*.so* $QT_LIB_DIR/ 2>/dev/null || \
+    cp -d /usr/lib/libxerces*.so* $QT_LIB_DIR/ 2>/dev/null || \
+    echo "libxerces-c.so не найдена, возможно, нужно установить libxerces"
+
+# Проверяем, что .so теперь есть
+RUN ls -la $QT_LIB_DIR/libxerces*.so*
+
 # ---------- Stage 2: копирование Core библиотек ----------
 FROM scratch AS core-builder-linux-git
 
