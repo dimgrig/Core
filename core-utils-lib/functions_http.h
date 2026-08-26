@@ -6,6 +6,7 @@
 
 #include "core-utils-lib-global.h"
 
+CORE_UTILS_LIB_EXPORT double get_double_value_from_json(QString key, QByteArray json);
 CORE_UTILS_LIB_EXPORT int get_int_value_from_json(QString key, QByteArray json);
 CORE_UTILS_LIB_EXPORT QString get_string_value_from_json(QString key, QByteArray json);
 

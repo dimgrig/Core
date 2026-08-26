@@ -38,6 +38,41 @@ const QStringList BytesFormat_sl = {{BytesFormat_to_text(BigEndian),
 static QString s_userDataDir = "";
 static QString s_databaseName = "";
 
+// Вспомогательная функция для рекурсивного копирования каталога
+static bool copyDirectoryRecursively(const QString &srcDir, const QString &dstDir)
+{
+    QDir src(srcDir);
+    if (!src.exists()) {
+        qWarning() << "Source directory does not exist:" << srcDir;
+        return false;
+    }
+
+    QDir dst(dstDir);
+    if (!dst.exists() && !dst.mkpath(".")) {
+        qWarning() << "Cannot create destination directory:" << dstDir;
+        return false;
+    }
+
+    bool success = true;
+    const auto entries = src.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString &entry : entries) {
+        QString srcPath = srcDir + "/" + entry;
+        QString dstPath = dstDir + "/" + entry;
+        QFileInfo info(srcPath);
+        if (info.isDir()) {
+            if (!copyDirectoryRecursively(srcPath, dstPath)) {
+                success = false;
+            }
+        } else {
+            if (!QFile::copy(srcPath, dstPath)) {
+                qWarning() << "Failed to copy file:" << srcPath << "to" << dstPath;
+                success = false;
+            }
+        }
+    }
+    return success;
+}
+
 void CoreConfig::setUserDataDir(const QString &path)
 {
     s_userDataDir = path;
@@ -89,6 +124,10 @@ QString CoreConfig::calibrationFile() {
     return CoreConfig::userDataDir() + "/calibration.ini";
 }
 
+QString CoreConfig::webappFile() {
+    return CoreConfig::userDataDir() + "/webapp.ini";
+}
+
 QString CoreConfig::userFile() {
     return CoreConfig::userDataDir() + "/user.dat";
 }
@@ -123,5 +162,22 @@ void CoreConfig::initializeDefaultFiles(const QString &sourceDir)
 
     copyIfMissing("config.ini");
     copyIfMissing("calibration.ini");
+    copyIfMissing("webapp.ini");
     copyIfMissing(s_databaseName);
+
+    // Копируем папку docroot (рекурсивно), если она существует в источнике
+    QString docrootSrc = sourceDir.isEmpty() ? "docroot" : sourceDir + "/docroot";
+    QString docrootDst = userDataDir() + "/docroot";
+
+    if (QFile::exists(docrootSrc) && !QFile::exists(docrootDst)) {
+        if (!copyDirectoryRecursively(docrootSrc, docrootDst)) {
+            //qWarning() << "Failed to copy docroot from" << docrootSrc << "to" << docrootDst;
+        } else {
+            //qDebug() << "docroot copied successfully to" << docrootDst;
+        }
+    } else if (!QFile::exists(docrootSrc)) {
+        //qDebug() << "docroot source not found, skipping copy";
+    } else {
+        //qDebug() << "docroot already exists at" << docrootDst << ", skipping copy";
+    }
 }

@@ -6,6 +6,8 @@
 #endif
 #include <math.h>
 
+#include <QString>
+
 //volatile double xx[8] = {100,200,300,400,500,600,700,800};
 //volatile double yy[8] = {65.95, 185.95, 301.9, 415, 516, 601, 676.1, 759.1};
 

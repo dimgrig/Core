@@ -21,6 +21,8 @@ void MacrosesTest();
 
 #define UNUSED(x) (void)(x)
 
+#define CLAMP(x, low, high) ((x) < (low) ? (low) : ((x) > (high) ? (high) : (x)))
+
 #define CONCAT2(x, y) x##y
 #define CONCAT(x, y) CONCAT2(x, y)
 //ANON_VAR - генерирует уникальное имя для переменной х

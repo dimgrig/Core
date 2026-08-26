@@ -5,11 +5,11 @@
 
 #include "aqp.h"
 
-#include "core-utils-lib-global.h"
+#include "core-widgets-lib-global.h"
 
-CORE_UTILS_LIB_EXPORT void ApproximationTest();
+CORE_WIDGETS_LIB_EXPORT void ApproximationTest();
 
-class CORE_UTILS_LIB_EXPORT Approximation
+class CORE_WIDGETS_LIB_EXPORT Approximation
 {
 public:
     explicit Approximation(int polynom_N, std::vector<double> x_v, std::vector<double> y_v);

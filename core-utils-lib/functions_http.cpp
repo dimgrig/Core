@@ -5,6 +5,20 @@
 
 #include "Logger.h"
 
+double get_double_value_from_json(QString key, QByteArray json) {
+    double res = -1;
+
+    // get the root object
+    QJsonDocument itemDoc = QJsonDocument::fromJson(json);
+    QJsonObject requestObject = itemDoc.object();
+
+    if (requestObject.contains(key)) {
+        res = requestObject.value(key).toDouble();
+    }
+
+    return res;
+}
+
 int get_int_value_from_json(QString key, QByteArray json) {
     int res = -1;
 

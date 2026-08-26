@@ -165,6 +165,7 @@ namespace CoreConfig {
     // Получить файлы
     QString configFile();
     QString calibrationFile();
+    QString webappFile();
     QString userFile();
     QString databaseFile();
 

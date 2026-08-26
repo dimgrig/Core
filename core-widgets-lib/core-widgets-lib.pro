@@ -85,6 +85,7 @@ win64 {
 
 HEADERS += \
     AboutPanel.h \
+    Approximation.h \
     AspectRatioPixmapLabel.h \
     Auth.h \
     CalendarWidget.h \
@@ -113,6 +114,7 @@ HEADERS += \
 
 SOURCES += \
     AboutPanel.cpp \
+    Approximation.cpp \
     AspectRatioPixmapLabel.cpp \
     Auth.cpp \
     CalendarWidget.cpp \
