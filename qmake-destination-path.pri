@@ -26,6 +26,12 @@ PROCESSOR_x64 {
 PROCESSOR_x86 {
     processor_path = x86
 }
+PROCESSOR_ARM64 {
+    processor_path = arm64
+}
+PROCESSOR_ARM {
+    processor_path = arm
+}
 BUILD_DEBUG {
     build_path = debug
 } else {
