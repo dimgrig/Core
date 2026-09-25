@@ -1,10 +1,14 @@
 # ---------- Базовый образ с зависимостями ----------
-FROM debian:bookworm-slim AS cqtdeployer-builder
+FROM debian:bullseye-slim AS cqtdeployer-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
-RUN apt update && \
+# Добавляем снимок репозитория в sources.list и отключаем проверку срока действия
+RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://snapshot.debian.org/archive/debian-security/20260825T000000Z bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt update && \
     apt install -y --no-install-recommends \
         build-essential \
         cmake \
@@ -46,12 +50,16 @@ RUN cd /tmp/cqtdeployer && \
     ldconfig
 
 # ---------- Финальный образ ----------
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
-RUN apt update && \
+# Добавляем снимок репозитория в sources.list и отключаем проверку срока действия
+RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://snapshot.debian.org/archive/debian-security/20260825T000000Z bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt update && \
     apt install -y --no-install-recommends \
         build-essential \
         cmake \
@@ -93,4 +101,4 @@ COPY --from=cqtdeployer-builder /usr/local/lib/lib* /usr/local/lib/
 # Проверка установки
 RUN ldconfig && cqtdeployer
 
-# docker build --platform linux/arm64 -t base-deps-rpi:latest -f Dockerfile.base-deps-rpi ..
+# docker build --platform linux/arm64 -t base-deps-armv7:latest -f Dockerfile.base-deps-armv7 ..

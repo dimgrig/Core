@@ -1,5 +1,5 @@
 # ---------- сборка Core библиотек ----------
-FROM base-deps-rpi:latest AS core-builder-libs-rpi
+FROM base-deps-arm64:latest AS core-builder-libs-arm64
 
 ENV QT_LIB_DIR=/usr/lib/qt
 
@@ -78,11 +78,11 @@ RUN ls -la $QT_LIB_DIR/libcore-lib.so*
 RUN ls -la $QT_LIB_DIR/libxerces*.so*
 
 # ---------- Stage 2: копирование Core библиотек ----------
-FROM busybox:latest AS core-builder-rpi
+FROM busybox:latest AS core-builder-arm64
 
-COPY --from=core-builder-libs-rpi /usr/lib/qt/*.so* /usr/lib/qt/
-COPY --from=core-builder-libs-rpi /usr/lib/qt/*.a  /usr/lib/qt/
+COPY --from=core-builder-libs-arm64 /usr/lib/qt/*.so* /usr/lib/qt/
+COPY --from=core-builder-libs-arm64 /usr/lib/qt/*.a  /usr/lib/qt/
 
 
-# docker build -t core-builder-rpi:latest -f ../Core/Dockerfile.rpi .. 
+# docker build -t core-builder-arm64:latest -f ../Core/Dockerfile.arm64 .. 
 
