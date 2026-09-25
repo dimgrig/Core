@@ -36,7 +36,7 @@ static QHash<QString, QSet<QString> > formatForMimeType;
 void readMimeTypeData(const QString &filename)
 {
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-    //TODO
+    QRegularExpression whitespace("\\s+");
 #else
 #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
     QRegularExpression whitespace("\\s+");
@@ -54,7 +54,8 @@ void readMimeTypeData(const QString &filename)
                 continue;
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-                //TODO
+            QStringList suffixesList = parts.mid(1);
+            QSet<QString> suffixes(suffixesList.begin(), suffixesList.end());
 #else
     #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
                 QSet<QString> suffixes = QListToQSet(parts.mid(1));
@@ -264,7 +265,7 @@ QString filenameFilter(const QString &name,
     foreach (const QString &mimeType, mimeTypes)
         formats.unite(formatForMimeType.value(mimeType));
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-        //TODO
+    QStringList fileFormatList = formats.values();
 #else
     #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
         QStringList fileFormatList = QSetToQStringList(formats);

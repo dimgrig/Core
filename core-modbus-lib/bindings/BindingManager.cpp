@@ -114,7 +114,7 @@ void BindingManager::processModbusData(int serverAddress, const QModbusDataUnit&
                         start < (static_cast<unsigned int>(unit.startAddress()) + unit.valueCount())) {
 
                         unsigned int offset = qMax((unsigned int)0, start - static_cast<unsigned int>(unit.startAddress()));
-                        unsigned int copyCount = qMin(count, (unit.valueCount() - offset));
+                        unsigned int copyCount = qMin(count, (unsigned int)(unit.valueCount() - offset));
 
                         if (copyCount > 0) {
                             QVector<quint16> data(copyCount);
@@ -354,7 +354,7 @@ QModbusDataUnit BindingManager::buildTransactionalUnit(const QString& groupName)
         if (mdum.count(m_serverAddress) && mdum.at(m_serverAddress).count(regName)) {
             const auto& unit = mdum.at(m_serverAddress).at(regName);
             startAddress = std::min(startAddress, unit.startAddress());
-            endAddress = std::max(endAddress, unit.startAddress() + unit.valueCount());
+            endAddress = std::max(endAddress, (unsigned int)(unit.startAddress() + unit.valueCount()));
         }
     }
 

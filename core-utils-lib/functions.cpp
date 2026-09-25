@@ -113,6 +113,7 @@ std::string TRANSLATION_RU_EN(std::string RU) {
     return res;
 }
 
+#ifndef Q_OS_WASM
 QString getPlatformSpecificIP() {
     QString ip;
     // используем стандартный Qt подход
@@ -127,6 +128,7 @@ QString getPlatformSpecificIP() {
 
     return ip;
 }
+#endif
 
 bool startsWith(std::string mainStr, std::string toMatch) {
     // std::string::find returns 0 if toMatch is found at starting
@@ -461,7 +463,11 @@ void delegate_selection_paint(QPainter *painter,
         // This call will take care to draw, dashed line while selecting
         style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
     } else {
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+        painter->setPen(QPen(option.palette.color(QPalette::Text), 0));
+#else
         painter->setPen(QPen(option.palette.foreground(), 0));
+#endif
         painter->setBrush(qvariant_cast<QBrush>(index.data(Qt::ForegroundRole)));
     }
 }
@@ -566,7 +572,7 @@ std::string format_polynom_for_export(const std::string& input) {
 
 void calculate(double &value, const QString &polynom_str) {
     MathParser mp;
-    if (polynom_str != 0) {
+    if (polynom_str != "") {
         QString expression = polynom_str;
         expression.replace(",", ".");
         expression.replace("X", QString::number(value));

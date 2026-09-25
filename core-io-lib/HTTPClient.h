@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QNetworkSession>
 #include <QUrl>
 
 #include "core-io-lib-global.h"
@@ -47,7 +46,6 @@ private slots:
 private:
     QUrl _url;
     QNetworkAccessManager _qnam;
-    //QNetworkSession _session;
     QNetworkReply *_reply;
 
     bool _httpRequestAborted = false;

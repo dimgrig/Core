@@ -589,7 +589,9 @@ void BaseTableView::slot_print() {
             if (dialog.exec() == QDialog::Accepted) {
                 QString print_string;
                 QTextStream stream(&print_string);
-                stream.setCodec("UTF-8");
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+                 stream.setCodec("UTF-8");
+#endif
                 this->get_html_stream(stream); //this->get_html(stream);
 
                 QScopedPointer<QTextDocument> document(new QTextDocument());
@@ -610,7 +612,9 @@ void BaseTableView::slot_export_html() {
             QScopedPointer<QFile> file(new QFile(filename));
             if (file->open(QFile::WriteOnly | QFile::Text)){
                 QTextStream stream(file.get());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 stream.setCodec("UTF-8");
+#endif
                 this->get_html_stream(stream);
                 file->close();
             }
@@ -630,7 +634,9 @@ void BaseTableView::slot_export_pdf() {
 
             QString print_string;
             QTextStream stream(&print_string);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             stream.setCodec("UTF-8");
+#endif
             this->get_html_stream(stream); //this->get_html(stream);
 
             QScopedPointer<QTextDocument> document(new QTextDocument());
@@ -648,7 +654,9 @@ void BaseTableView::slot_export_csv() {
             QScopedPointer<QFile> file(new QFile(filename));
             if (file->open(QFile::WriteOnly | QFile::Text)){
                 QTextStream stream(file.get());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 stream.setCodec("UTF-8");
+#endif
                 this->get_csv_stream(stream);
                 file->close();
             }
@@ -665,7 +673,9 @@ void BaseTableView::slot_export_txt() {
             QScopedPointer<QFile> file(new QFile(filename));
             if (file->open(QFile::WriteOnly | QFile::Text)) {
                 QTextStream out(file.get());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 out.setCodec("UTF-8");
+#endif
                 QString text = this->get_header();
                 text += this->get_text();
                 text.replace(ELEMENTS_DELIMETER, "\t");

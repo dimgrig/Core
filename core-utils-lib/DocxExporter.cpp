@@ -3,7 +3,6 @@
 #include <QTextList>
 
 #include "Logger.h"
-#include "qtextcodec.h"
 
 DocxExporter::DocxExporter() {
 

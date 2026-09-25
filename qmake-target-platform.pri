@@ -77,3 +77,6 @@ CONFIG(debug, release|debug) {
    CONFIG += BUILD_RELEASE
    message(BUILD_RELEASE)
 }
+
+message("Qt version: $$QT_VERSION")
+message("Qt major: $$section(QT_VERSION, ., 0, 0)")

@@ -2,7 +2,7 @@
 #include "ui_Auth.h"
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-//TODO
+#include <QScreen>
 #else
 #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
 #include <QScreen>
@@ -40,7 +40,7 @@ Auth::Auth(IUserRoleManager* roleManager, QWidget *parent) :
     connect(this, &Auth::auth_failed, this, &Auth::onAuthFailed);
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-        //TODO
+    QRect desktopRect = QApplication::primaryScreen()->availableGeometry();
 #else
   #if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
     QRect desktopRect = QApplication::primaryScreen()->availableGeometry();

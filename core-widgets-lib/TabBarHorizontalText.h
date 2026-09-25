@@ -3,7 +3,11 @@
 
 #include <QTabBar>
 #include <QStylePainter>
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+#include <QStyleOptionTab>
+#else
 #include <QStyleOptionTabV3>
+#endif
 #include <QPainter>
 #include <QIcon>
 #include <QString>

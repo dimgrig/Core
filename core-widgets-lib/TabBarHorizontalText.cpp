@@ -213,7 +213,11 @@ QSize TabBarHorizontalText::tabSizeHint(int index) const {
 void TabBarHorizontalText::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
     QStylePainter p(this);
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    QStyleOptionTab opt;
+#else
     QStyleOptionTabV3 opt;
+#endif
     QFontMetrics fm = p.fontMetrics();
 
     for (int index = 0; index < count(); index++) {

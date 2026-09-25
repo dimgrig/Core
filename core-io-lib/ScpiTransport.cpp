@@ -16,8 +16,12 @@ TcpTransport::TcpTransport(const QString &host, quint16 port, QObject *parent)
 
     connect(m_socket, &QTcpSocket::connected, this, &TcpTransport::onConnected);
     connect(m_socket, &QTcpSocket::disconnected, this, &TcpTransport::onDisconnected);
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    connect(m_socket, &QTcpSocket::errorOccurred, this, &TcpTransport::onSocketError);
+#else
     connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
             this, &TcpTransport::onSocketError);
+#endif
 }
 
 TcpTransport::~TcpTransport()
@@ -183,8 +187,12 @@ SerialTransport::SerialTransport(const QString &portName,
     m_timeoutTimer->setSingleShot(true);
 
     connect(m_serial, &QSerialPort::readyRead, this, &SerialTransport::onReadyRead);
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    connect(m_serial, &QSerialPort::errorOccurred, this, &SerialTransport::onErrorOccurred);
+#else
     connect(m_serial, QOverload<QSerialPort::SerialPortError>::of(&QSerialPort::error),
             this, &SerialTransport::onErrorOccurred);
+#endif
 }
 
 SerialTransport::~SerialTransport()
