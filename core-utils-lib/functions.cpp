@@ -571,13 +571,25 @@ std::string format_polynom_for_export(const std::string& input) {
 }
 
 void calculate(double &value, const QString &polynom_str) {
-    MathParser mp;
     if (polynom_str != "") {
+        //MathParser mp;
+
+        // Кэш MathParser по строке полинома
+        static QHash<QString, std::shared_ptr<MathParser>> cache;
+        auto it = cache.find(polynom_str);
+        std::shared_ptr<MathParser> mp;
+        if (it == cache.end()) {
+            mp = std::make_shared<MathParser>();
+            cache.insert(polynom_str, mp);
+        } else {
+            mp = it.value();
+        }
+
         QString expression = polynom_str;
         expression.replace(",", ".");
         expression.replace("X", QString::number(value));
-        QString result_str = mp.parse(expression);
-        value = mp.get_result();
+        QString result_str = mp->parse(expression);
+        value = mp->get_result();
     }
 }
 

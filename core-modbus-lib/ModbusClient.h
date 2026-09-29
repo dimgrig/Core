@@ -3,6 +3,7 @@
 
 #include <QModbusDevice>
 #include <QQueue>
+#include <QElapsedTimer>
 #include "qmodbusclient.h"
 //#include <qt5/QtCore/qchar.h>
 
@@ -133,6 +134,10 @@ private:
 
     QModbusDataUnit _lastReadUnit = QModbusDataUnit();
     QModbusDataUnit _lastWriteUnit = QModbusDataUnit();
+
+    int _consecutiveErrorCount = 0;
+    QElapsedTimer _lastErrorLogTimer;
+    QModbusDevice::Error _lastErrorType = QModbusDevice::NoError;
 };
 
 #endif // MODBUSCLIENT_H

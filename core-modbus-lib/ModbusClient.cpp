@@ -296,6 +296,7 @@ void ModbusClient::onModbusStateChanged(int state) {
     } else if (state == QModbusDevice::UnconnectedState) {
         stopPolling();
         clearQueue();
+        _consecutiveErrorCount = 0;
     }
 
     if (state == QModbusDevice::ConnectedState) {
@@ -318,7 +319,44 @@ void ModbusClient::onModbusStateChanged(int state) {
 }
 
 void ModbusClient::onModbusErrorOccurred(QModbusDevice::Error error) {
-    qCDebug(logDebug) << error << modbusDevice->errorString();
+    // ---- 1. Throttle логирования ----
+    bool shouldLog = !_lastErrorLogTimer.isValid()
+                     || _lastErrorLogTimer.elapsed() > 1000      // не чаще раза в секунду
+                     || _lastErrorType != error;                  // или если сменился тип ошибки
+
+    if (shouldLog) {
+        qCDebug(logDebug) << "Modbus error:" << error << modbusDevice->errorString();
+        _lastErrorLogTimer.restart();
+        _lastErrorType = error;
+    }
+
+    if (error == QModbusDevice::NoError) {
+        _consecutiveErrorCount = 0;
+        return;
+    }
+
+    // ---- 2. Считаем подряд идущие ошибки ----
+    _consecutiveErrorCount++;
+
+    // ---- 3. Стоп-кран: после 5 подряд — принудительный disconnect ----
+    if (_consecutiveErrorCount >= 5) {
+        _consecutiveErrorCount = 0;
+
+        // Останавливаем опрос, чтобы не генерировать новые ошибки
+        stopPolling();
+        clearQueue();
+
+        // Принудительно закрываем порт — это сменит state на UnconnectedState,
+        // checkSerialPorts() позже попробует подключиться заново
+        if (modbusDevice
+            && modbusDevice->state() != QModbusDevice::UnconnectedState) {
+            modbusDevice->disconnectDevice();
+        }
+
+        // Не вызываем scheduleReconnect здесь —
+        // за переподключение отвечает _portCheckTimer (раз в 5 сек)
+        return;
+    }
 
     // Для критических ошибок увеличиваем счетчик
     if (error != QModbusDevice::NoError) {
@@ -575,39 +613,40 @@ void ModbusClient::processNextRequest()
     if (reply) {
         connect(reply, &QModbusReply::finished, this, [this, reply, req]() {
             bool success = (reply->error() == QModbusDevice::NoError);
-                int addr = req.serverAddress;
+            _consecutiveErrorCount = 0;
+            int addr = req.serverAddress;
 
-                if (success) {
-                    // Успешный ответ – сбрасываем счётчик ошибок для этого адреса
-                    _serverRequestErrorCount[addr] = 0;
-                    if (!_serverResponsiveState[addr]) {
-                        _serverResponsiveState[addr] = true;
-                        emit serverHealthChanged(addr, true);
+            if (success) {
+                // Успешный ответ – сбрасываем счётчик ошибок для этого адреса
+                _serverRequestErrorCount[addr] = 0;
+                if (!_serverResponsiveState[addr]) {
+                    _serverResponsiveState[addr] = true;
+                    emit serverHealthChanged(addr, true);
+                }
+            } else {
+                // Ошибка – увеличиваем счётчик
+                _serverRequestErrorCount[addr]++;
+                if (_serverRequestErrorCount[addr] >= _requestErrorThreshold) {
+                    if (_serverResponsiveState[addr]) {
+                        _serverResponsiveState[addr] = false;
+                        emit serverHealthChanged(addr, false);
                     }
-                } else {
-                    // Ошибка – увеличиваем счётчик
-                    _serverRequestErrorCount[addr]++;
-                    if (_serverRequestErrorCount[addr] >= _requestErrorThreshold) {
-                        if (_serverResponsiveState[addr]) {
-                            _serverResponsiveState[addr] = false;
-                            emit serverHealthChanged(addr, false);
-                        }
-                    }
                 }
+            }
 
-                if (!req.isWrite && success) {
-                    emit read_ready(req.serverAddress, reply->result());
-                }
+            if (!req.isWrite && success) {
+                emit read_ready(req.serverAddress, reply->result());
+            }
 
-                reply->deleteLater();
-                _requestInProgress = false;
+            reply->deleteLater();
+            _requestInProgress = false;
 
-                if (req.isPolling) {
-                    _pendingPollCount--;
-                    if (_pendingPollCount == 0) _pollingCycleActive = false;
-                }
+            if (req.isPolling) {
+                _pendingPollCount--;
+                if (_pendingPollCount == 0) _pollingCycleActive = false;
+            }
 
-                processNextRequest();
+            processNextRequest();
         });
     } else {
         if (auto* j = JournalAccess::journal())

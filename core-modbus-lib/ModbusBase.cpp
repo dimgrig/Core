@@ -3,6 +3,7 @@
 #include <QModbusDevice>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QScopedValueRollback>
 
 #include "Logger.h"
 #include "ModbusRegisterSerializer.h"
@@ -362,26 +363,32 @@ bool ModbusBase::isSerialPortAvailable(const QString &portName) {
         return false;
     }
 
-    // Получаем список доступных портов
-    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    // // Получаем список доступных портов
+    // QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
 
-    // Ищем нужный порт
-    for (const QSerialPortInfo &port : ports) {
-        if (port.portName() == portName ||
-            port.systemLocation() == portName) {
-            //qCDebug(logDebug) << "Serial port found:" << port.portName();
-            return true;
-        }
-    }
-
-    // qCDebug(logDebug) << "Serial port not found:" << portName
-    //                     << "Available ports:";
+    // // Ищем нужный порт
     // for (const QSerialPortInfo &port : ports) {
-    //     qCDebug(logDebug) << "  -" << port.portName()
-    //     << "(" << port.description() << ")";
+    //     if (port.portName() == portName ||
+    //         port.systemLocation() == portName) {
+    //         //qCDebug(logDebug) << "Serial port found:" << port.portName();
+    //         return true;
+    //     }
     // }
 
-    return false;
+    // // qCDebug(logDebug) << "Serial port not found:" << portName
+    // //                     << "Available ports:";
+    // // for (const QSerialPortInfo &port : ports) {
+    // //     qCDebug(logDebug) << "  -" << port.portName()
+    // //     << "(" << port.description() << ")";
+    // // }
+
+    // return false;
+
+    const QString path = portName.startsWith('/')
+                             ? portName
+                             : QStringLiteral("/dev/") + portName;
+
+    return QFile::exists(path);
 }
 
 void ModbusBase::checkSerialPorts() {
@@ -389,6 +396,11 @@ void ModbusBase::checkSerialPorts() {
         _portCheckTimer->stop();
         return;
     }
+
+    // Если предыдущая проверка ещё идёт — не начинаем новую
+    static bool inProgress = false;
+    if (inProgress) return;
+    QScopedValueRollback<bool> guard(inProgress, true);
 
     QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
     bool isAvailable = isSerialPortAvailable(portName);

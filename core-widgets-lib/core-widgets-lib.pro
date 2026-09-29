@@ -110,6 +110,7 @@ HEADERS += \
     MockUserRoleManager.h \
     MultiSelectWidget.h \
     RotatedLabel.h \
+    RoundedLabel.h \
     SpinBoxEditor.h \
     TabBarHorizontalText.h \
     User.h \
@@ -139,6 +140,7 @@ SOURCES += \
     MockUserRoleManager.cpp \
     MultiSelectWidget.cpp \
     RotatedLabel.cpp \
+    RoundedLabel.cpp \
     TabBarHorizontalText.cpp \
     User.cpp \
     aqp.cpp
