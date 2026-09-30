@@ -5,9 +5,11 @@
 #include <QColor>
 #include <QPainter>
 
+#include "core-widgets-lib-global.h"
+
 // QLabel с закруглённым фоном, без использования QSS.
 // padding задаётся через setMargin(), цвет текста — через QPalette::WindowText.
-class RoundedLabel : public QLabel {
+class CORE_WIDGETS_LIB_EXPORT RoundedLabel : public QLabel {
     Q_OBJECT
 public:
     explicit RoundedLabel(QWidget* parent = nullptr);
