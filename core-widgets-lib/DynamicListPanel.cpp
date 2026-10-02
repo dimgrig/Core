@@ -27,9 +27,9 @@ void DynamicListPanel::buildUi()
     m_editBtn->setIcon(ICON_SETTINGS);
     m_removeBtn->setIcon(ICON_DELETE);
 
-    m_addBtn->setIconSize(ICON_SIZE_32);
-    m_editBtn->setIconSize(ICON_SIZE_32);
-    m_removeBtn->setIconSize(ICON_SIZE_32);
+    m_addBtn->setIconSize(ICON_SIZE_24);
+    m_editBtn->setIconSize(ICON_SIZE_24);
+    m_removeBtn->setIconSize(ICON_SIZE_24);
 
     m_addBtn->setToolTip(tr("Добавить"));
     m_editBtn->setToolTip(tr("Редактировать"));

@@ -5,6 +5,7 @@
 #include <QMenu>
 #include <QVBoxLayout>
 
+#include "IconManager.h"
 #include "Logger.h"
 
 DetailListWidget::DetailListWidget(QString name, QWidget *parent)
@@ -17,9 +18,38 @@ DetailListWidget::DetailListWidget(QString name, QWidget *parent)
     m_listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_listView->setSelectionMode(QAbstractItemView::SingleSelection);
 
+    // m_repeatButton = new QToolButton(this);
+    // m_repeatButton->setIcon(QIcon(ICON_RUN_TRAIN));
+    // m_repeatButton->setText(tr("Повторить тест"));
+    // m_repeatButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    // m_repeatButton->setAutoRaise(true);
+
+    // m_startButton = new QToolButton(this);
+    // m_startButton->setIcon(QIcon(ICON_RUN_ALL));
+    // m_startButton->setText(tr("Запустить с теста"));
+    // m_startButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    // m_startButton->setAutoRaise(true);
+
+    // m_repeatButton->setIconSize(ICON_SIZE_24);
+    // m_startButton->setIconSize(ICON_SIZE_24);
+
+    // auto *buttonLayout = new QVBoxLayout;
+    // buttonLayout->setContentsMargins(0, 0, 0, 0);
+    // buttonLayout->setSpacing(4);
+    // buttonLayout->addWidget(m_repeatButton);
+    // buttonLayout->addWidget(m_startButton);
+    // buttonLayout->addStretch();
+
+    // auto *leftPane = new QWidget(this);
+    // auto *leftLayout = new QVBoxLayout(leftPane);
+    // leftLayout->setContentsMargins(0, 0, 0, 0);
+    // leftLayout->setSpacing(2);
+    // leftLayout->addWidget(m_listView, /*stretch*/ 1);
+    // leftLayout->addLayout(buttonLayout);
+
     m_stack = new QStackedWidget(this);
 
-    splitter->addWidget(m_listView);
+    splitter->addWidget(m_listView); //leftPane
     splitter->addWidget(m_stack);
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3); // правая часть шире
@@ -30,6 +60,13 @@ DetailListWidget::DetailListWidget(QString name, QWidget *parent)
 
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_listView, &QWidget::customContextMenuRequested, this, &DetailListWidget::onListViewContextMenu);
+
+    // connect(m_repeatButton, &QToolButton::clicked, this, [this]() {
+    //     triggerRepeat(m_listView->currentIndex().row());
+    // });
+    // connect(m_startButton, &QToolButton::clicked, this, [this]() {
+    //     triggerStart(m_listView->currentIndex().row());
+    // });
 }
 
 void DetailListWidget::setModel(QAbstractItemModel *model, DetailListWidgetPanelFactory factory, int idColumn, int displayColumn)
@@ -106,6 +143,46 @@ void DetailListWidget::setCurrentRow(int row)
     }
 }
 
+void DetailListWidget::triggerRepeat()
+{
+    triggerRepeatByRow(this->currentRow());
+}
+
+void DetailListWidget::triggerStartFrom()
+{
+    triggerStartFromByRow(this->currentRow());
+}
+
+void DetailListWidget::triggerRepeatByRow(int row)
+{
+    if (!m_model || m_idColumn < 0)
+        return;
+    if (row < 0 || row >= m_model->rowCount())
+        return;
+
+    const QModelIndex idIndex = m_model->index(row, m_idColumn);
+    if (!idIndex.isValid())
+        return;
+
+    const int id = m_model->data(idIndex, Qt::DisplayRole).toInt();
+    emit runTestRefreshSequenceRequested(id);
+}
+
+void DetailListWidget::triggerStartFromByRow(int row)
+{
+    if (!m_model || m_idColumn < 0)
+        return;
+    if (row < 0 || row >= m_model->rowCount())
+        return;
+
+    const QModelIndex idIndex = m_model->index(row, m_idColumn);
+    if (!idIndex.isValid())
+        return;
+
+    const int id = m_model->data(idIndex, Qt::DisplayRole).toInt();
+    emit runFromTestRequested(id);
+}
+
 void DetailListWidget::onSelectionChanged()
 {
     QModelIndexList indexes = m_listView->selectionModel()->selectedIndexes();
@@ -126,26 +203,21 @@ void DetailListWidget::onListViewContextMenu(const QPoint &pos)
     if (!m_model || m_idColumn < 0)
         return;
 
-    QModelIndex index = m_listView->indexAt(pos);
+    const QModelIndex index = m_listView->indexAt(pos);
     if (!index.isValid())
         return;
 
-    // Получаем строку и ID из колонки идентификатора
-    int row = index.row();
-    QModelIndex idIndex = m_model->index(row, m_idColumn);
-    if (!idIndex.isValid())
-        return;
-    int id = m_model->data(idIndex, Qt::DisplayRole).toInt();
+    const int row = index.row();
 
     QMenu menu;
     QAction *repeatAction = menu.addAction("Повторить тест");
     QAction *startAction  = menu.addAction("Запустить с теста");
 
-    connect(repeatAction, &QAction::triggered, this, [this, id]() {
-        emit runTestRefreshSequenceRequested(id);
+    connect(repeatAction, &QAction::triggered, this, [this, row]() {
+        triggerRepeatByRow(row);
     });
-    connect(startAction, &QAction::triggered, this, [this, id]() {
-        emit runFromTestRequested(id);
+    connect(startAction, &QAction::triggered, this, [this, row]() {
+        triggerStartFromByRow(row);
     });
 
     // Показываем меню в глобальных координатах
