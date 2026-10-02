@@ -6,7 +6,7 @@
 #include <QPushButton>
 
 #include "CoreConfig.h"
-#include "DynamicListWidget.h"
+#include "DynamicListPanel.h"
 
 static QStringList splitStringToList(const QString &str)
 {
@@ -35,12 +35,12 @@ QWidget *ListEditDelegate::createEditor(QWidget *parent,
 {
     Q_UNUSED(option);
     Q_UNUSED(index);
-    // Создаём диалог, в который поместим DynamicListWidget
+    // Создаём диалог, в который поместим DynamicListPanel
     QDialog *dialog = new QDialog(parent);
     dialog->setWindowTitle(tr("Редактирование списка"));
     dialog->setModal(true);
 
-    DynamicListWidget *listWidget = new DynamicListWidget(dialog);
+    DynamicListPanel *dlp = new DynamicListPanel(dialog);
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, dialog);
     connect(buttonBox, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
@@ -51,7 +51,7 @@ QWidget *ListEditDelegate::createEditor(QWidget *parent,
     if (cancelButton) cancelButton->setText("Отмена");
 
     QVBoxLayout *layout = new QVBoxLayout(dialog);
-    layout->addWidget(listWidget);
+    layout->addWidget(dlp);
     layout->addWidget(buttonBox);
     dialog->setLayout(layout);
 
@@ -65,13 +65,13 @@ void ListEditDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
     QDialog *dialog = qobject_cast<QDialog*>(editor);
     if (!dialog) return;
 
-    DynamicListWidget *listWidget = dialog->findChild<DynamicListWidget*>();
-    if (!listWidget) return;
+    DynamicListPanel *dlp = dialog->findChild<DynamicListPanel*>();
+    if (!dlp) return;
 
     // Получаем текущий список строк из модели
     QString text = index.data(Qt::EditRole).toString();
     QStringList items = splitStringToList(text);
-    listWidget->setItems(items);
+    dlp->setItems(items);
 }
 
 void ListEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
@@ -82,9 +82,9 @@ void ListEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 
     // Если пользователь нажал OK
     if (dialog->result() == QDialog::Accepted) {
-        DynamicListWidget *listWidget = dialog->findChild<DynamicListWidget*>();
-        if (listWidget) {
-            QStringList items = listWidget->getItems();
+        DynamicListPanel *dlp = dialog->findChild<DynamicListPanel*>();
+        if (dlp) {
+            QStringList items = dlp->items();
             QString joined = joinListToString(items);
             model->setData(index, QVariant(joined), Qt::EditRole);
         }
