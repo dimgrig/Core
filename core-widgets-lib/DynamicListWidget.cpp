@@ -76,41 +76,80 @@ void DynamicListWidget::onAddItem()
     dialog.setOkButtonText(tr("OK"));
     dialog.setCancelButtonText(tr("Отмена"));
     dialog.setTextEchoMode(QLineEdit::Normal);
-    bool ok = (dialog.exec() == QDialog::Accepted);
-    QString text = dialog.textValue();
-    if (ok && !text.isEmpty()) {
-        QListWidgetItem *item = new QListWidgetItem(text);
-        addItem(item);
-        // Делаем новый элемент текущим и выбранным
-        setCurrentItem(item);
-    } else if (ok && text.isEmpty()) {
-        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Наименование не может быть пустым"), 0, 3000);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    const QString text = dialog.textValue().trimmed();
+    if (text.isEmpty()) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"),
+                     tr("Наименование не может быть пустым"), 0, 3000);
+        return;
     }
+
+    auto *item = new QListWidgetItem(text);
+    addItem(item);
+    setCurrentItem(item);
+    emit itemsChanged();
 }
 
 void DynamicListWidget::onEditItem()
 {
-    QListWidgetItem *item = currentItem();
-    if (!item) return;
-
-    bool ok;
-    QString newText = QInputDialog::getText(this, tr("Редактирование"),
-                                            tr("Редактирование элемента:"),
-                                            QLineEdit::Normal,
-                                            item->text(), &ok);
-    if (ok && !newText.isEmpty()) {
-        item->setText(newText);
-    } else if (ok && newText.isEmpty()) {
-        AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Наименование не может быть пустым"), 0, 3000);
-    }
+    this->editItem(currentItem());
 }
 
 void DynamicListWidget::onDeleteItem()
 {
-    QListWidgetItem *item = currentItem();
+    this->deleteItem(currentItem());
+}
+
+void DynamicListWidget::editItem(QListWidgetItem *item)
+{
     if (!item) return;
 
-    // Удаляем элемент
-    takeItem(this->row(item));
-    delete item;
+    QInputDialog dialog(this);
+    dialog.setWindowTitle(tr("Редактирование"));
+    dialog.setLabelText(tr("Редактирование элемента:"));
+    dialog.setOkButtonText(tr("OK"));
+    dialog.setCancelButtonText(tr("Отмена"));
+    dialog.setTextEchoMode(QLineEdit::Normal);
+    dialog.setTextValue(item->text());
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    const QString newText = dialog.textValue().trimmed();
+    if (newText.isEmpty()) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"),
+                     tr("Наименование не может быть пустым"), 0, 3000);
+        return;
+    }
+
+    // Ничего не поменялось — выходим без эмита
+    if (newText == item->text())
+        return;
+
+    item->setText(newText);
+    emit itemsChanged();
+}
+
+void DynamicListWidget::deleteItem(QListWidgetItem *item)
+{
+    if (!item) return;
+
+    if (!AQP::question(this,
+                  tr("Удаление"),
+                  tr("Удалить элемент «%1»?").arg(item->text()),
+                  QString(),                 // detailedText — пусто
+                  tr("Да"),
+                  tr("Нет")))
+        return;
+
+    // takeItem возвращает владение элементом; удаляем явно
+    const int row = this->row(item);
+    if (row < 0)
+        return;
+
+    delete takeItem(row); // takeItem возвращает QListWidgetItem*
+    emit itemsChanged();
 }

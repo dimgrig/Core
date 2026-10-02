@@ -19,10 +19,15 @@ public:
 protected:
     void showContextMenu(const QPoint &pos);
 
-private slots:
+signals:
+    void itemsChanged();
+public slots:
     void onAddItem();
     void onEditItem();
     void onDeleteItem();
+
+    void editItem(QListWidgetItem *item);
+    void deleteItem(QListWidgetItem *item);
 
 private:
     void setupContextMenu();

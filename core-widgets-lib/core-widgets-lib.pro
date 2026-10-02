@@ -99,6 +99,7 @@ HEADERS += \
     DateTimeRangeWidget.h \
     DetailListWidget.h \
     DoubleSpinBoxDialog.h \
+    DynamicListPanel.h \
     DynamicListWidget.h \
     FlowLayout.h \
     FocusWatcher.h \
@@ -129,6 +130,7 @@ SOURCES += \
     DateTimeRangeWidget.cpp \
     DetailListWidget.cpp \
     DoubleSpinBoxDialog.cpp \
+    DynamicListPanel.cpp \
     DynamicListWidget.cpp \
     FlowLayout.cpp \
     FocusWatcher.cpp \
