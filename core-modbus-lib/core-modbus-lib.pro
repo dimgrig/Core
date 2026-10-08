@@ -130,6 +130,7 @@ HEADERS += \
     ModbusClient.h \
     ModbusClientService.h \
     ModbusDataConverter.h \
+    ModbusMultiAddressServer.h \
     ModbusRegisterSerializer.h \
     ModbusServer.h \
     ModbusSettings.h \
@@ -156,6 +157,7 @@ SOURCES += \
     ModbusClient.cpp \
     ModbusClientService.cpp \
     ModbusDataConverter.cpp \
+    ModbusMultiAddressServer.cpp \
     ModbusRegisterSerializer.cpp \
     ModbusServer.cpp \
     ModbusSettings.cpp \

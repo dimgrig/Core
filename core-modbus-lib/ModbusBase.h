@@ -98,7 +98,10 @@ signals:
 
     void config_changed(QString config);
 public slots:
-    QModbusDevice::State state() const {return this->device()->state();}
+    QModbusDevice::State state() const {
+        auto d = this->device();
+        return d ? d->state() : _localState;
+    }
 
     virtual std::shared_ptr<QModbusDevice> device() const = 0;
 
@@ -137,6 +140,8 @@ protected:
 
     QTimer *_portCheckTimer;  // Таймер для проверки портов
     QString _lastKnownPortState;  // Для отслеживания изменений состояния порта
+
+    QModbusDevice::State _localState = QModbusDevice::UnconnectedState;
 };
 
 #endif // MODBUSBASE_H
