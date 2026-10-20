@@ -8,7 +8,7 @@ RUN mkdir -p $QT_LIB_DIR
 WORKDIR /app
 
 COPY Core/*pri /app/Core/
-COPY Core/*.pro*/ /app/Core/
+COPY Core/*.pr**/ /app/Core/
 
 # Создаём директорию для библиотек
 RUN mkdir -p /C/QtCreatorProjects/libs && chmod 777 /C/QtCreatorProjects/libs
@@ -19,11 +19,12 @@ RUN ln -sf $(which i686-w64-mingw32-qmake-qt5) /usr/bin/qmake
 # Создаём недостающую директорию и симлинк для qmake
 RUN mkdir -p /usr/lib/qt5/bin && ln -sf /usr/bin/qmake /usr/lib/qt5/bin/qmake
 
+# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
+RUN find . -name "*.pr*" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
+
 # ------------------------------------------------------------------
 # Сборка core-lib (базовая)
 COPY Core/core-lib/ /app/Core/core-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-lib && \
     i686-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
@@ -31,8 +32,6 @@ RUN cd Core/core-lib && \
 
 # Сборка core-journal-lib (зависит от core-lib)
 COPY Core/core-journal-lib/ /app/Core/core-journal-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-journal-lib && \
     i686-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -40,17 +39,14 @@ RUN cd Core/core-journal-lib && \
 
 # Сборка qcustomplot (статическая библиотека)
 COPY Core/qcustomplot/ /app/Core/qcustomplot/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/qcustomplot && \
     i686-w64-mingw32-qmake-qt5 qcustomplot.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll $QT_LIB_DIR
+    cp -v ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll $QT_LIB_DIR && \
+    cp -v ../../qcustomplot-binaries/windows/gcc/x86/release/libqcustomplot*.a $QT_LIB_DIR
 
 # Сборка core-plot-lib (зависит от qcustomplot, core-lib)
 COPY Core/core-plot-lib/ /app/Core/core-plot-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-plot-lib && \
     i686-w64-mingw32-qmake-qt5 core-plot-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -58,17 +54,14 @@ RUN cd Core/core-plot-lib && \
 
 # Сборка QtWebApp (статическая, но скопируем .a)
 COPY Core/QtWebApp/ /app/Core/QtWebApp/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/QtWebApp && \
     i686-w64-mingw32-qmake-qt5 QtWebApp.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
-    cp -v ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll $QT_LIB_DIR
+    cp -v ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll $QT_LIB_DIR && \
+    cp -v ../../QtWebApp-binaries/windows/gcc/x86/release/libQtWebApp*.a $QT_LIB_DIR
 
 # Сборка core-modbus-lib (зависит от core-lib)
 COPY Core/core-modbus-lib/ /app/Core/core-modbus-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-modbus-lib && \
     i686-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -76,8 +69,6 @@ RUN cd Core/core-modbus-lib && \
 
 # Сборка core-io-lib (зависит от core-lib, core-modbus-lib)
 COPY Core/core-io-lib/ /app/Core/core-io-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-io-lib && \
     i686-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -85,8 +76,6 @@ RUN cd Core/core-io-lib && \
 
 # Сборка muParser (статическая, но скопируем .a)
 COPY Core/muParser/ /app/Core/muParser/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/muParser && \
     i686-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release CONFIG-=debug CONFIG+=shared && \
     make -j$(nproc) && \
@@ -94,8 +83,6 @@ RUN cd Core/muParser && \
 
 # Сборка core-widgets-lib (зависит от core-lib, core-journal-lib)
 COPY Core/core-widgets-lib/ /app/Core/core-widgets-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-widgets-lib && \
     i686-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -103,8 +90,6 @@ RUN cd Core/core-widgets-lib && \
 
 # Сборка core-utils-lib (зависит от core-lib, core-widgets-lib, muParser)
 COPY Core/core-utils-lib/ /app/Core/core-utils-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-utils-lib && \
     i686-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \
@@ -112,8 +97,6 @@ RUN cd Core/core-utils-lib && \
 
 # Сборка core-mvc-lib (зависит от core-lib, core-utils-lib, core-widgets-lib)
 COPY Core/core-mvc-lib/ /app/Core/core-mvc-lib/
-# Удаляем все QMAKE_POST_LINK (чтобы избежать ошибок копирования)
-RUN find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
 RUN cd Core/core-mvc-lib && \
     i686-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared "LIBS += -L$QT_LIB_DIR" "WIN_LIBS_PATH=$QT_LIB_DIR" && \
     make -j$(nproc) && \

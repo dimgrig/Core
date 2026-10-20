@@ -1,10 +1,15 @@
-# Build this project to generate a shared library (*.dll or *.so).
-
 TARGET = QtWebApp
 VERSION = 1.9.0
 TEMPLATE = lib
 QT -= gui
 CONFIG += release build_all #debug_and_release
+
+CONFIG += core_no_default_defines
+CORE_DEPLOY_PREFIX = lib
+include(../core-build.pri)
+
+unix { target.path = /usr/lib/ }
+!isEmpty(target.path): INSTALLS += target
 
 mac {
    QMAKE_MAC_SDK = macosx10.10
@@ -580,38 +585,3 @@ HEADERS += \
 
 SOURCES += \
     QtWebAppGlobal.cpp
-
-
-
-DISTFILES += \
-    ../qmake-destination-path.pri \
-    ../qmake-core-version.pri \
-    ../qmake-target-platform.pri
-
-include(../qmake-target-platform.pri)
-include(../qmake-core-version.pri)
-include(../qmake-destination-path.pri)
-
-INCLUDEPATH += "$$_PRO_FILE_PWD_/"
-
-DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH
-OBJECTS_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.obj
-MOC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.moc
-RCC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
-UI_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.ui
-
-unix {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp.so.1.9.0)) $$quote($$shell_path($${LINUX_LIBS_PATH})) $$escape_expand(\\n\\t)
-}
-
-win32 {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/QtWebApp1.dll)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp1.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-}
-win64 {
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/QtWebApp1.dll)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH/libQtWebApp1.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-}

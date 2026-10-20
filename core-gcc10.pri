@@ -1,8 +1,15 @@
 # Файл настроек для Astra Linux с GCC 10
 
 # Пути к компилятору
-ASTRA_GCC_PATH = /home/upkd/opt/gcc-10.1.0
-ASTRA_QT_PATH = /opt/qt5.15.12
+# --- env override (высший приоритет) ---
+_ASTRA_GCC_PATH_ENV = $$(ASTRA_GCC_PATH)
+_ASTRA_QT_PATH_ENV  = $$(ASTRA_QT_PATH)
+
+!isEmpty(_ASTRA_GCC_PATH_ENV): ASTRA_GCC_PATH = $$_ASTRA_GCC_PATH_ENV
+else:                          ASTRA_GCC_PATH = /home/upkd/opt/gcc-10.1.0
+
+!isEmpty(_ASTRA_QT_PATH_ENV):  ASTRA_QT_PATH  = $$_ASTRA_QT_PATH_ENV
+else:                          ASTRA_QT_PATH  = /opt/qt5.15.12
 
 # Настройки компилятора
 QMAKE_CC  = $${ASTRA_GCC_PATH}/bin/gcc

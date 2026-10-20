@@ -1,54 +1,48 @@
 TEMPLATE = subdirs
 
-wasm {
-    SUBDIRS = core-lib \
-            core-journal-lib \
-            core-utils-lib \
-            core-widgets-lib \
-            muParser
+SUBDIRS = core-lib \
+        core-io-lib \
+        core-journal-lib \
+        core-modbus-lib \
+        core-mvc-lib \
+        core-plot-lib \
+        core-utils-lib \
+        core-widgets-lib \
+        muParser \
+        qcustomplot \
+        QtWebApp
 
-    core-journal-lib.depends = core-lib
-    core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser
-    core-widgets-lib.depends = core-lib core-journal-lib
-} else {
-    SUBDIRS = core-lib \
-            core-io-lib \
-            core-journal-lib \
-            core-modbus-lib \
-            core-mvc-lib \
-            core-plot-lib \
-            core-utils-lib \
-            core-widgets-lib \
-            muParser \
-            qcustomplot \
-            QtWebApp
+core-journal-lib.depends = core-lib
+core-io-lib.depends = core-lib core-journal-lib core-modbus-lib
+core-mvc-lib.depends = core-lib core-journal-lib core-utils-lib core-widgets-lib
+core-modbus-lib.depends = core-lib core-journal-lib
+core-plot-lib.depends = core-lib core-journal-lib qcustomplot
+core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser
+core-widgets-lib.depends = core-lib core-journal-lib
 
-    core-journal-lib.depends = core-lib
-    core-io-lib.depends = core-lib core-journal-lib core-modbus-lib
-    core-mvc-lib.depends = core-lib core-journal-lib core-utils-lib core-widgets-lib
-    core-modbus-lib.depends = core-lib core-journal-lib
-    core-plot-lib.depends = core-lib core-journal-lib qcustomplot
-    core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser
-    core-widgets-lib.depends = core-lib core-journal-lib
+CONFIG(debug, debug|release) {
+    SUBDIRS += tests
 
-    CONFIG(debug, debug|release) {
-        SUBDIRS += tests
-
-        tests.depends = core-lib \
-                        core-io-lib \
-                        core-journal-lib \
-                        core-modbus-lib \
-                        core-mvc-lib \
-                        core-plot-lib \
-                        core-utils-lib \
-                        core-widgets-lib \
-                        muParser \
-                        qcustomplot \
-                        QtWebApp
-    }
+    tests.depends = core-lib \
+                    core-io-lib \
+                    core-journal-lib \
+                    core-modbus-lib \
+                    core-mvc-lib \
+                    core-plot-lib \
+                    core-utils-lib \
+                    core-widgets-lib \
+                    muParser \
+                    qcustomplot \
+                    QtWebApp
 }
 
 DISTFILES += \
+    core-build.pri \
+    core-astra.pri \
+    core-paths.pri \
+    core-deploy.pri \
+    core-link.pri \
+    core-gcc10.pri \
     qmake-destination-path.pri \
     qmake-core-version.pri \
     qmake-target-platform.pri
