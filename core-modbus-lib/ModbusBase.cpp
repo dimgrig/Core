@@ -363,33 +363,36 @@ bool ModbusBase::isSerialPortAvailable(const QString &portName) {
         return false;
     }
 
-    // // Получаем список доступных портов
-    // QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+#ifdef Q_OS_WIN
+    // Получаем список доступных портов
+    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
 
-    // // Ищем нужный порт
+    // Ищем нужный порт
+    for (const QSerialPortInfo &port : ports) {
+        if (port.portName() == portName ||
+            port.systemLocation() == portName) {
+            //qCDebug(logDebug) << "Serial port found:" << port.portName();
+            return true;
+        }
+    }
+
+    // qCDebug(logDebug) << "Serial port not found:" << portName
+    //                     << "Available ports:";
     // for (const QSerialPortInfo &port : ports) {
-    //     if (port.portName() == portName ||
-    //         port.systemLocation() == portName) {
-    //         //qCDebug(logDebug) << "Serial port found:" << port.portName();
-    //         return true;
-    //     }
+    //     qCDebug(logDebug) << "  -" << port.portName()
+    //     << "(" << port.description() << ")";
     // }
 
-    // // qCDebug(logDebug) << "Serial port not found:" << portName
-    // //                     << "Available ports:";
-    // // for (const QSerialPortInfo &port : ports) {
-    // //     qCDebug(logDebug) << "  -" << port.portName()
-    // //     << "(" << port.description() << ")";
-    // // }
-
-    // return false;
-
+    return false;
+#else
     const QString path = portName.startsWith('/')
                              ? portName
                              : QStringLiteral("/dev/") + portName;
 
     return QFile::exists(path);
+#endif
 }
+
 
 void ModbusBase::checkSerialPorts() {
     if (_connection_type != ConnectionTypeSerial) {
