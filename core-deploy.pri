@@ -9,9 +9,6 @@ isEmpty(CORE_DEPLOY_SRC):    CORE_DEPLOY_SRC    = $$_PRO_FILE_PWD_/../../$${CORE
 
 # unix: создаём каталог и обеспечиваем запись, затем копируем glob-ом
 unix {
-    #но без sudo не создастся в системно месте!
-    #QMAKE_POST_LINK += mkdir -p $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
-    #QMAKE_POST_LINK += chmod u+w $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
 
     contains(CONFIG, staticlib) {
         QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.a $$shell_path($${LINUX_LIBS_PATH})/ $$escape_expand(\\n\\t)
@@ -20,9 +17,26 @@ unix {
     }
 }
 
-# Windows: создаём каталог через cmd.exe, затем копируем
 win32|win64 {
-    QMAKE_POST_LINK += if not exist $$quote($$shell_path($${WIN_LIBS_PATH})) mkdir $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
+    contains(QMAKE_HOST.os, Linux) {
+        QMAKE_POST_LINK += mkdir -p $$shell_path($${WIN_LIBS_PATH}) $$escape_expand(\\n\\t)
+
+        # staticlib: только .a (нет .dll)
+        contains(CONFIG, staticlib) {
+            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
+        } else {
+            # shared: .dll + импорт-библиотека .a
+            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
+            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
+        }
+    } else {
+        # нативная Windows (cmd)
+        QMAKE_POST_LINK += if not exist $$quote($$shell_path($${WIN_LIBS_PATH})) mkdir $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
+        contains(CONFIG, staticlib) {
+            QMAKE_POST_LINK += $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
+        } else {
+            QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
+            QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
+        }
+    }
 }

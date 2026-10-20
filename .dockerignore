@@ -23,10 +23,8 @@
 
 **/.dockerignore
 .gitignore
-**/docker-compose.linux.yml
-**/docker-compose.win.yml
-**/Dockerfile.linux
-**/Dockerfile.win
+**/docker-compose.**
+**/Dockerfile.**
 **/*.pro.user
 
 # Временные файлы сборки
