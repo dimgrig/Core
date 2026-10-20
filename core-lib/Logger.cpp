@@ -1,8 +1,17 @@
 #include "Logger.h"
 
-#include <unistd.h>
-
-#ifdef Q_OS_UNIX
+#ifdef Q_OS_MACOS
+#  include <mach-o/dyld.h>
+std::string getExecutablePath() {
+    uint32_t size = 0;
+    _NSGetExecutablePath(nullptr, &size);
+    std::vector<char> buf(size);
+    if (_NSGetExecutablePath(buf.data(), &size) == 0)
+        return std::string(buf.data());
+    return "";
+}
+#elif defined(Q_OS_UNIX)
+#  include <unistd.h>
 std::string getExecutablePath() {
     char buffer[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
@@ -13,6 +22,7 @@ std::string getExecutablePath() {
     return "";
 }
 #endif
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 std::string getExecutablePath() {

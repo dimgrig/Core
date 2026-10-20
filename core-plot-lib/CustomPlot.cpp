@@ -364,15 +364,6 @@ void CustomPlot::set_labels(const QString& yAxisLabel, const QString& xAxisLabel
 void CustomPlot::set_cp_data(std::vector<double> &data, std::vector<double> &ticks, size_t index) {
     //Profiler pr("CP SCPD"); //12 ms
     {
-//        QVector<double> keys;
-//        QVector<double> values;
-//        {
-//            Profiler pr("CP SCPD QVector"); // 8 ms
-//            for(const auto &[value, key] : zip(data, ticks)) {
-//                keys.push_back(key);
-//                values.push_back(value);
-//            }
-//        }
         if (index < graph_v.size()) {
             //Profiler pr1("CP SCPD setData"); // 12 ms QVector and 12 mcs setData
             graph_v[index].data()->setData(QVector(ticks.begin(), ticks.end()), QVector(data.begin(), data.end()), true);
@@ -418,30 +409,6 @@ void CustomPlot::set_axis_tag(float position, size_t index, size_t axis_tag_inde
             } else {
                 _cat_v.at(index).at(axis_tag_index)->setText(QLocale().toString(position, 10, 3));
             }
-
-//            if ((position > 1000.0) || (position < 0.001)) {
-//                //QLocale locale;
-//                //_cat_v.at(index).at(axis_tag_index)->setText(QLocale().toString(position, 'e', 3)); //locale.toString(position, 'f', 2)
-//                QStringList sl = QLocale().toString(position, 'e', 3).split("e");
-
-//                QString str;
-//                if (sl.size() == 2) {
-//                    str += sl.front();
-//                    str += QChar(0xB7);
-//                    str += "10";
-//                    str += "<sup>";
-//                    str += sl.back().remove(QRegExp("^[0]*"));;
-//                    str += "</sup>";
-//                    qCDebug(logDebug) << str;
-//                } else {
-//                    str = QLocale().toString(position, 'e', 3);
-//                }
-
-//                _cat_v.at(index).at(axis_tag_index)->setText(str);
-//            } else {
-//                //_cat_v.at(index).at(axis_tag_index)->setText(locale.toString(position, 'f', 3));
-//                _cat_v.at(index).at(axis_tag_index)->setText(QLocale().toString(position, 10, 3).remove(QRegExp("0+$")).remove(QRegExp("\\,$")).remove(QRegExp("\\s+")));
-//            }
         }
         if ((size_t)axis_tag_index < this->_infLine_v[index].size()) {
             _infLine_v.at(index).at(axis_tag_index)->point1->setCoords(-HIDE_POSITION, position);  // location of point 1 in plot coordinate

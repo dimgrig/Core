@@ -17,12 +17,7 @@
 #include <QFile>
 #include <QHash>
 #include <QPushButton>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QRegExp>
-#endif
-#if QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
 #include <QRegularExpression>
-#endif
 #include <QSet>
 #include <QStringList>
 #include <QTextStream>
@@ -35,15 +30,9 @@ static QHash<QString, QSet<QString> > formatForMimeType;
 
 void readMimeTypeData(const QString &filename)
 {
-#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-    QRegularExpression whitespace("\\s+");
-#else
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 8)
-    QRegularExpression whitespace("\\s+");
-#else
-    QRegExp whitespace("\\s+");
-#endif
-#endif
+    // static — чтобы регулярка компилировалась один раз (её дорого создавать).
+    static const QRegularExpression whitespace(QStringLiteral("\\s+"));
+
     QFile file(filename);
     if (file.open(QIODevice::ReadOnly|QIODevice::Text)) {
         QTextStream in(&file);

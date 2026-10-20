@@ -10,8 +10,8 @@ isEmpty(CORE_DEPLOY_SRC):    CORE_DEPLOY_SRC    = $$_PRO_FILE_PWD_/../../$${CORE
 # unix: создаём каталог и обеспечиваем запись, затем копируем glob-ом
 unix {
     #но без sudo не создастся в системно месте!
-    QMAKE_POST_LINK += mkdir -p $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += chmod u+w $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
+    #QMAKE_POST_LINK += mkdir -p $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
+    #QMAKE_POST_LINK += chmod u+w $$shell_path($${LINUX_LIBS_PATH}) $$escape_expand(\\n\\t)
 
     contains(CONFIG, staticlib) {
         QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.a $$shell_path($${LINUX_LIBS_PATH})/ $$escape_expand(\\n\\t)
