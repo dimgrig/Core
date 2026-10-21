@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y --no-install-recommends \
         build-essential \
+        cmake \
         qt5-qmake \
         qtbase5-dev \
         qtbase5-private-dev \
@@ -15,6 +16,7 @@ RUN apt update && \
         libqt5sql5-sqlite \
         libqt5svg5-dev \
         libqt5x11extras5-dev \
+        libqt5opengl5-dev \
         wget git ca-certificates
 
 # Устанавливаем libxerces-c-dev 
@@ -32,11 +34,16 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
     qmake qtmqtt.pro && \
     make -j$(nproc) && \
     make install && \
-    rm -rf /tmp/qtmqttFROM debian:bookworm-slim
-
-# docker build -t base-deps-linux:latest -f Dockerfile.base-deps-linux ..
+    rm -rf /tmp/qtmqtt
 
 # Устанавливаем CQtDeployer
 COPY /deb/CQtDeployer*.deb /tmp/
 RUN dpkg -i /tmp/CQtDeployer*.deb && \
 rm /tmp/CQtDeployer*.deb
+
+# Санити-чек, чтобы такой провал больше не повторился
+RUN test -f /usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake \
+    && echo "Qt5Config OK" \
+    && echo "qtmqtt:" && find / -name 'libQt5Mqtt.so*' 2>/dev/null
+
+# docker build -t base-deps-linux:latest -f Dockerfile.base-deps-linux ..

@@ -25,6 +25,7 @@ RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullsey
         qttools5-dev-tools \
         qtquickcontrols2-5-dev \
         qtwebengine5-dev \
+        libqt5opengl5-dev \
         libqt5webenginewidgets5 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -82,7 +83,7 @@ RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullsey
         libqt5sql5-sqlite \
         libqt5svg5-dev \
         libqt5x11extras5-dev \
-        wget git ca-certificates \
+        libqt5opengl5-dev \
         libxerces-c-dev \
     && rm -rf /var/lib/apt/lists/*
 

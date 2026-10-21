@@ -14,6 +14,7 @@ RUN apt update && \
         libqt5serialport5-dev \
         libqt5sql5-sqlite \
         libqt5svg5-dev \
+        libqt5opengl5-dev \ 
         libqt5x11extras5-dev \
         wget git ca-certificates
 
