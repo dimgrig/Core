@@ -1,5 +1,5 @@
 core_add_library(core-widgets-lib
-    QT Core Gui Widgets #StateMachine
+    QT Core Gui Widgets Svg #StateMachine
     DEPENDS core-lib core-journal-lib
 )
 

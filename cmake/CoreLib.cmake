@@ -81,7 +81,7 @@ function(core_add_library name)
     # ── Include-пути ──
     target_include_directories(${name} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>)
+        $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/${name}>)
     if(ARG_INCLUDES)
         target_include_directories(${name} PRIVATE ${ARG_INCLUDES})
     endif()
@@ -111,48 +111,18 @@ function(core_add_library name)
         BUILD_WITH_INSTALL_RPATH FALSE
         SKIP_BUILD_RPATH    TRUE)
 
-    # ── Deploy (аналог QMAKE_POST_LINK из core-deploy.pri) ──
-    if(NOT CORE_NO_DEPLOY)
-        if(WIN32)
-            add_custom_command(TARGET ${name} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CORE_DEPLOY_LIBDIR}"
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_FILE:${name}>        "${CORE_DEPLOY_LIBDIR}/"
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_LINKER_FILE:${name}> "${CORE_DEPLOY_LIBDIR}/"
-                COMMENT "Deploy ${name} → ${CORE_DEPLOY_LIBDIR}")
-        else()
-            # libtool/qmake создают промежуточный .so.MAJOR.MINOR → .so.VERSION,
-            # CMake — нет. Для паритета с PRO-сборкой добавляем его вручную.
-            # Например: VERSION 1.0.0 → SOVERSION 1, промежуточный .so.1.0
-            #            VERSION 2.1.1 → SOVERSION 2, промежуточный .so.2.1
-            #            VERSION 1.9.0 → SOVERSION 1, промежуточный .so.1.9
-            set(_intermediate_symlink_cmds "")
-            if(ARG_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.")
-                set(_mm "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
-                # Создаём, только если MAJOR.MINOR отличается и от SOVERSION,
-                # и от полной VERSION (иначе — дубликат).
-                if(NOT _mm STREQUAL _soversion AND NOT _mm STREQUAL ARG_VERSION)
-                    list(APPEND _intermediate_symlink_cmds
-                        COMMAND ${CMAKE_COMMAND} -E rm -f
-                            "${CORE_DEPLOY_LIBDIR}/lib${name}.so.${_mm}"
-                        COMMAND ${CMAKE_COMMAND} -E create_symlink
-                            "lib${name}.so.${ARG_VERSION}"
-                            "${CORE_DEPLOY_LIBDIR}/lib${name}.so.${_mm}")
-                endif()
-            endif()
-
-            add_custom_command(TARGET ${name} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CORE_DEPLOY_LIBDIR}"
-                COMMAND sh -c "cp -af '${CMAKE_CURRENT_BINARY_DIR}/lib${name}.so'* '${CORE_DEPLOY_LIBDIR}/'"
-                ${_intermediate_symlink_cmds}
-                COMMENT "Deploy ${name} → ${CORE_DEPLOY_LIBDIR}")
-        endif()
-    endif()
-
-    # ── Install ──
+    # ── Install: files to CORE_INSTALL_* ──
     install(TARGETS ${name}
-        LIBRARY DESTINATION "${CORE_DEPLOY_LIBDIR}"
-        RUNTIME DESTINATION "${CORE_DEPLOY_LIBDIR}"
-        ARCHIVE DESTINATION "${CORE_DEPLOY_LIBDIR}")
+        EXPORT CoreTargets
+        RUNTIME DESTINATION "${CORE_INSTALL_BINDIR}"
+        LIBRARY DESTINATION "${CORE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CORE_INSTALL_LIBDIR}")
+
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+        DESTINATION "${CORE_INSTALL_INCLUDEDIR}/${name}"
+        FILES_MATCHING
+            PATTERN "*.h"
+            PATTERN "*.hpp"
+            PATTERN "*.inl")
+
 endfunction()

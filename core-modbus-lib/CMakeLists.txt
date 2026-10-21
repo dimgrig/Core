@@ -60,5 +60,6 @@ target_sources(core-modbus-lib PRIVATE
 )
 
 target_include_directories(core-modbus-lib PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings>
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/core-modbus-lib/bindings>)
 

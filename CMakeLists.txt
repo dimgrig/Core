@@ -51,6 +51,31 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
+# ============================================================
+# Установка Core-SDK: пакетный конфиг для find_package(Core)
+# ============================================================
+include(CMakePackageConfigHelpers)
+
+install(EXPORT CoreTargets
+    FILE CoreTargets.cmake
+    NAMESPACE Core::
+    DESTINATION "${CORE_INSTALL_CMAKEDIR}")
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CoreConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CoreConfig.cmake"
+    INSTALL_DESTINATION "${CORE_INSTALL_CMAKEDIR}")
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/CoreConfigVersion.cmake"
+    VERSION ${CORE_VERSION}
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/CoreConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/CoreConfigVersion.cmake"
+    DESTINATION "${CORE_INSTALL_CMAKEDIR}")
+
 message(STATUS "Core deploy dir: ${CORE_DEPLOY_LIBDIR}")
 message(STATUS "Core destination path: ${CORE_PLATFORM}/${CORE_COMPILER}/${CORE_PROCESSOR}/${CORE_BUILD_TYPE}")
 

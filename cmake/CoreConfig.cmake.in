@@ -1,0 +1,19 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Qt-компоненты, которые нужны для линковки любого из Core::* таргетов
+find_dependency(Qt5 5.15 COMPONENTS
+    Core
+    Gui
+    Widgets
+    Sql
+    Network
+    PrintSupport
+)
+
+find_package(Qt5 5.15 QUIET COMPONENTS SerialPort SerialBus Mqtt OpenGL)
+
+include("${CMAKE_CURRENT_LIST_DIR}/CoreTargets.cmake")
+
+check_required_components(Core)

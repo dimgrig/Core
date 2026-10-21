@@ -16,7 +16,7 @@ target_compile_definitions(muParser PUBLIC MUPARSER_STATIC)
 
 target_include_directories(muParser PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/muParser>)
 
 # RPATH/PIC — на случай линковки из shared-либ
 set_target_properties(muParser PROPERTIES
@@ -24,15 +24,10 @@ set_target_properties(muParser PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)
 
-# Deploy (копируем .a — как qmake-версия для CONFIG += staticlib)
-if(NOT CORE_NO_DEPLOY)
-    add_custom_command(TARGET muParser POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CORE_DEPLOY_LIBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:muParser> "${CORE_DEPLOY_LIBDIR}/"
-        COMMENT "Deploy muParser → ${CORE_DEPLOY_LIBDIR}")
-endif()
-
 install(TARGETS muParser
-    ARCHIVE DESTINATION "${CORE_DEPLOY_LIBDIR}"
-    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    EXPORT CoreTargets
+    ARCHIVE DESTINATION "${CORE_INSTALL_LIBDIR}")
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    DESTINATION "${CORE_INSTALL_INCLUDEDIR}/muParser"
+    FILES_MATCHING PATTERN "*.h")

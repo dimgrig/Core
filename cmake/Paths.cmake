@@ -61,3 +61,64 @@ if(EXISTS "/etc/astra_version")
     link_directories("${ASTRA_GCC_PATH}/lib64" "${ASTRA_QT_PATH}/lib")
     message(STATUS "Astra/GCC10: ${ASTRA_GCC_PATH}, Qt: ${ASTRA_QT_PATH}")
 endif()
+
+# ============================================================
+# Core-SDK install layout
+#   Linux:   /opt/core/<version>/{include,lib,bin,lib/cmake/Core}
+#   Windows: %LOCALAPPDATA%\Core\<version>\{include,lib,bin,lib\cmake\Core}
+#   Cross-compile Windows from Linux/Docker: staging at ${CMAKE_BINARY_DIR}/applocal-staging
+#
+# Override (highest priority):
+#   -DCORE_INSTALL_PREFIX=...
+#   or  export CORE_INSTALL_PREFIX=...
+# ============================================================
+if(NOT DEFINED CORE_VERSION)
+    message(FATAL_ERROR
+        "CORE_VERSION is not set. It must be parsed from VERSION "
+        "BEFORE include(cmake/Paths.cmake) in CMakeLists.txt.")
+endif()
+
+if(NOT DEFINED CORE_INSTALL_PREFIX
+   AND DEFINED ENV{CORE_INSTALL_PREFIX}
+   AND NOT "$ENV{CORE_INSTALL_PREFIX}" STREQUAL "")
+    set(CORE_INSTALL_PREFIX "$ENV{CORE_INSTALL_PREFIX}"
+        CACHE PATH "Core install prefix")
+endif()
+
+if(NOT DEFINED CORE_INSTALL_PREFIX)
+    if(WIN32)
+        if(DEFINED ENV{LOCALAPPDATA} AND NOT "$ENV{LOCALAPPDATA}" STREQUAL "")
+            set(CORE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Core/${CORE_VERSION}"
+                CACHE PATH "Core install prefix")
+        else()
+            set(CORE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/applocal-staging"
+                CACHE PATH "Core staging directory (cross-build)")
+        endif()
+    else()
+        set(CORE_INSTALL_PREFIX "/opt/core/${CORE_VERSION}"
+            CACHE PATH "Core install prefix")
+    endif()
+endif()
+
+# Install-relative subdirs (relative to CMAKE_INSTALL_PREFIX).
+# Относительные пути = relocatable: CoreTargets.cmake будет корректно
+# вычислять _IMPORT_PREFIX при переносе SDK в другой каталог.
+set(CORE_INSTALL_INCLUDEDIR "include"         CACHE STRING "Include subdir (relative)")
+set(CORE_INSTALL_LIBDIR     "lib"             CACHE STRING "Lib subdir (relative)")
+set(CORE_INSTALL_BINDIR     "bin"             CACHE STRING "Bin subdir (relative)")
+set(CORE_INSTALL_CMAKEDIR   "lib/cmake/Core"  CACHE STRING "CMake config subdir (relative)")
+
+# `cmake --install` (без --prefix) должен попасть в CORE_INSTALL_PREFIX
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CORE_INSTALL_PREFIX}" CACHE PATH "" FORCE)
+endif()
+
+# Абсолютный путь для POST_BUILD deploy-копий (аналог core-deploy.pri)
+set(CORE_DEPLOY_LIBDIR "${CMAKE_INSTALL_PREFIX}/${CORE_INSTALL_LIBDIR}")
+
+message(STATUS "Core install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  headers: ${CORE_INSTALL_INCLUDEDIR}")
+message(STATUS "  libs:    ${CORE_INSTALL_LIBDIR}")
+message(STATUS "  bins:    ${CORE_INSTALL_BINDIR}")
+message(STATUS "  cmake:   ${CORE_INSTALL_CMAKEDIR}")
+message(STATUS "  deploy:  ${CORE_DEPLOY_LIBDIR}")

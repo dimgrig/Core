@@ -55,6 +55,9 @@ target_sources(QtWebApp PRIVATE
 )
 
 target_include_directories(QtWebApp PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/httpserver
-    ${CMAKE_CURRENT_SOURCE_DIR}/templateengine
-    ${CMAKE_CURRENT_SOURCE_DIR}/logging)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/httpserver>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/templateengine>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logging>
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/httpserver>
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/templateengine>
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/logging>)

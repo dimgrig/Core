@@ -1,5 +1,5 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets svg
 greaterThan(QT_MAJOR_VERSION, 5): QT += statemachine
 
 TEMPLATE = lib
