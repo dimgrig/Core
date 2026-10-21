@@ -78,6 +78,13 @@ if(NOT DEFINED CORE_VERSION)
         "BEFORE include(cmake/Paths.cmake) in CMakeLists.txt.")
 endif()
 
+set(_CORE_INSTALL_PREFIX_USER_SET FALSE)
+if(DEFINED CORE_INSTALL_PREFIX)
+    set(_CORE_INSTALL_PREFIX_USER_SET TRUE)
+elseif(DEFINED ENV{CORE_INSTALL_PREFIX} AND NOT "$ENV{CORE_INSTALL_PREFIX}" STREQUAL "")
+    set(_CORE_INSTALL_PREFIX_USER_SET TRUE)
+endif()
+
 if(NOT DEFINED CORE_INSTALL_PREFIX
    AND DEFINED ENV{CORE_INSTALL_PREFIX}
    AND NOT "$ENV{CORE_INSTALL_PREFIX}" STREQUAL "")
@@ -109,7 +116,22 @@ set(CORE_INSTALL_BINDIR     "bin"             CACHE STRING "Bin subdir (relative
 set(CORE_INSTALL_CMAKEDIR   "lib/cmake/Core"  CACHE STRING "CMake config subdir (relative)")
 
 # `cmake --install` (без --prefix) должен попасть в CORE_INSTALL_PREFIX
+# ── Sync CMAKE_INSTALL_PREFIX ← CORE_INSTALL_PREFIX ────────────────────
+# Кросс-обёртки (i686-w64-mingw32-cmake) и некоторые arm-дистрибутивы
+# задают CMAKE_INSTALL_PREFIX явно, поэтому INITIALIZED_TO_DEFAULT = FALSE.
+# Тогда наш install() уходит не туда. Синхронизируем в двух случаях:
+#   1. CMAKE_INSTALL_PREFIX остался дефолтным CMake → переопределяем.
+#   2. Пользователь явно передал CORE_INSTALL_PREFIX (-D или env) и он
+#      отличается от CMAKE_INSTALL_PREFIX → переопределяем (явный намеренный
+#      override важнее кросс-toolchain sysroot).
+# Если пользователь задал CMAKE_INSTALL_PREFIX, но НЕ задал CORE_INSTALL_PREFIX,
+# его CMAKE_INSTALL_PREFIX уважается.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CORE_INSTALL_PREFIX}" CACHE PATH "" FORCE)
+elseif(NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${CORE_INSTALL_PREFIX}"
+       AND _CORE_INSTALL_PREFIX_USER_SET)
+    message(STATUS "Overriding CMAKE_INSTALL_PREFIX ('${CMAKE_INSTALL_PREFIX}') "
+                   "with CORE_INSTALL_PREFIX ('${CORE_INSTALL_PREFIX}')")
     set(CMAKE_INSTALL_PREFIX "${CORE_INSTALL_PREFIX}" CACHE PATH "" FORCE)
 endif()
 
