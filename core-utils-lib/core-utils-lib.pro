@@ -11,6 +11,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 # --- общая инфраструктура core ---
 CORE_LINK_LIBS = core-lib core-journal-lib core-widgets-lib muParser
 include(../core-build.pri)
+VERSION = $$CORE_VERSION
 
 unix { target.path = /usr/lib/ }
 !isEmpty(target.path): INSTALLS += target

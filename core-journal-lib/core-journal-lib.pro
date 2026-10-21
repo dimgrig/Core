@@ -10,6 +10,7 @@ INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 CORE_LINK_LIBS = core-lib
 include(../core-build.pri)
+VERSION = $$CORE_VERSION
 
 unix { target.path = /usr/lib/ }
 !isEmpty(target.path): INSTALLS += target

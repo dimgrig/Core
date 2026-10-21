@@ -9,6 +9,7 @@ CONFIG += c++17
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 include(../core-build.pri)
+VERSION = $$CORE_VERSION
 
 unix { target.path = /usr/lib/ }
 !isEmpty(target.path): INSTALLS += target

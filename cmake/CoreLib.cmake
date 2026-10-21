@@ -9,7 +9,7 @@ include_guard(GLOBAL)
 #     DEPENDS   core-lib             # PUBLIC-зависимости
 #     DEFINES   FOO BAR              # PRIVATE defines
 #     INCLUDES  some/dir             # PRIVATE include-пути
-#     VERSION   2.1.1                # опционально (дефолт 1.0.0)
+#     VERSION   2.1.1                # опционально (дефолт = PROJECT_VERSION)
 # )
 #
 # Файлы можно не передавать через SOURCES/HEADERS, а добавлять
@@ -42,7 +42,14 @@ function(core_add_library name)
 
     # ── Версия / SONAME ──
     if(NOT ARG_VERSION)
-        set(ARG_VERSION "1.0.0")
+        if(PROJECT_VERSION)
+            set(ARG_VERSION "${PROJECT_VERSION}")
+        else()
+            message(FATAL_ERROR
+                "core_add_library(${name}): VERSION не передан и PROJECT_VERSION пуст. "
+                "Убедитесь, что в корневом CMakeLists.txt есть "
+                "project(Core VERSION x.y.z ...)")
+        endif()
     endif()
     if(ARG_VERSION MATCHES "^([0-9]+)")
         set(_soversion "${CMAKE_MATCH_1}")

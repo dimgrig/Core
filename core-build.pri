@@ -13,6 +13,7 @@ isEmpty(WIN_LIBS_PATH):   WIN_LIBS_PATH   = C:/QtCreatorProjects/libs
 isEmpty(WIN_LXERCES_PATH): WIN_LXERCES_PATH = $$WIN_LIBS_PATH
 
 # Платформа/версия/пути
+include($$CORE_ROOT/qmake-version.pri)
 include($$CORE_ROOT/qmake-target-platform.pri)
 include($$CORE_ROOT/qmake-core-version.pri)
 include($$CORE_ROOT/qmake-destination-path.pri)
