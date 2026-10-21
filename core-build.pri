@@ -8,9 +8,6 @@
 #   CONFIG += core_no_default_defines  — не добавлять NOCRYPT NOUSER и -Wno-deprecated
 
 isEmpty(CORE_ROOT): CORE_ROOT = $$PWD
-isEmpty(LINUX_LIBS_PATH): LINUX_LIBS_PATH = /usr/lib/qt/
-isEmpty(WIN_LIBS_PATH):   WIN_LIBS_PATH   = C:/QtCreatorProjects/libs
-isEmpty(WIN_LXERCES_PATH): WIN_LXERCES_PATH = $$WIN_LIBS_PATH
 
 # Платформа/версия/пути
 include($$CORE_ROOT/qmake-version.pri)

@@ -1,42 +1,35 @@
-# core-deploy.pri
-# Добавляет QMAKE_POST_LINK для копирования .so/.dll в LINUX_LIBS_PATH/WIN_LIBS_PATH.
-# Читает: CORE_DEPLOY_TARGET (по умолчанию $$TARGET), CORE_DEPLOY_PREFIX (по умолчанию "lib").
-# Требует: DESTINATION_PATH, LINUX_LIBS_PATH, WIN_LIBS_PATH.
+# core-deploy.pri — POST_LINK копирование артефактов в install-layout.
+# Читает: CORE_INSTALL_PREFIX, CORE_INSTALL_{LIB,BIN}DIR, CORE_APP_LOCAL_DIR,
+#         CORE_DEPLOY_TARGET (деф. $$TARGET), CORE_DEPLOY_PREFIX (деф. lib).
+# Требует: DESTINATION_PATH (из qmake-destination-path.pri).
 
 isEmpty(CORE_DEPLOY_TARGET): CORE_DEPLOY_TARGET = $$TARGET
 isEmpty(CORE_DEPLOY_PREFIX): CORE_DEPLOY_PREFIX = lib
 isEmpty(CORE_DEPLOY_SRC):    CORE_DEPLOY_SRC    = $$_PRO_FILE_PWD_/../../$${CORE_DEPLOY_TARGET}-binaries/$${DESTINATION_PATH}
 
-# unix: создаём каталог и обеспечиваем запись, затем копируем glob-ом
-unix {
-
+# ── Linux ──────────────────────────────────────────────────
+unix:!macx {
+    _DEST_LIB = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
+    QMAKE_POST_LINK += mkdir -p $$shell_path($$_DEST_LIB) 2>/dev/null || true $$escape_expand(\\n\\t)
     contains(CONFIG, staticlib) {
-        QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.a $$shell_path($${LINUX_LIBS_PATH})/ $$escape_expand(\\n\\t)
+        QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.a $$shell_path($$_DEST_LIB)/ 2>/dev/null || true $$escape_expand(\\n\\t)
     } else {
-        QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.so* $$shell_path($${LINUX_LIBS_PATH})/ $$escape_expand(\\n\\t)
+        QMAKE_POST_LINK += cp -a $$shell_path($${CORE_DEPLOY_SRC})/*.so* $$shell_path($$_DEST_LIB)/ 2>/dev/null || true $$escape_expand(\\n\\t)
     }
 }
 
+# ── Windows (нативный + кросс из Linux) ────────────────────
+# .dll → bin/, import-lib .a → lib/ (как в CMake).
 win32|win64 {
-    contains(QMAKE_HOST.os, Linux) {
-        QMAKE_POST_LINK += mkdir -p $$shell_path($${WIN_LIBS_PATH}) $$escape_expand(\\n\\t)
+    _DEST_LIB = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
+    _DEST_BIN = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_BINDIR
 
-        # staticlib: только .a (нет .dll)
-        contains(CONFIG, staticlib) {
-            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
-        } else {
-            # shared: .dll + импорт-библиотека .a
-            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
-            QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH}))/ $$escape_expand(\\n\\t)
-        }
+    QMAKE_POST_LINK += mkdir -p $$shell_path($$_DEST_LIB) $$shell_path($$_DEST_BIN) 2>/dev/null || true $$escape_expand(\\n\\t)
+
+    contains(CONFIG, staticlib) {
+        QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($$_DEST_LIB))/ 2>/dev/null || true $$escape_expand(\\n\\t)
     } else {
-        # нативная Windows (cmd)
-        QMAKE_POST_LINK += if not exist $$quote($$shell_path($${WIN_LIBS_PATH})) mkdir $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-        contains(CONFIG, staticlib) {
-            QMAKE_POST_LINK += $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-        } else {
-            QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-            QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($${WIN_LIBS_PATH})) $$escape_expand(\\n\\t)
-        }
+        QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_TARGET}*.dll)) $$quote($$shell_path($$_DEST_BIN))/ 2>/dev/null || true $$escape_expand(\\n\\t)
+        QMAKE_POST_LINK += cp -a $$quote($$shell_path($${CORE_DEPLOY_SRC}/$${CORE_DEPLOY_PREFIX}$${CORE_DEPLOY_TARGET}*.a)) $$quote($$shell_path($$_DEST_LIB))/ 2>/dev/null || true $$escape_expand(\\n\\t)
     }
 }

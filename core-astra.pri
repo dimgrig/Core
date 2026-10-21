@@ -3,8 +3,12 @@
 # На других системах ничего не делает.
 
 exists(/etc/astra_version) {
-    DISTFILES += $$CORE_ROOT/core-gcc10.pri
-    include($$CORE_ROOT/core-gcc10.pri)
-    message($${ASTRA_GCC_PATH})
-    message($${ASTRA_QT_PATH})
+    _ASTRA_GCC_ENV = $$(ASTRA_GCC_PATH)
+    !isEmpty(_ASTRA_GCC_ENV) {
+        DISTFILES += $$CORE_ROOT/core-gcc10.pri
+        include($$CORE_ROOT/core-gcc10.pri)
+        message("Astra/GCC10: ASTRA_GCC_PATH=$$ASTRA_GCC_PATH, ASTRA_QT_PATH=$$ASTRA_QT_PATH")
+    } else {
+        message("Astra detected, ASTRA_GCC_PATH not set — using default toolchain.")
+    }
 }

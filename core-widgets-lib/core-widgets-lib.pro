@@ -12,9 +12,6 @@ CORE_LINK_LIBS = core-lib core-journal-lib
 include(../core-build.pri)
 VERSION = $$CORE_VERSION
 
-unix { target.path = /usr/lib/ }
-!isEmpty(target.path): INSTALLS += target
-
 HEADERS += \
     AboutPanel.h \
     Approximation.h \
@@ -83,3 +80,18 @@ FORMS += \
     uis/doublespinbox_dialog.ui \
     uis/menu_corner_widget.ui \
     uis/settings.ui
+
+# Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
+unix:!macx {
+    target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
+    headers.files = $$HEADERS
+    headers.path  = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
+}
+win32|win64 {
+    # На mingw .dll и .a попадают в lib — qmake INSTALLS не разделяет RUNTIME/ARCHIVE.
+    # Для разделения (bin/ для .dll) используется CMake-путь.
+    target.path   = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
+    headers.files = $$HEADERS
+    headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
+}
+INSTALLS += target headers

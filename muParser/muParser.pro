@@ -22,5 +22,18 @@ SOURCES += \
     src/muParserTest.cpp \
     src/muParserTokenReader.cpp
 
-HEADERS +=
+# Заголовки перечислены явно для IDE, но install берёт $$files(include/*.h).
+HEADERS += $$files($$_PRO_FILE_PWD_/include/*.h)
 
+# Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
+unix:!macx {
+    target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
+    headers.files = $$files($$_PRO_FILE_PWD_/include/*.h)
+    headers.path  = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_INCLUDEDIR/muParser
+}
+win32|win64 {
+    target.path   = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
+    headers.files = $$files($$_PRO_FILE_PWD_/include/*.h)
+    headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/muParser
+}
+INSTALLS += target headers
