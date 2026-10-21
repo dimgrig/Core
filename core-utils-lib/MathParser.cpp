@@ -113,11 +113,11 @@ void MathParser::define_parser() {
 QString MathParser::parse(QString expression) {
     mu::string_type expression_buffer;
     QByteArray expression_array = expression.toLocal8Bit();
-#ifdef unix
+#ifdef Q_OS_UNIX
     char *expression_chars = expression_array.data();
     expression_buffer = expression_chars;
 #endif
-#ifdef WIN32
+#ifdef Q_OS_WIN
     QString expression_str = expression_array.data();
     expression_buffer = expression_str.toStdWString();
 #endif
