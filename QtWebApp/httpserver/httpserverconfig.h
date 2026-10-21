@@ -1,6 +1,6 @@
 #pragma once
 
-#include "QtWebApp/qtwebappglobal.h"
+#include "QtWebAppGlobal.h"
 
 #include <QHostAddress>
 #include <QSettings>
