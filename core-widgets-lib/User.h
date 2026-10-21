@@ -11,10 +11,10 @@
 #include <QCryptographicHash>
 
 #include "aqp.h"
-#include "CoreConfig.h"
-#include "enum_macro.h"
+#include <core-lib/CoreConfig.h>
+#include <core-lib/enum_macro.h>
 #include "IUserRoleManager.h"
-#include "Logger.h"
+#include <core-lib/Logger.h>
 
 #include "core-widgets-lib-global.h"
 

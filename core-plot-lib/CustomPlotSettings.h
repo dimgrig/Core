@@ -1,7 +1,7 @@
 #ifndef ENERGOCYCLE80_CUSTOMPLOTSETTINGS_H
 #define ENERGOCYCLE80_CUSTOMPLOTSETTINGS_H
 
-#include "qcustomplot.h"
+#include <qcustomplot/qcustomplot.h>
 
 #include <QWidget>
 

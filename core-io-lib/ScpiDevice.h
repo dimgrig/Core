@@ -13,7 +13,7 @@
 #include <cassert>
 #include <exception>
 
-#include "mixins.h"
+#include <core-lib/mixins.h>
 
 #include "ScpiTransport.h"
 

@@ -7,7 +7,7 @@
 #include <QResizeEvent>
 #include <QString>
 
-#include "macroses.h"
+#include <core-lib/macroses.h>
 
 #include "core-widgets-lib-global.h"
 

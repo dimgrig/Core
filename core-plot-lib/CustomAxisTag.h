@@ -2,7 +2,7 @@
 #define CUSTOMAXISTAG_H
 
 #include <QObject>
-#include "qcustomplot.h"
+#include <qcustomplot/qcustomplot.h>
 
 #include "core-plot-lib-global.h"
 

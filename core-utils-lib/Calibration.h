@@ -5,7 +5,7 @@
 
 //#include "config_stm.h"
 //#include "enums.h"
-#include "mixins.h"
+#include <core-lib/mixins.h>
 
 #define calibration_epsilon 0.000000001
 
@@ -13,10 +13,10 @@
 #define MAX_CALIBRATION_NUMBER      10
 
 #ifdef QT_imit
-#include "Logger.h"
-#include "TestRunner.h"
+#include <core-lib/Logger.h>
+#include <core-lib/TestRunner.h>
 
-#include "templates.h"
+#include <core-lib/templates.h>
 #else
 
 #endif

@@ -29,6 +29,9 @@ for(_core_lib, CORE_LINK_LIBS) {
     _dir = $$CORE_ROOT/$$_core_lib
     exists($$_dir): INCLUDEPATH += $$_dir
 }
+# Корень Core — для <core-lib/Logger.h>, <qcustomplot/qcustomplot.h> при сборке.
+INCLUDEPATH += $$CORE_ROOT
+
 contains(CORE_LINK_LIBS, muParser) {
     INCLUDEPATH += $$CORE_ROOT/muParser/include
     DEFINES += MUPARSER_STATIC

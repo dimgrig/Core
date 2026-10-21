@@ -1,6 +1,5 @@
 QT       += core
-QT       -= gui
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT += gui printsupport
 
 TEMPLATE = lib
 DEFINES += CORELIB_LIBRARY

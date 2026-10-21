@@ -1,7 +1,7 @@
 #include "TemplateEditTableModel.h"
 
-#include "templates.h"
-#include "Profiler.h"
+#include <core-lib/templates.h>
+#include <core-lib/Profiler.h>
 
 template<class T>
 TemplateEditTableModel<T>::TemplateEditTableModel(QWidget *parent) :

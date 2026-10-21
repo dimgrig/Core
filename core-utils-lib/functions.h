@@ -14,9 +14,9 @@
 #include <QRegularExpression>
 #include <QVector>
 
-#include "Logger.h"
-#include "templates_cout.h"
-#include "TestRunner.h"
+#include <core-lib/Logger.h>
+#include <core-lib/templates_cout.h>
+#include <core-lib/TestRunner.h>
 
 #include "core-utils-lib-global.h"
 

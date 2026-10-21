@@ -7,7 +7,7 @@
 #include <QMouseEvent>
 #include <QWidgetAction>
 
-#include "CoreConfig.h"
+#include <core-lib/CoreConfig.h>
 
 #include "core-mvc-lib-global.h"
 

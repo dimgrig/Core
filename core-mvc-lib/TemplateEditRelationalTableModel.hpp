@@ -4,9 +4,9 @@
 #include <QSqlError>
 #include <QStandardItemModel>
 
-#include "Logger.h"
-#include "templates.h"
-#include "Profiler.h"
+#include <core-lib/Logger.h>
+#include <core-lib/templates.h>
+#include <core-lib/Profiler.h>
 
 template<class T>
 TemplateEditRelationalTableModel<T>::TemplateEditRelationalTableModel(QObject *parent) :

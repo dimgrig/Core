@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QEvent>
 
-#include "Logger.h"
+#include <core-lib/Logger.h>
 
 #include "core-widgets-lib-global.h"
 

@@ -1,7 +1,7 @@
 #ifndef REGISTERBINDING_H
 #define REGISTERBINDING_H
 
-#include "ModbusBase.h"
+#include <core-modbus-lib/ModbusBase.h>
 
 #include <QObject>
 class CORE_MODBUS_LIB_EXPORT DataConversionUtils {

@@ -3,9 +3,9 @@
 
 #include <QWidget>
 
-#include "qcustomplot.h"
+#include <qcustomplot/qcustomplot.h>
 
-#include "CoreConfig.h"
+#include <core-lib/CoreConfig.h>
 
 #include "CustomAxisTag.h"
 

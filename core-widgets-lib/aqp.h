@@ -33,7 +33,7 @@
 #endif
 #include <exception>
 
-#include "Logger.h"
+#include <core-lib/Logger.h>
 
 #include "core-widgets-lib-global.h"
 

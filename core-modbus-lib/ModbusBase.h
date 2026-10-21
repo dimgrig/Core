@@ -12,7 +12,7 @@
 
 #include <QModbusDataUnit>
 
-#include "CoreConfig.h"
+#include <core-lib/CoreConfig.h>
 
 #include "ModbusSettings.h"
 

@@ -2,7 +2,7 @@
 #define BITAWAREBINDINGMANAGER_H
 
 #include "BindingManager.h"
-#include "ModbusClient.h"
+#include <core-modbus-lib/ModbusClient.h>
 
 #include "CheckBoxBinding.h"
 

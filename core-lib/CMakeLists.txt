@@ -1,5 +1,5 @@
 core_add_library(core-lib
-    QT Core PrintSupport
+    QT Core Gui PrintSupport
     DEFINES CORELIB_LIBRARY
 )
 

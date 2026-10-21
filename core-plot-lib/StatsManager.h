@@ -3,7 +3,7 @@
 
 #include <QPointer>
 #include <QVector>
-#include "qcustomplot.h"
+#include <qcustomplot/qcustomplot.h>
 
 #include "core-plot-lib-global.h"
 

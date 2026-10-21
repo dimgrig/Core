@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <QTextCharFormat>
 
-#include "CoreConfig.h"
+#include <core-lib/CoreConfig.h>
 
 #include "core-widgets-lib-global.h"
 

@@ -81,7 +81,8 @@ function(core_add_library name)
     # ── Include-пути ──
     target_include_directories(${name} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/${name}>)
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}>)
     if(ARG_INCLUDES)
         target_include_directories(${name} PRIVATE ${ARG_INCLUDES})
     endif()

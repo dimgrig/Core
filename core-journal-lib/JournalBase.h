@@ -6,7 +6,7 @@
 #include <QMutex>
 #include <QDateTime>
 
-#include "Logger.h"
+#include <core-lib/Logger.h>
 
 #include "core-journal-lib-global.h"
 

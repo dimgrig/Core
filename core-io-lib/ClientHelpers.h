@@ -7,7 +7,7 @@
 #include <QIODevice>
 #include <QTimer>
 
-#include "Logger.h"
+#include <core-lib/Logger.h>
 
 // Ожидание любого сигнала от объекта sender с таймаутом в мс.
 // Возвращает true, если сигнал пришёл до истечения таймаута.
