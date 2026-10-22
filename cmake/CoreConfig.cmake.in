@@ -13,6 +13,7 @@ find_dependency(Qt5 REQUIRED COMPONENTS
     SerialPort
     SerialBus
     Svg
+    #StateMachine
 )
 
 # Qt5::Mqtt нужен только для Core::core-io-lib.

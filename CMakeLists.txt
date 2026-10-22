@@ -56,6 +56,43 @@ endif()
 # ============================================================
 include(CMakePackageConfigHelpers)
 
+# ────────────────────────────────────────────────────────────
+# RPATH для Core shared libraries
+# ────────────────────────────────────────────────────────────
+# DT_RUNPATH (дефолт современного ld) не транзитивен: если
+# libcore-widgets-lib.so.1 зависит от libcore-journal-lib.so.1,
+# RUNPATH исполнителя её не найдёт. Устанавливаем $ORIGIN,
+# чтобы каждая .so искала соседей в своём же каталоге.
+if(UNIX AND NOT APPLE)
+    set(_core_rpath "$ORIGIN")
+elseif(APPLE)
+    set(_core_rpath "@loader_path")
+else()
+    set(_core_rpath "")
+endif()
+
+if(NOT "${_core_rpath}" STREQUAL "")
+    foreach(_core_lib
+            core-lib
+            core-journal-lib
+            core-widgets-lib
+            core-modbus-lib
+            core-io-lib
+            core-utils-lib
+            core-plot-lib
+            core-mvc-lib
+            muParser
+            qcustomplot
+            QtWebApp)
+        if(TARGET ${_core_lib})
+            set_target_properties(${_core_lib} PROPERTIES
+                INSTALL_RPATH "${_core_rpath}"
+                INSTALL_RPATH_USE_LINK_PATH TRUE
+                BUILD_WITH_INSTALL_RPATH OFF)
+        endif()
+    endforeach()
+endif()
+
 install(EXPORT CoreTargets
     FILE CoreTargets.cmake
     NAMESPACE Core::
