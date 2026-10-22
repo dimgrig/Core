@@ -367,3 +367,16 @@ void ModbusSettingsUI::load_config() {
 void ModbusSettingsUI::set_config(QString config) {
     this->ui->le_config->setText(config);
 }
+
+void ModbusSettingsUI::setSettingsEnabled(bool enabled) {
+    // Блокируем всё, кроме поля состояния подключения.
+    // findChildren<QWidget*>() не возвращает сам виджет, поэтому
+    // setEnabled(false) не блокирует сам ModbusSettingsUI.
+    for (QWidget* w : findChildren<QWidget*>()) {
+        const QString name = w->objectName();
+        if (name == "le_state" || name == "l_state") {
+            continue;
+        }
+        w->setEnabled(enabled);
+    }
+}

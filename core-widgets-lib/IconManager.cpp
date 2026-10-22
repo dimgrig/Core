@@ -22,6 +22,12 @@ QPixmap IconManager::applicationLogo() { return appLogoStorage();     }
 QPixmap IconManager::splashPixmap()    { return splashPixmapStorage(); }
 
 void IconManager::ensureInitialized() {
+    static bool _coreQrcOnce = false;
+    if (!_coreQrcOnce) {
+        _coreQrcOnce = true;
+        Q_INIT_RESOURCE(core_widgets_resources);
+    }
+
     if (!s_iconCache) {
         s_iconCache = new QMap<QString, QIcon>();
         s_pixmapCache = new QMap<QString, QPixmap>();

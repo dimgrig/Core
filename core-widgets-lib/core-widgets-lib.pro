@@ -82,7 +82,7 @@ FORMS += \
     uis/settings.ui
 
 RESOURCES += \
-    resources/resources.qrc
+    resources/core-widgets-resources.qrc
 
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {

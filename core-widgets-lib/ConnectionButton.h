@@ -27,6 +27,8 @@ public slots:
     void onConnecting();
     void onConnected();
     void onDisconnected();
+
+    void forceState(int state);
 private slots:
     void handleClick();
 private:

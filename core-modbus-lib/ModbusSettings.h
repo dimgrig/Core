@@ -74,6 +74,8 @@ public slots:
 
     void load_config();
     void set_config(QString config);
+
+    void setSettingsEnabled(bool enabled);
 private slots:
 
 private:

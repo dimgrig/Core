@@ -269,13 +269,13 @@ void ModbusServer::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
 
             switch (table) {
                 case QModbusDataUnit::Coils:
-                {
-                    ok = modbusDevice->setData(table, address, value);
-                }
-                break;
                 case QModbusDataUnit::DiscreteInputs:
                 {
                     ok = modbusDevice->setData(table, address, value);
+                    // Синхронизировать _mdum: без этого setupDeviceData()/setMap()
+                    // при connectToHost() затирают значение нулями из _mdum.
+                    QVector<quint16> values(1, static_cast<quint16>(value != 0 ? 1 : 0));
+                    _mdum[serverAddress][regName].setValues(values);
                 }
                 break;
                 case QModbusDataUnit::InputRegisters:

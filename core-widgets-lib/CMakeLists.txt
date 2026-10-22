@@ -3,10 +3,11 @@ core_add_library(core-widgets-lib
     DEPENDS core-lib core-journal-lib
 )
 
-set_target_properties(core-widgets-lib PROPERTIES AUTORCC ON)
+qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
 
 target_sources(core-widgets-lib PRIVATE
-    resources/resources.qrc
+    ${CORE_WIDGETS_RESOURCES_QRC}
     AboutPanel.cpp
     Approximation.cpp
     AspectRatioPixmapLabel.cpp

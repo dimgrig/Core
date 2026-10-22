@@ -29,6 +29,25 @@ void ConnectionButton::onDisconnected() {
     emit socketDisconnected();
 }
 
+void ConnectionButton::forceState(int state) {
+    switch (state) {
+    case 2:  // connected
+        // QStateMachine не имеет прямого перехода disconnected->connected,
+        // поэтому сначала эмитим socketConnecting (если в disconnected),
+        // затем socketConnected.
+        emit socketConnecting();
+        emit socketConnected();
+        break;
+    case 1:  // connecting
+        emit socketConnecting();
+        break;
+    case 0:  // disconnected
+    default:
+        emit socketDisconnected();
+        break;
+    }
+}
+
 void ConnectionButton::handleClick() {
     // В зависимости от текущего состояния отправляем соответствующий сигнал
     if (machine->configuration().contains(disconnectedState)) {
