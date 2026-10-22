@@ -2,18 +2,27 @@
 
 include(CMakeFindDependencyMacro)
 
-# Qt-компоненты, которые нужны для линковки любого из Core::* таргетов
-find_dependency(Qt5 5.15 COMPONENTS
+# Обязательные Qt-модули, используемые core-* библиотеками
+find_dependency(Qt5 REQUIRED COMPONENTS
     Core
     Gui
     Widgets
-    Sql
-    Network
     PrintSupport
+    Network
+    Sql
+    SerialPort
+    SerialBus
+    Svg
 )
 
-find_package(Qt5 5.15 QUIET COMPONENTS SerialPort SerialBus Mqtt OpenGL)
+# Qt5::Mqtt нужен только для Core::core-io-lib.
+# Не блокируем использование Core без qtmqtt — делаем "мягким".
+find_package(Qt5 QUIET COMPONENTS Mqtt)
+if(NOT TARGET Qt5::Mqtt)
+    message(STATUS "Core: Qt5::Mqtt not found — Core::core-io-lib will be unusable. "
+                   "Install qtmqtt if you need it.")
+    add_library(Qt5::Mqtt INTERFACE IMPORTED)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/CoreTargets.cmake")
-
 check_required_components(Core)
