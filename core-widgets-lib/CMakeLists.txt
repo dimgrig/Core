@@ -3,7 +3,10 @@ core_add_library(core-widgets-lib
     DEPENDS core-lib core-journal-lib
 )
 
+set_target_properties(core-widgets-lib PROPERTIES AUTORCC ON)
+
 target_sources(core-widgets-lib PRIVATE
+    resources/resources.qrc
     AboutPanel.cpp
     Approximation.cpp
     AspectRatioPixmapLabel.cpp

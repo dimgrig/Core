@@ -6,6 +6,21 @@
 
 QTemporaryFile *tempIconFile = nullptr;
 
+namespace {
+    // Function-local statics: не инициализируются до main()/QApplication.
+    QIcon& appIconStorage()     { static QIcon   v; return v; }
+    QPixmap& appLogoStorage()   { static QPixmap v; return v; }
+    QPixmap& splashPixmapStorage() { static QPixmap v; return v; }
+}
+
+void IconManager::setApplicationIcon(const QIcon& icon)      { appIconStorage()     = icon;   }
+void IconManager::setApplicationLogo(const QPixmap& pixmap)  { appLogoStorage()     = pixmap; }
+void IconManager::setSplashPixmap(const QPixmap& pixmap)     { splashPixmapStorage() = pixmap; }
+
+QIcon   IconManager::applicationIcon() { return appIconStorage();     }
+QPixmap IconManager::applicationLogo() { return appLogoStorage();     }
+QPixmap IconManager::splashPixmap()    { return splashPixmapStorage(); }
+
 void IconManager::ensureInitialized() {
     if (!s_iconCache) {
         s_iconCache = new QMap<QString, QIcon>();
@@ -108,7 +123,11 @@ QPixmap IconManager::getPixmap(const QString& path, const QSize& size) {
     }
 
     if (pixmap.isNull()) {
-        // Создаем placeholder (небольшой красный квадрат для отладки)
+        // Без QGuiApplication QPixmap создавать нельзя — вернуть пустой.
+        if (!qobject_cast<QGuiApplication*>(QCoreApplication::instance())) {
+            qWarning() << "IconManager: QGuiApplication not available, cannot create placeholder for" << path;
+            return QPixmap();
+        }
         pixmap = QPixmap(size.isValid() ? size : QSize(512, 512));
         pixmap.fill(Qt::red);
         return pixmap;

@@ -14,6 +14,15 @@
 
 class CORE_WIDGETS_LIB_EXPORT IconManager {
 public:
+    // ── Application identity (per-executable) ──────────────
+    static void setApplicationIcon(const QIcon& icon);
+    static void setApplicationLogo(const QPixmap& pixmap);
+    static void setSplashPixmap(const QPixmap& pixmap);
+
+    static QIcon   applicationIcon();
+    static QPixmap applicationLogo();
+    static QPixmap splashPixmap();
+
     // Получение иконки (кэшируется автоматически QIcon)
     static QIcon getIcon(const QString& path);
 
@@ -128,6 +137,29 @@ private:
 
 #define ICON_PLUS                   IconManager::getIcon(":/icons/plus.svg")
 #define ICON_BASKET                 IconManager::getIcon(":/icons/basket.svg")
+#define ICON_TRASH                  IconManager::getIcon(":/icons/trash.svg")
+
+#define ICON_BACK                   IconManager::getIcon(":/icons/back.svg")
+#define ICON_FORWARD                IconManager::getIcon(":/icons/forward.svg")
+#define ICON_PREVIOUS               IconManager::getIcon(":/icons/previous.svg")
+#define ICON_NEXT                   IconManager::getIcon(":/icons/next.svg")
+#define ICON_RIGHT                  IconManager::getIcon(":/icons/right.svg")
+#define ICON_RIGHT_UP               IconManager::getIcon(":/icons/right_up.svg")
+#define ICON_RIGHT_DOWN             IconManager::getIcon(":/icons/right_down.svg")
+#define ICON_LESS                   IconManager::getIcon(":/icons/less.svg")
+#define ICON_MORE                   IconManager::getIcon(":/icons/more.svg")
+
+#define ICON_PUSK                   IconManager::getIcon(":/icons/pusk.svg")
+#define ICON_RESET                  IconManager::getIcon(":/icons/reset.svg")
+
+#define ICON_LOCKED                 IconManager::getIcon(":/icons/locked.svg")
+#define ICON_UNLOCKED               IconManager::getIcon(":/icons/unlocked.svg")
+
+#define ICON_STATISTIC              IconManager::getIcon(":/icons/statistic.svg")
+#define ICON_CHART                  IconManager::getIcon(":/icons/chart.svg")
+#define ICON_COMPLEX_SYSTEM         IconManager::getIcon(":/icons/complex_system.svg")
+#define ICON_QUERY_SETTINGS         IconManager::getIcon(":/icons/query_settings.svg")
+#define ICON_TEST                   IconManager::getIcon(":/icons/test.svg")
 
 
 #define PIXMAP_ORGANIZATION         IconManager::getPixmap(":/icons/ACS_LOGO.svg")
@@ -171,5 +203,14 @@ private:
 #define PIXMAP_CONNECTING           IconManager::getPixmap(":/icons/connecting.svg")
 #define PIXMAP_DISCONNECTED         IconManager::getPixmap(":/icons/disconnected.svg")
 #define PIXMAP_LOGOUT               IconManager::getPixmap(":/icons/logout.svg")
+
+#define PIXMAP_TWOSTATE_SWITCH_OFF    IconManager::getPixmap(":/icons/twostate_switch_off.svg")
+#define PIXMAP_TWOSTATE_SWITCH_ON     IconManager::getPixmap(":/icons/twostate_switch_on.svg")
+#define PIXMAP_TWOSTATE_SWITCH_H_OFF  IconManager::getPixmap(":/icons/twostate_switch_h_off.svg")
+#define PIXMAP_TWOSTATE_SWITCH_H_ON   IconManager::getPixmap(":/icons/twostate_switch_h_on.svg")
+
+// ── Optional: app-identity fallback (см. IconManager::setApplicationIcon) ──
+// НЕ рекомендуется хранить app-specific иконки в Core, но если нужно —
+// раскомментируйте строку ниже и добавьте splash_acs.svg в resources.qrc.
 
 #endif // ICON_MANAGER_H

@@ -81,6 +81,9 @@ FORMS += \
     uis/menu_corner_widget.ui \
     uis/settings.ui
 
+RESOURCES += \
+    resources/resources.qrc
+
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {
     target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR

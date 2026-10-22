@@ -12,7 +12,7 @@ MenuCornerWidget::MenuCornerWidget(QWidget *parent) :
     this->set_pb_connection_visible(false);
 
     this->ui->le_auth_user->setDisabled(true);
-    this->ui->l_logo->setPixmap(PIXMAP_APP);
+    this->ui->l_logo->setPixmap(IconManager::applicationLogo());
     this->ui->l_logo->setVisible(false);
 
     this->ui->tb_logout->setIconSize(ICON_SIZE_24);
