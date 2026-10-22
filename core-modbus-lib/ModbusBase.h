@@ -50,6 +50,14 @@ static QStringList ModbusRegisterTypes = {ModbusRegisterType_to_text(ModbusRegis
                                           ModbusRegisterType_to_text(ModbusRegisterType_InputRegister),
                                           ModbusRegisterType_to_text(ModbusRegisterType_HoldingRegister)};
 
+ENUM_MACRO2(ModbusRegisterAccess, ModbusRegisterAccess_ReadOnly, ModbusRegisterAccess_ReadWrite,
+            ReadOnly, ReadWrite,
+            ReadOnly, ReadWrite,
+            0, 1);
+
+static QStringList ModbusRegisterAccessTypes = {ModbusRegisterAccess_to_text(ModbusRegisterAccess_ReadOnly),
+                                          ModbusRegisterAccess_to_text(ModbusRegisterAccess_ReadWrite)};
+
 class CORE_MODBUS_LIB_EXPORT ModbusBase : public QWidget {
 Q_OBJECT
 public:
@@ -73,10 +81,12 @@ public:
     QModbusDataUnitMap get_reg(int serverAddress) const;
     std::vector<QModbusDataUnitMap> get_reg_v(int serverAddress) const;
 
-    std::map<int, std::map<QString, QModbusDataUnit>> get_mdum() const {return _mdum;}
-    std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> get_sort_by_start_address_mdum_v() const;
-    std::map<int, std::map<QString, QString>> get_reg_data_type_m() const {return _reg_data_type_m;}
-    std::map<int, std::map<QString, QStringList>> getTransactionalGroups() const { return _transactionalGroups; }
+    std::map<int, std::map<QString, QModbusDataUnit>>                   get_mdum() const {return _mdum;}
+    std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>>     get_sort_by_start_address_mdum_v() const;
+    std::map<int, std::map<QString, QString>>                           get_reg_data_type_m() const {return _reg_data_type_m;}
+    std::map<int, std::map<QString, ModbusRegisterAccess>>              get_reg_access_m() const { return _reg_access_m; }
+    std::map<int, std::map<QString, double>>                            get_reg_scale_m()  const { return _reg_scale_m;  }
+    std::map<int, std::map<QString, QStringList>>                       getTransactionalGroups() const { return _transactionalGroups; }
 
     void set_modbus_params(int serverAddress,
                            std::map<int, std::map<QString, QModbusDataUnit>> mdum,
@@ -132,7 +142,9 @@ protected:
     std::map<int, QModbusDataUnitMap> _reg; //no blanc space between registers
     std::map<int, std::vector<QModbusDataUnitMap>> _reg_v; //vector for splitting blanc space between registers
     std::map<int, std::map<QString, QModbusDataUnit>> _mdum;
-    std::map<int, std::map<QString, QString>> _reg_data_type_m; //map reg_name to type
+    std::map<int, std::map<QString, ModbusRegisterAccess>> _reg_access_m;  // направление каждого регистра
+    std::map<int, std::map<QString, double>> _reg_scale_m;                 // масштаб (0.0 = нет масштаба)
+    std::map<int, std::map<QString, QString>> _reg_data_type_m;            //map reg_name to type
     std::map<int, std::map<QString, QStringList>> _transactionalGroups;
 
     ModbusSettings _modbus_settings;

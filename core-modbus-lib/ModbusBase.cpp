@@ -242,7 +242,13 @@ bool ModbusBase::on_write_json(const QString& config) {
         return false;
     }
 
-    QString json = ModbusRegisterSerializer::serialize(this->getServerAddress(), this->_mdum, this->_reg_data_type_m, this->_transactionalGroups);
+    ModbusRegisterMap map;
+    map.mdum   = this->_mdum;
+    map.types  = this->_reg_data_type_m;
+    map.access = this->_reg_access_m;
+    map.scales = this->_reg_scale_m;
+    map.groups = this->_transactionalGroups;
+    QString json = ModbusRegisterSerializer::serialize(this->getServerAddress(), map);
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -278,13 +284,18 @@ void ModbusBase::on_read_json(QString config) {
     QString json = mapFile.data()->readAll();
     mapFile.data()->close();
 
-    auto [mdum, reg_data_type_m, transactionalGroups] = ModbusRegisterSerializer::deserialize(this->getServerAddress(), json);
+    ModbusRegisterMap map = ModbusRegisterSerializer::deserialize(this->getServerAddress(), json);
     this->_mdum.clear();
     this->_reg_data_type_m.clear();
+    this->_reg_access_m.clear();
+    this->_reg_scale_m.clear();
     this->_transactionalGroups.clear();
-    this->_mdum = mdum;
-    this->_reg_data_type_m = reg_data_type_m;
-    this->_transactionalGroups = transactionalGroups;
+
+    this->_mdum = map.mdum;
+    this->_reg_data_type_m = map.types;
+    this->_reg_access_m = map.access;
+    this->_reg_scale_m = map.scales;
+    this->_transactionalGroups = map.groups;
 
     //filter complex regs
 //    auto _mdum_copy = _mdum;

@@ -16,14 +16,16 @@ public:
     static QVariant registersToVariant(const QVector<quint16>& data,
                                        const QString& regName,
                                        const QString& dataType,
-                                       BytesFormat format = BigEndian);
+                                       BytesFormat format = BigEndian,
+                                       double scale = 0.0);
 
     // Преобразует значение в сырые данные регистров
     static QVector<quint16> variantToRegisters(const QVariant& value,
                                                const QString& regName,
                                                const QString& dataType,
                                                BytesFormat format = BigEndian,
-                                               int expectedSize = 0); // expectedSize для контроля размера (если нужно)
+                                               int expectedSize = 0,
+                                               double scale = 0.0); // expectedSize для контроля размера (если нужно)
 
     // Утилиты для конкретных типов (могут использоваться внутри)
     static float toFloat(const QVector<quint16>& data, BytesFormat format);

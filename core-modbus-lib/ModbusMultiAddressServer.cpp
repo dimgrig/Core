@@ -745,17 +745,21 @@ void ModbusMultiAddressServer::setSlaveConfig(int address, const QString& jsonPa
     const QString json = f.readAll();
     f.close();
 
-    auto [mdum, types, groups] = ModbusRegisterSerializer::deserialize(address, json);
+    auto map = ModbusRegisterSerializer::deserialize(address, json);
 
-    if (!mdum.count(address)) {
+    if (!map.mdum.count(address)) {
         // файл валидный, но без карты для этого адреса — пустая карта
-        _mdum[address].clear();
-        _reg_data_type_m[address].clear();
-        _transactionalGroups[address].clear();
+        map.mdum[address].clear();
+        map.types[address].clear();
+        map.access[address].clear();
+        map.scales[address].clear();
+        map.groups[address].clear();
     } else {
-        _mdum[address]              = mdum[address];
-        _reg_data_type_m[address]   = types[address];
-        _transactionalGroups[address] = groups[address];
+        _mdum[address]                  = map.mdum[address];
+        _reg_data_type_m[address]       = map.types[address];
+        _reg_access_m[address]          = map.access[address];
+        _reg_scale_m[address]           = map.scales[address];
+        _transactionalGroups[address]   = map.groups[address];
     }
 
     _slaveConfigPaths[address] = jsonPath;

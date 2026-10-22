@@ -8,7 +8,8 @@
 QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
                                                  const QString& regName,
                                                  const QString& dataType,
-                                                 BytesFormat format)
+                                                 BytesFormat format,
+                                                 double scale)
 {
     QVariant value = QVariant();
     if (data.isEmpty())
@@ -46,13 +47,20 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
             value = QVariant::fromValue(data);
     }
 
-#ifdef ENABLE_CONVERTION
-    if (regName.contains("* 0.1")) {
+// #ifdef ENABLE_CONVERTION
+//     if (regName.contains("* 0.1")) {
+//         value = value.toDouble()*0.1;
+//     } else if (regName.contains("* 0.01")) {
+//         value = value.toDouble()*0.01;
+//     }
+// #endif
+    if (scale > 0.0) {
+        value = value.toDouble() * scale;
+    } else if (regName.contains("* 0.1")) {
         value = value.toDouble()*0.1;
     } else if (regName.contains("* 0.01")) {
         value = value.toDouble()*0.01;
     }
-#endif
 
     return value;
 }
@@ -61,11 +69,22 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
                                                          const QString& regName,
                                                          const QString& dataType,
                                                          BytesFormat format,
-                                                         int expectedSize)
+                                                         int expectedSize,
+                                                         double scale)
 {
+// #ifdef ENABLE_CONVERTION
+//     QVariant _value = value;
+//     if (regName.contains("* 0.1")) {
+//         _value = value.toDouble() / 0.1;
+//     } else if (regName.contains("* 0.01")) {
+//         _value = value.toDouble() / 0.01;
+//     }
+// #endif
 #ifdef ENABLE_CONVERTION
     QVariant _value = value;
-    if (regName.contains("* 0.1")) {
+    if (scale > 0.0) {
+        _value = value.toDouble() / scale;
+    } else if (regName.contains("* 0.1")) {
         _value = value.toDouble() / 0.1;
     } else if (regName.contains("* 0.01")) {
         _value = value.toDouble() / 0.01;
