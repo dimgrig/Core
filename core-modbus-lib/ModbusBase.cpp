@@ -7,6 +7,7 @@
 
 #include "Logger.h"
 #include "ModbusRegisterSerializer.h"
+#include "ModbusCsvImporter.h"
 
 void mdum_v_to_reg_v(const std::vector<std::pair<QString, QModbusDataUnit>> &mdum_v, std::vector<QModbusDataUnitMap> &reg_v) {
     for (const auto &_mdu : mdum_v) {
@@ -73,6 +74,10 @@ void ModbusBase::set_modbus_settings(ModbusSettings modbus_settings) {
 
 void ModbusBase::set_modbus_config(QString config) {
     this->on_read_json(config);
+}
+
+void ModbusBase::set_modbus_config_csv(QString config) {
+    this->on_read_csv(config);
 }
 
 QModbusDataUnitMap ModbusBase::get_reg(int serverAddress) const {
@@ -326,6 +331,44 @@ void ModbusBase::on_read_json(QString config) {
     //     qCDebug(logDebug()) << "reg_name" << value.first << "startAddress" << value.second.startAddress() <<
     //                            "valueCount" << value.second.valueCount() << "values" << value.second.values() << "reg_type" << reg_type;
     // }
+}
+
+void ModbusBase::on_read_csv(QString config) {
+    if (config.isEmpty()) {
+        qCWarning(logDebug) << "ModbusBase::on_read_csv: empty path";
+        return;
+    }
+
+    _config = config;
+    emit config_changed(config);
+
+    QStringList warnings;
+    bool ok = false;
+    QString error;
+    ModbusRegisterMap map = ModbusCsvImporter::loadFile(
+        this->getServerAddress(), config, &ok, &error, &warnings);
+
+    if (!ok) {
+        qCDebug(logDebug) << "ModbusBase::on_read_csv:" << error;
+        for (const QString& w : warnings)
+            qCDebug(logDebug) << "  warning:" << w;
+        return;
+    }
+
+    for (const QString& w : warnings)
+        qCDebug(logDebug) << "ModbusBase::on_read_csv warning:" << w;
+
+    this->_mdum.clear();
+    this->_reg_data_type_m.clear();
+    this->_reg_access_m.clear();
+    this->_reg_scale_m.clear();
+    this->_transactionalGroups.clear();
+
+    this->_mdum              = map.mdum;
+    this->_reg_data_type_m   = map.types;
+    this->_reg_access_m      = map.access;
+    this->_reg_scale_m       = map.scales;
+    this->_transactionalGroups = map.groups;
 }
 
 std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>> ModbusBase::get_sort_by_start_address_mdum_v() const {

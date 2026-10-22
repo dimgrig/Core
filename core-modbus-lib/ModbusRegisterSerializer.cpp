@@ -6,6 +6,22 @@
 
 #include "ModbusBase.h"
 
+static QString normalizeRegisterDataType(const QString& raw) {
+    static const QHash<QString, QString> map = {
+                                                {"BOOL",   "bool"},
+                                                {"WORD",   "ushort"},
+                                                {"INT",    "short"},      // INT (IEC) — 16-bit signed
+                                                {"DWORD",  "uint"},
+                                                {"DINT",   "int"},
+                                                {"LWORD",  "ulong"},
+                                                {"LINT",   "long"},
+                                                {"REAL",   "float"},
+                                                {"LREAL",  "double"},
+                                                {"STRING", "string"},
+                                                };
+    return map.value(raw, raw);
+}
+
 static std::map<int, std::map<QString, QString>> buildRegisterToGroup(
     const std::map<int, std::map<QString, QStringList>>& transactionalGroup)
 {
@@ -83,7 +99,7 @@ ModbusRegisterMap ModbusRegisterSerializer::fromJsonObject(int serverAddress, co
         const QString regTypeStr = o["RegisterType"].toString();
         const int address = o["Address"].toInt();
         const int length  = o["DataLength"].toInt();
-        const QString dataType = o["RegisterDataType"].toString();
+        const QString dataType = normalizeRegisterDataType(o["RegisterDataType"].toString());
 
         ModbusRegisterType regType = ModbusRegisterType_from_text(regTypeStr.toStdString().c_str());
         QModbusDataUnit::RegisterType qType = static_cast<QModbusDataUnit::RegisterType>(regType);
@@ -120,27 +136,48 @@ ModbusRegisterMap ModbusRegisterSerializer::fromJsonObject(int serverAddress, co
 
 // Тесты — оставляем прежние (адаптируем к новой сигнатуре)
 void testSerializeDeserialize() {
-    int serverAddress = 1;
-    ModbusRegisterMap map;
-    map.mdum[serverAddress]["reg1"] = QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2);
-    map.mdum[serverAddress]["reg2"] = QModbusDataUnit(QModbusDataUnit::InputRegisters, 10, 1);
-    map.types[serverAddress]["reg1"] = "float";
-    map.types[serverAddress]["reg2"] = "uint16";
-    map.access[serverAddress]["reg1"] = ModbusRegisterAccess_ReadWrite;
-    map.access[serverAddress]["reg2"] = ModbusRegisterAccess_ReadOnly;
-    map.scales[serverAddress]["reg1"] = 0.1;
-    map.groups[serverAddress]["groupA"] = QStringList{"reg1", "reg2"};
+    {
+        int serverAddress = 1;
+        ModbusRegisterMap map;
+        map.mdum[serverAddress]["reg1"] = QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2);
+        map.mdum[serverAddress]["reg2"] = QModbusDataUnit(QModbusDataUnit::InputRegisters, 10, 1);
+        map.types[serverAddress]["reg1"] = "float";
+        map.types[serverAddress]["reg2"] = "uint16";
+        map.access[serverAddress]["reg1"] = ModbusRegisterAccess_ReadWrite;
+        map.access[serverAddress]["reg2"] = ModbusRegisterAccess_ReadOnly;
+        map.scales[serverAddress]["reg1"] = 0.1;
+        map.groups[serverAddress]["groupA"] = QStringList{"reg1", "reg2"};
 
-    QString json = ModbusRegisterSerializer::serialize(serverAddress, map);
-    ModbusRegisterMap m2 = ModbusRegisterSerializer::deserialize(serverAddress, json);
+        QString json = ModbusRegisterSerializer::serialize(serverAddress, map);
+        ModbusRegisterMap m2 = ModbusRegisterSerializer::deserialize(serverAddress, json);
 
-    ASSERT_EQUAL(m2.mdum.size(), map.mdum.size());
-    ASSERT_EQUAL(m2.types.size(), map.types.size());
-    ASSERT_EQUAL(m2.access.size(), map.access.size());
-    ASSERT_EQUAL(m2.scales.size(), map.scales.size());
-    ASSERT_EQUAL(m2.types.at(serverAddress)["reg1"], "float");
-    ASSERT_EQUAL(m2.access.at(serverAddress)["reg2"], ModbusRegisterAccess_ReadOnly);
-    ASSERT(m2.scales.at(serverAddress)["reg1"] > 0.099 && m2.scales.at(serverAddress)["reg1"] < 0.101);
+        ASSERT_EQUAL(m2.mdum.size(), map.mdum.size());
+        ASSERT_EQUAL(m2.types.size(), map.types.size());
+        ASSERT_EQUAL(m2.access.size(), map.access.size());
+        ASSERT_EQUAL(m2.scales.size(), map.scales.size());
+        ASSERT_EQUAL(m2.types.at(serverAddress)["reg1"], "float");
+        ASSERT_EQUAL(m2.access.at(serverAddress)["reg2"], ModbusRegisterAccess_ReadOnly);
+        ASSERT(m2.scales.at(serverAddress)["reg1"] > 0.099 && m2.scales.at(serverAddress)["reg1"] < 0.101);
+    }
+    {
+        {
+            const char* json = R"({"mdum":[
+            {"RegisterName":"w","RegisterType":"InputRegister","Address":0,"DataLength":1,"RegisterDataType":"WORD"},
+            {"RegisterName":"dw","RegisterType":"HoldingRegister","Address":2,"DataLength":2,"RegisterDataType":"DWORD"},
+            {"RegisterName":"i","RegisterType":"InputRegister","Address":4,"DataLength":1,"RegisterDataType":"INT"},
+            {"RegisterName":"di","RegisterType":"HoldingRegister","Address":5,"DataLength":2,"RegisterDataType":"DINT"},
+            {"RegisterName":"r","RegisterType":"InputRegister","Address":7,"DataLength":2,"RegisterDataType":"REAL"},
+            {"RegisterName":"lr","RegisterType":"HoldingRegister","Address":9,"DataLength":4,"RegisterDataType":"LREAL"}
+        ]})";
+            auto m = ModbusRegisterSerializer::deserialize(1, QString::fromUtf8(json));
+            ASSERT_EQUAL(m.types[1]["w"],  QString("ushort"));
+            ASSERT_EQUAL(m.types[1]["dw"], QString("uint"));
+            ASSERT_EQUAL(m.types[1]["i"],  QString("short"));
+            ASSERT_EQUAL(m.types[1]["di"], QString("int"));
+            ASSERT_EQUAL(m.types[1]["r"],  QString("float"));
+            ASSERT_EQUAL(m.types[1]["lr"], QString("double"));
+        }
+    }
 }
 
 void testEmpty() {

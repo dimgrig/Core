@@ -354,10 +354,15 @@ void ModbusSettingsUI::load_config() {
         dir.setPath(QApplication::applicationDirPath());
     }
 
-    QString filename = QFileDialog::getOpenFileName(this, "Файл конфигурации регистров", dir.path(), "*.json");
+    QString filename = QFileDialog::getOpenFileName(
+        this,
+        "Файл конфигурации регистров",
+        dir.path(),
+        "Конфигурация (*.json *.csv);;JSON (*.json);;CSV (*.csv)");
     fileinfo = QFileInfo(filename);
     if (fileinfo.isFile()) {
-        if (fileinfo.suffix() == "json") {
+        const QString suffix = fileinfo.suffix().toLower();
+        if (suffix == "json" || suffix == "csv") {
             this->ui->le_config->setText(filename);
             emit config_changed(filename);
         }

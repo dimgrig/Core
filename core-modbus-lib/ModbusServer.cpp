@@ -289,6 +289,14 @@ void ModbusServer::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
                         }
                     }
 
+                    auto reg_scale_m = this->get_reg_scale_m();
+                    double scale = 0.0;
+                    if (reg_scale_m.count(serverAddress) > 0) {
+                        if (reg_scale_m.at(serverAddress).count(regName) > 0) {
+                            scale = reg_scale_m.at(serverAddress).at(regName);
+                        }
+                    }
+
                     QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
                     _mdum[serverAddress][regName].setValues(values);
                     ok = modbusDevice->setData(_mdum[serverAddress][regName]);

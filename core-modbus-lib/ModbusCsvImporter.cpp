@@ -7,7 +7,10 @@
 #include <QDebug>
 
 #include "ModbusBase.h"
+#include "ModbusDataConverter.h"
 #include "ModbusRegisterSerializer.h"
+
+#include <core-utils-lib/functions.h>
 
 // ────────────────────────────────────────────────────────────────
 //  Низкоуровневый парсер одной CSV-строки.
@@ -66,17 +69,31 @@ static RegionInfo parseRegion(const QString& r) {
 // Возвращает пару (внутреннее имя типа для ModbusDataConverter, valueCount).
 // valueCount = -1 для STRING — считается отдельно из LengthString.
 static std::pair<QString, int> parseDataTypeDevice(const QString& t) {
-    const QString u = t.trimmed().toUpper();
-    if (u == "BOOL")   return { QStringLiteral("bool"),   1 };
-    if (u == "WORD")   return { QStringLiteral("ushort"), 1 };
-    if (u == "INT")    return { QStringLiteral("short"),  1 };
-    if (u == "DWORD")  return { QStringLiteral("uint"),   2 };
-    if (u == "DINT")   return { QStringLiteral("int"),    2 };
-    if (u == "REAL")   return { QStringLiteral("float"),  2 };
-    if (u == "LREAL")  return { QStringLiteral("double"), 4 };
-    if (u == "LWORD")  return { QStringLiteral("ulong"),  4 };
-    if (u == "LINT")   return { QStringLiteral("long"),   4 };
-    if (u == "STRING") return { QStringLiteral("string"), -1 };
+    const QString s = t.trimmed();
+
+    // ── Промышленные имена IEC 61131-3 (UPPERCASE) ──
+    if (s == "BOOL")   return { QStringLiteral("bool"),   1 };
+    if (s == "WORD")   return { QStringLiteral("ushort"), 1 };
+    if (s == "INT")    return { QStringLiteral("short"),  1 };
+    if (s == "DWORD")  return { QStringLiteral("uint"),   2 };
+    if (s == "DINT")   return { QStringLiteral("int"),    2 };
+    if (s == "LWORD")  return { QStringLiteral("ulong"),  4 };
+    if (s == "LINT")   return { QStringLiteral("long"),   4 };
+    if (s == "REAL")   return { QStringLiteral("float"),  2 };
+    if (s == "LREAL")  return { QStringLiteral("double"), 4 };
+    if (s == "STRING") return { QStringLiteral("string"), -1 };
+
+    // ── Внутренние имена ModbusRegisterDataType_to_text ──
+    if (s == "Bool")       return { QStringLiteral("bool"),   1 };
+    if (s == "UShort")     return { QStringLiteral("ushort"), 1 };
+    if (s == "Short")      return { QStringLiteral("short"),  1 };
+    if (s == "UInt32")     return { QStringLiteral("uint"),   2 };
+    if (s == "Int32")      return { QStringLiteral("int"),    2 };
+    if (s == "ULongLong")  return { QStringLiteral("ulong"),  4 };
+    if (s == "LongLong")   return { QStringLiteral("long"),   4 };
+    if (s == "Float")      return { QStringLiteral("float"),  2 };
+    if (s == "Double")     return { QStringLiteral("double"), 4 };
+    if (s == "String")     return { QStringLiteral("string"), -1 };
     return { QString(), 0 };
 }
 
@@ -367,6 +384,23 @@ void ModbusCsvImporterTest() {
         ASSERT(map.scales[1].count("hr_scaled") == 1);
         ASSERT(map.scales[1]["hr_scaled"] > 0.099 && map.scales[1]["hr_scaled"] < 0.101);
         ASSERT(map.scales[1].count("Coil1") == 0); // scale не задан — не должно быть записи
+
+        // Round-trip через ModbusDataConverter: CSV -> internal -> converter
+        {
+            // CSV REAL -> internal "float" -> ModbusDataConverter
+            auto regs = ModbusDataConverter::variantToRegisters(QVariant(3.14f), "ir5", map.types[1]["ir5"], BigEndian);
+            ASSERT_EQUAL(regs.size(), 2);
+            auto back = ModbusDataConverter::registersToVariant(regs, "ir5", map.types[1]["ir5"], BigEndian);
+            ASSERT(std::abs(back.toFloat() - 3.14f) < 1e-4);
+
+            // CSV DINT -> internal "int" -> ModbusDataConverter
+            auto regs2 = ModbusDataConverter::variantToRegisters(QVariant(-1000000), "x", "DINT", BigEndian);
+            ASSERT_EQUAL(regs2.size(), 2);;
+
+            // CSV WORD -> internal "ushort" -> 1 регистр
+            auto regs3 = ModbusDataConverter::variantToRegisters(QVariant(42u), "ir1", map.types[1]["ir1"], BigEndian);
+            ASSERT_EQUAL(regs3.size(), 1);
+        }
     }
 
     // 3. Невалидный CSV (неизвестный Region) — запись пропускается с warning

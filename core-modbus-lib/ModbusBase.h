@@ -77,6 +77,7 @@ public:
 
     void set_modbus_settings(ModbusSettings modbus_settings);
     void set_modbus_config(QString config);
+    void set_modbus_config_csv(QString config);
 
     QModbusDataUnitMap get_reg(int serverAddress) const;
     std::vector<QModbusDataUnitMap> get_reg_v(int serverAddress) const;
@@ -134,6 +135,7 @@ protected:
                                                   std::map<int, std::map<QString, QModbusDataUnit>> &mdum);
 
     void on_read_json(QString config);
+    void on_read_csv(QString config);
 
     bool isSerialPortAvailable(const QString &portName);
 

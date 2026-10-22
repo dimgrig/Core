@@ -15,36 +15,58 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
     if (data.isEmpty())
         return value;
 
-    QString type = dataType.toLower();
-
-    if (type.contains("float")) {
-        value = QVariant(toFloat(data, format));
-    } else if (type.contains("double")) {
-        value = QVariant(toDouble(data, format));
-    } else if (type.contains("ulong")) {
-        value = QVariant(toUInt64(data, format));
-    } else if (type.contains("long")) {
-        value = QVariant(toInt64(data, format));
-    } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
-        if (data.size() >= 1)
-            value = QVariant(data[0]);
-    } else if ((type.contains("short")) || (type.contains("int16"))) {
-        if (data.size() >= 1)
-            value = QVariant(qint16(data[0]));
-    } else if (type.contains("uint")) {
-        value = QVariant(toUInt32(data, format));
-    } else if (type.contains("int")) {
-        value = QVariant(toInt32(data, format));
-    } else if (type.contains("bool")) {
-        value = QVariant(toBool(data)); // по умолчанию бит 0
-    } else if (type.contains("string")) {
+    if (dataType == "BOOL") {
+        value = QVariant(toBool(data));
+    } else if (dataType == "STRING") {
         value = QVariant(toString(data));
+    } else if (dataType == "WORD") {
+        if (data.size() >= 1) value = QVariant(data[0]);
+    } else if (dataType == "INT") {
+        if (data.size() >= 1) value = QVariant(qint16(data[0]));
+    } else if (dataType == "DWORD") {
+        value = QVariant(toUInt32(data, format));
+    } else if (dataType == "DINT") {
+        value = QVariant(toInt32(data, format));
+    } else if (dataType == "LWORD") {
+        value = QVariant(toUInt64(data, format));
+    } else if (dataType == "LINT") {
+        value = QVariant(toInt64(data, format));
+    } else if (dataType == "REAL") {
+        value = QVariant(toFloat(data, format));
+    } else if (dataType == "LREAL") {
+        value = QVariant(toDouble(data, format));
     } else {
-        // неизвестный тип – вернуть как есть
-        if (data.size() == 1)
-            value = QVariant(data[0]);
-        else
-            value = QVariant::fromValue(data);
+        QString type = dataType.toLower();
+
+        if (type.contains("float")) {
+            value = QVariant(toFloat(data, format));
+        } else if (type.contains("double")) {
+            value = QVariant(toDouble(data, format));
+        } else if (type.contains("ulong")) {
+            value = QVariant(toUInt64(data, format));
+        } else if (type.contains("long")) {
+            value = QVariant(toInt64(data, format));
+        } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
+            if (data.size() >= 1)
+                value = QVariant(data[0]);
+        } else if ((type.contains("short")) || (type.contains("int16"))) {
+            if (data.size() >= 1)
+                value = QVariant(qint16(data[0]));
+        } else if (type.contains("uint")) {
+            value = QVariant(toUInt32(data, format));
+        } else if (type.contains("int")) {
+            value = QVariant(toInt32(data, format));
+        } else if (type.contains("bool")) {
+            value = QVariant(toBool(data)); // по умолчанию бит 0
+        } else if (type.contains("string")) {
+            value = QVariant(toString(data));
+        } else {
+            // неизвестный тип – вернуть как есть
+            if (data.size() == 1)
+                value = QVariant(data[0]);
+            else
+                value = QVariant::fromValue(data);
+        }
     }
 
 // #ifdef ENABLE_CONVERTION
@@ -91,35 +113,57 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
     }
 #endif
 
-    QString type = dataType.toLower();
     QVector<quint16> result;
 
-    if (type.contains("float")) {
-        result = fromFloat(_value.toFloat(), format);
-    } else if (type.contains("double")) {
-        result = fromDouble(_value.toDouble(), format);
-    } else if (type.contains("ulong")) {
-        result = fromUInt64(_value.toULongLong(), format);
-    } else if (type.contains("long")) {
-        result = fromInt64(_value.toLongLong(), format);
-    } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
-        result = { static_cast<quint16>(_value.toUInt()) };
-    } else if ((type.contains("short")) || (type.contains("int16"))) {
-        result = { static_cast<quint16>(_value.toInt()) };
-    } else if (type.contains("uint")) {
-        result = fromUInt32(_value.toUInt(), format);
-    } else if (type.contains("int")) {
-        result = fromInt32(_value.toInt(), format);
-    } else if (type.contains("bool")) {
+    if (dataType == "BOOL") {
         result = fromBool(_value.toBool());
-    } else if (type.contains("string")) {
+    } else if (dataType == "STRING") {
         result = fromString(_value.toString(), expectedSize);
+    } else if (dataType == "WORD") {
+        result = { static_cast<quint16>(_value.toUInt()) };
+    } else if (dataType == "INT") {
+        result = { static_cast<quint16>(_value.toInt()) };
+    } else if (dataType == "DWORD") {
+        result = fromUInt32(_value.toUInt(), format);
+    } else if (dataType == "DINT") {
+        result = fromInt32(_value.toInt(), format);
+    } else if (dataType == "LWORD") {
+        result = fromUInt64(_value.toULongLong(), format);
+    } else if (dataType == "LINT") {
+        result = fromInt64(_value.toLongLong(), format);
+    } else if (dataType == "REAL") {
+        result = fromFloat(_value.toFloat(), format);
+    } else if (dataType == "LREAL") {
+        result = fromDouble(_value.toDouble(), format);
     } else {
-        // fallback: если variant содержит QVector<quint16> напрямую
-        if (_value.canConvert<QVector<quint16>>()) {
-            result = _value.value<QVector<quint16>>();
+        QString type = dataType.toLower();
+        if (type.contains("float")) {
+            result = fromFloat(_value.toFloat(), format);
+        } else if (type.contains("double")) {
+            result = fromDouble(_value.toDouble(), format);
+        } else if (type.contains("ulong")) {
+            result = fromUInt64(_value.toULongLong(), format);
+        } else if (type.contains("long")) {
+            result = fromInt64(_value.toLongLong(), format);
+        } else if ((type.contains("ushort")) || (type.contains("uint16"))) {
+            result = { static_cast<quint16>(_value.toUInt()) };
+        } else if ((type.contains("short")) || (type.contains("int16"))) {
+            result = { static_cast<quint16>(_value.toInt()) };
+        } else if (type.contains("uint")) {
+            result = fromUInt32(_value.toUInt(), format);
+        } else if (type.contains("int")) {
+            result = fromInt32(_value.toInt(), format);
+        } else if (type.contains("bool")) {
+            result = fromBool(_value.toBool());
+        } else if (type.contains("string")) {
+            result = fromString(_value.toString(), expectedSize);
         } else {
-            qWarning() << "ModbusDataConverter: unknown type" << dataType;
+            // fallback: если variant содержит QVector<quint16> напрямую
+            if (_value.canConvert<QVector<quint16>>()) {
+                result = _value.value<QVector<quint16>>();
+            } else {
+                qWarning() << "ModbusDataConverter: unknown type" << dataType;
+            }
         }
     }
 
@@ -338,6 +382,90 @@ void testVariantRoundtrip() {
     ASSERT_EQUAL(result.toString(), original.toString());
 }
 
+void testIndustrialNames() {
+    // REAL (float) — round-trip
+    {
+        QVariant original(3.14f);
+        auto regs = ModbusDataConverter::variantToRegisters(original, "x", "REAL", BigEndian);
+        ASSERT_EQUAL(regs.size(), 2);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "REAL", BigEndian);
+        ASSERT(std::abs(back.toFloat() - 3.14f) < 1e-4);
+    }
+    // LREAL (double)
+    {
+        QVariant original(123.456);
+        auto regs = ModbusDataConverter::variantToRegisters(original, "x", "LREAL", BigEndian);
+        ASSERT_EQUAL(regs.size(), 4);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "LREAL", BigEndian);
+        ASSERT(std::abs(back.toDouble() - 123.456) < 1e-9);
+    }
+    // WORD (ushort) — 1 регистр
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant(42u), "x", "WORD", BigEndian);
+        ASSERT_EQUAL(regs.size(), 1);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "WORD", BigEndian);
+        ASSERT_EQUAL(back.toUInt(), 42u);
+    }
+    // INT (short) — 1 регистр, знаковое
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant(-123), "x", "INT", BigEndian);
+        ASSERT_EQUAL(regs.size(), 1);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "INT", BigEndian);
+        ASSERT_EQUAL(back.toInt(), -123);
+    }
+    // DWORD (uint32) — 2 регистра
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant(0x12345678u), "x", "DWORD", BigEndian);
+        ASSERT_EQUAL(regs.size(), 2);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "DWORD", BigEndian);
+        ASSERT_EQUAL(back.toUInt(), 0x12345678u);
+    }
+    // DINT (int32) — 2 регистра, знаковое
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant(-1000000), "x", "DINT", BigEndian);
+        ASSERT_EQUAL(regs.size(), 2);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "DINT", BigEndian);
+        ASSERT_EQUAL(back.toInt(), -1000000);
+    }
+    // LWORD (uint64) — 4 регистра
+    {
+        quint64 v = 0x123456789ABCDEF0ULL;
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant::fromValue(v), "x", "LWORD", BigEndian);
+        ASSERT_EQUAL(regs.size(), 4);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "LWORD", BigEndian);
+        ASSERT_EQUAL(back.toULongLong(), v);
+    }
+    // LINT (int64) — 4 регистра
+    {
+        qint64 v = -1234567890123LL;
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant::fromValue(v), "x", "LINT", BigEndian);
+        ASSERT_EQUAL(regs.size(), 4);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "LINT", BigEndian);
+        ASSERT_EQUAL(back.toLongLong(), v);
+    }
+    // BOOL — 1 регистр
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant(true), "x", "BOOL", BigEndian);
+        ASSERT_EQUAL(regs.size(), 1);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "BOOL", BigEndian);
+        ASSERT_EQUAL(back.toBool(), true);
+    }
+    // STRING — round-trip
+    {
+        auto regs = ModbusDataConverter::variantToRegisters(QVariant("Hi"), "x", "STRING", BigEndian);
+        ASSERT(regs.size() >= 1);
+        auto back = ModbusDataConverter::registersToVariant(regs, "x", "STRING", BigEndian);
+        ASSERT(back.toString().startsWith("Hi"));
+    }
+    // Коллизия INT vs int: INT должен дать 1 регистр, int — 2
+    {
+        auto r_int_upper = ModbusDataConverter::variantToRegisters(QVariant(42), "x", "INT", BigEndian);
+        auto r_int_lower = ModbusDataConverter::variantToRegisters(QVariant(42), "x", "int", BigEndian);
+        ASSERT_EQUAL(r_int_upper.size(), 1);
+        ASSERT_EQUAL(r_int_lower.size(), 2);
+    }
+}
+
 void ModbusDataConverterTest() {
     testFloatConversion();
     testDoubleConversion();
@@ -349,4 +477,5 @@ void ModbusDataConverterTest() {
     testStringTruncation();
     testBoolConversion();
     testVariantRoundtrip();
+    testIndustrialNames();
 }
