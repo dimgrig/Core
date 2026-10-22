@@ -16,6 +16,7 @@
 #include "modbus_functions.h"
 #include "ModbusDataConverter.h"
 #include "ModbusRegisterSerializer.h"
+#include "ModbusCsvImporter.h"
 
 #include "TestAuth.h"
 #include "TestJournal.h"
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
 
     RUN_TEST(tr, ModbusFunctionsTest);
     RUN_TEST(tr, ModbusDataConverterTest);
+    RUN_TEST(tr, ModbusCsvImporterTest);
     RUN_TEST(tr, ModbusRegisterSerializerTest);
 
     JournalBaseTest jbt;

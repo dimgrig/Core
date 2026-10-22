@@ -57,6 +57,7 @@ target_sources(core-modbus-lib PRIVATE
     modbus_functions.h
 
     uis/modbus_settings.ui
+    ModbusCsvImporter.h ModbusCsvImporter.cpp
 )
 
 target_include_directories(core-modbus-lib PUBLIC

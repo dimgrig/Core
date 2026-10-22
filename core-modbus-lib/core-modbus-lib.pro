@@ -18,7 +18,8 @@ HEADERS += \
     MockModbusClient.h \
     ModbusBase.h \
     ModbusClient.h \
-    ModbusClientService.h \
+    ModbusClientService.h \ \
+    ModbusCsvImporter.h
     ModbusDataConverter.h \
     ModbusMultiAddressServer.h \
     ModbusRegisterSerializer.h \
@@ -45,7 +46,8 @@ SOURCES += \
     MockModbusClient.cpp \
     ModbusBase.cpp \
     ModbusClient.cpp \
-    ModbusClientService.cpp \
+    ModbusClientService.cpp \ \
+    ModbusCsvImporter.cpp
     ModbusDataConverter.cpp \
     ModbusMultiAddressServer.cpp \
     ModbusRegisterSerializer.cpp \
