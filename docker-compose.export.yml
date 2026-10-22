@@ -12,7 +12,7 @@ services:
   core-linux:
     build:
       context: ..
-      dockerfile: Core/Dockerfile.cmake
+      dockerfile: Core/Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-linux:latest
         CMAKE_CMD: cmake
@@ -23,46 +23,46 @@ services:
     command: >
       sh -c "rm -rf /out/* && cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
-  #core-arm64:
-  #  build:
-  #    context: ..
-  #    dockerfile: Core/Dockerfile.cmake
-  #    args:
-  #      BASE_DEPS_IMAGE: base-deps-arm64:latest
-  #      CMAKE_CMD: cmake
-  #      CORE_INSTALL_BASE: /opt/core
-  #  image: core-builder-cmake-arm64:latest
-  #  platform: linux/arm64
-  #  volumes:
-  #    - ${OUT_ROOT:?OUT_ROOT must be set}/arm64:/out
-  #  command: >
-  #    sh -c "set -e
-  #           cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
-  #           rm -rf /out/*
-  #           cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+  core-arm64:
+    build:
+      context: ..
+      dockerfile: Core/Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-arm64:latest
+        CMAKE_CMD: cmake
+        CORE_INSTALL_BASE: /opt/core
+    image: core-builder-cmake-arm64:latest
+    platform: linux/arm64
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/arm64:/out
+    command: >
+      sh -c "set -e
+             cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
+             rm -rf /out/*
+             cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
-  #core-armv7:
-  #  build:
-  #    context: ..
-  #    dockerfile: Core/Dockerfile.cmake
-  #    args:
-  #      BASE_DEPS_IMAGE: base-deps-armv7:latest
-  #      CMAKE_CMD: cmake
-  #      CORE_INSTALL_BASE: /opt/core
-  #  image: core-builder-cmake-armv7:latest
-  #  platform: linux/arm/v7
-  #  volumes:
-  #    - ${OUT_ROOT:?OUT_ROOT must be set}/armv7:/out
-  #  command: >
-  #    sh -c "set -e
-  #           cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
-  #           rm -rf /out/*
-  #           cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+  core-armv7:
+    build:
+      context: ..
+      dockerfile: Core/Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-armv7:latest
+        CMAKE_CMD: cmake
+        CORE_INSTALL_BASE: /opt/core
+    image: core-builder-cmake-armv7:latest
+    platform: linux/arm/v7
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/armv7:/out
+    command: >
+      sh -c "set -e
+             cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
+             rm -rf /out/*
+             cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
   core-win:
     build:
       context: ..
-      dockerfile: Core/Dockerfile.cmake
+      dockerfile: Core/Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-win:latest
         CMAKE_CMD: i686-w64-mingw32-cmake

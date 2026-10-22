@@ -5,6 +5,17 @@
 # Требует: собранных базовых образов (bash docker-build-base-deps.sh)
 # и (опционально) предварительно собранных core-образов
 # (bash docker-build-core-cmake.sh). Если образов нет — соберёт через compose.
+#
+# sudo chmod +x docker-export-core.sh
+# ./docker-export-core.sh
+#  Core version : 1.1.0
+#  Output       : /home/dima/deploy/core/1.1.0
+#  Platforms    : linux arm64 armv7 win
+# BUILD_ARM=1 ./docker-export-core.sh
+#  Core version : 1.1.0
+#  Output       : /home/dima/deploy/core/1.1.0
+#  Platforms    : linux arm64 armv7 win
+
 set -euo pipefail
 
 cd "$(dirname "$0")"

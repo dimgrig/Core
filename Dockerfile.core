@@ -27,5 +27,26 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
         -DCMAKE_VERBOSE_MAKEFILE=OFF \
     && cmake --build build -j"$(nproc)" \
     && cmake --install build \
+    && test -d  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core" \
+    && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreConfig.cmake" \
+    && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreTargets.cmake" \
     && echo "=== Installed to ${CORE_INSTALL_BASE}/${CORE_VERSION} ===" \
     && find "${CORE_INSTALL_BASE}/${CORE_VERSION}" -maxdepth 2 -type d | sort
+
+# ============================================================
+# Export stage — итоговое дерево SDK (для CI / --output type=local)
+#
+# Использование:
+#   docker buildx build \
+#       --target export \
+#       --output type=local,dest=out/linux \
+#       --build-arg CORE_VERSION=$(tr -d '[:space:]' < VERSION) \
+#       -f Dockerfile.core ..
+#   # out/linux/{include,lib,bin}
+#
+# CORE_VERSION ОБЯЗАТЕЛЕН (иначе layout = out/linux/1.1.0/include/…)
+# ============================================================
+FROM scratch AS export
+ARG CORE_VERSION
+ARG CORE_INSTALL_BASE=/opt/core
+COPY --from=build ${CORE_INSTALL_BASE}/${CORE_VERSION}/ /    
