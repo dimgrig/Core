@@ -11,8 +11,8 @@
 services:
   core-linux:
     build:
-      context: ..
-      dockerfile: Core/Dockerfile.core
+      context: .
+      dockerfile: Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-linux:latest
         CMAKE_CMD: cmake
@@ -25,8 +25,8 @@ services:
 
   core-arm64:
     build:
-      context: ..
-      dockerfile: Core/Dockerfile.core
+      context: .
+      dockerfile: Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-arm64:latest
         CMAKE_CMD: cmake
@@ -43,8 +43,8 @@ services:
 
   core-armv7:
     build:
-      context: ..
-      dockerfile: Core/Dockerfile.core
+      context: .
+      dockerfile: Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-armv7:latest
         CMAKE_CMD: cmake
@@ -61,8 +61,8 @@ services:
 
   core-win:
     build:
-      context: ..
-      dockerfile: Core/Dockerfile.core
+      context: .
+      dockerfile: Dockerfile.core
       args:
         BASE_DEPS_IMAGE: base-deps-win:latest
         CMAKE_CMD: i686-w64-mingw32-cmake

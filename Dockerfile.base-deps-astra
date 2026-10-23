@@ -24,6 +24,8 @@ RUN apt install -y --no-install-recommends libxerces-c-dev
 # Устанавливаем dpkg-dev, если его нет (обычно есть в Debian/Ubuntu)
 RUN apt-get install -y --no-install-recommends dpkg-dev
 
+RUN apt-get install -y --no-install-recommends cmake
+
 RUN apt clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -33,11 +35,11 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
     qmake qtmqtt.pro && \
     make -j$(nproc) && \
     make install && \
-    rm -rf /tmp/qtmqtt epicmorg/astralinux
+    rm -rf /tmp/qtmqtt
 
 # docker build -t base-deps-linux:latest -f Dockerfile.base-deps-linux ..
 
 # Устанавливаем CQtDeployer
-COPY /deb/CQtDeployer*.deb /tmp/
-RUN dpkg -i /tmp/CQtDeployer*.deb && \
-rm /tmp/CQtDeployer*.deb
+#COPY /deb/CQtDeployer*.deb /tmp/
+#RUN dpkg -i /tmp/CQtDeployer*.deb && \
+#rm /tmp/CQtDeployer*.deb

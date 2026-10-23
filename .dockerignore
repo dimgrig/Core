@@ -3,6 +3,14 @@
 **/*-build/
 **/binaries/
 **/build/
+**/out/
+**/deploy/
+**/dist/
+**/applocal-staging/
+.git/
+.github/
+*.user
+.gitignore
 
 # Игнорировать системные файлы
 **/.git/
@@ -34,7 +42,6 @@
 **/*.o
 **/*.obj
 **/*.moc
-**/*.ui
 **/moc_*
 **/ui_*
 **/*.qrc.depends

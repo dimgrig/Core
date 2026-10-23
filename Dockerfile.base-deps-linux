@@ -37,9 +37,9 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
     rm -rf /tmp/qtmqtt
 
 # Устанавливаем CQtDeployer
-COPY /deb/CQtDeployer*.deb /tmp/
-RUN dpkg -i /tmp/CQtDeployer*.deb && \
-rm /tmp/CQtDeployer*.deb
+#COPY /deb/CQtDeployer*.deb /tmp/
+#RUN dpkg -i /tmp/CQtDeployer*.deb && \
+#rm /tmp/CQtDeployer*.deb
 
 # Санити-чек, чтобы такой провал больше не повторился
 RUN test -f /usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake \

@@ -1,453 +1,272 @@
-name: Build and Release Core (Qt5)
+name: Build and Release Core SDK
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build (e.g., v1.0.0)'
+        description: 'Tag (e.g., v1.1.0)'
         required: true
+      build_arm:
+        description: 'Also build ARM (slow; armv7 via QEMU)'
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  QT_MAJOR: 5
 
 jobs:
-  # ------------------------------------------------------------
-  # Linux (native)
-  # ------------------------------------------------------------
-  build-linux:
-    runs-on: ubuntu-22.04
-    container:
-      image: debian:bookworm-slim
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Qt5 and build tools
-        run: |
-          apt update
-          apt install -y --no-install-recommends \
-            build-essential \
-            qt5-qmake \
-            qtbase5-dev \
-            qtbase5-private-dev \
-            libqt5serialbus5-dev \
-            libqt5serialport5-dev \
-            libqt5sql5-sqlite \
-            libqt5svg5-dev \
-            libqt5x11extras5-dev \
-            wget ca-certificates git
-          apt clean
-
-      # ---------- Cache qtmqtt (Linux) ----------
-      - name: Cache qtmqtt (Linux)
-        id: cache-qtmqtt-linux
-        uses: actions/cache@v3
-        with:
-          path: |
-            /usr/lib/x86_64-linux-gnu/libQt5Mqtt.so*
-            /usr/lib/x86_64-linux-gnu/libQt5Mqtt.prl
-            /usr/include/x86_64-linux-gnu/qt5/QtMqtt
-            /usr/local/include/QtMqtt
-            /usr/lib/x86_64-linux-gnu/cmake/Qt5Mqtt
-          key: linux-qtmqtt-5.15.2
-
-      - name: Build qtmqtt (Linux)
-        #if: steps.cache-qtmqtt-linux.outputs.cache-hit != 'true'
-        run: |
-          git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
-          cd /tmp/qtmqtt
-          qmake qtmqtt.pro
-          make -j$(nproc)
-          make install
-          ldconfig
-          # Копируем заголовки в стандартное место для поиска
-          cp -r /usr/local/include/QtMqtt /usr/include/x86_64-linux-gnu/qt5/ 2>/dev/null || true
-          rm -rf /tmp/qtmqtt
-
-      # ---------- Cache qtserialbus (Linux, включая заголовки) ----------
-      - name: Cache qtserialbus (Linux)
-        id: cache-qtserialbus-linux
-        uses: actions/cache@v3
-        with:
-          path: |
-            /usr/lib/x86_64-linux-gnu/QtSerialBus.so*
-            /usr/lib/x86_64-linux-gnu/QtSerialBus.prl
-            /usr/include/x86_64-linux-gnu/qt5/QtSerialBus
-            /usr/local/include/QtSerialBus
-            /usr/include/x86_64-linux-gnu/qt5/QtSerialBus
-          key: linux-qtserialbus-5.15
-
-      - name: Build qtserialbus (Linux)
-        #if: steps.cache-qtserialbus-linux.outputs.cache-hit != 'true'
-        run: |
-          git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
-          cd /tmp/qtserialbus
-          qmake qtserialbus.pro
-          make -j$(nproc)
-          make install
-          ldconfig
-          # Копируем заголовки (если нужно)
-          cp -r /usr/local/include/QtSerialBus /usr/include/x86_64-linux-gnu/qt5/ 2>/dev/null || true
-          rm -rf /tmp/qtserialbus
-
-      # ---------- Cache Core libraries (Linux) ----------
-      - name: Cache Core libraries (Linux)
-        id: cache-core-linux
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/_cache_linux/core_binaries
-          key: linux-core-${{ hashFiles('**/*.pro') }}
-          restore-keys: |
-            linux-core-
-
-      - name: Restore cached binaries to original location (Linux)
-        if: steps.cache-qtserialbus-linux.outputs.cache-hit == 'true' && steps.cache-qtmqtt-linux.outputs.cache-hit == 'true'
-        run: |
-          mkdir -p ../core-lib-binaries ../core-io-lib-binaries ../core-journal-lib-binaries ../core-modbus-lib-binaries ../core-mvc-lib-binaries ../core-utils-lib-binaries ../core-widgets-lib-binaries ../muParser-binaries
-          cp -r ${{ github.workspace }}/_cache_linux/core_binaries/* ../ 2>/dev/null || true
-          echo "Cached binaries restored"
-          mkdir -p /usr/lib/qt/
-          cp -d ../core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../qcustomplot-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-          cp -d ../QtWebApp-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-
-      - name: Build Core libraries (Linux)
-        if: steps.cache-core-linux.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p deploy/linux/lib
-          mkdir -p /usr/lib/qt/
-          find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
-
-          cd core-lib
-          qmake core-lib.pro CONFIG+=release 
-          make -j$(nproc)
-          cp ../../core-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-journal-lib
-          qmake core-journal-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-journal-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-journal-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-modbus-lib
-          qmake core-modbus-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-modbus-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-io-lib
-          qmake core-io-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-io-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-io-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd muParser
-          qmake muParser.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../muParser-binaries/linux/gcc/x64/release/*.a ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../muParser-binaries/linux/gcc/x64/release/*.a /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-widgets-lib
-          qmake core-widgets-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-widgets-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-utils-lib
-          qmake core-utils-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-utils-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-utils-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-mvc-lib
-          qmake core-mvc-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-mvc-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd qcustomplot
-          qmake qcustomplot.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../qcustomplot-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd core-plot-lib
-          qmake core-plot-lib.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../core-plot-lib-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../core-plot-lib-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-          cd QtWebApp
-          qmake QtWebApp.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.so* ../deploy/linux/lib/ 2>/dev/null || true
-          cp ../../QtWebApp-binaries/linux/gcc/x64/release/*.so* /usr/lib/qt/ 2>/dev/null || true
-          cd ..
-
-      - name: Copy binaries into workspace for caching (Linux)
-        if: steps.cache-core-linux.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ${{ github.workspace }}/_cache_linux/core_binaries
-          cp -r ../core-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-io-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-plot-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../muParser-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../qcustomplot-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          cp -r ../QtWebApp-binaries ${{ github.workspace }}/_cache_linux/core_binaries/ 2>/dev/null || true
-          echo "Binaries copied to workspace for caching"
-
-      - name: Archive artifacts (Linux)
-        run: tar -czf core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz -C deploy/linux .
-
-      - name: Upload artifact (Linux)
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-linux-${{ github.event.inputs.tag || github.ref_name }}
-          path: core-linux-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
-
-  # ------------------------------------------------------------
-  # Windows (cross-compile) – 32-bit
-  # ------------------------------------------------------------
-  build-windows:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/mdimura/docker-mingw-arch:qt5
-      options: --user root
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install additional tools
-        run: |
-          apt update || true
-          apt install -y --no-install-recommends wget git || true
-
-      # ---------- Cache qtmqtt (Windows) ----------
-      - name: Cache qtmqtt (Windows)
-        id: cache-qtmqtt-win
-        uses: actions/cache@v3
-        with:
-          path: /usr/i686-w64-mingw32/
-          key: win32-qtmqtt-5.15.2
-
-      - name: Build qtmqtt (Windows cross)
-        if: steps.cache-qtmqtt-win.outputs.cache-hit != 'true'
-        run: |
-          git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt
-          cd /tmp/qtmqtt
-          i686-w64-mingw32-qmake-qt5 qtmqtt.pro CONFIG+=release
-          make -j$(nproc)
-          make install
-          rm -rf /tmp/qtmqtt
-
-      # ---------- Cache qtserialbus (Windows) ----------
-      - name: Cache qtserialbus (Windows)
-        id: cache-qtserialbus-win
-        uses: actions/cache@v3
-        with:
-          path: /usr/i686-w64-mingw32/
-          key: win32-qtserialbus-5.15
-
-      - name: Build qtserialbus (Windows cross)
-        if: steps.cache-qtserialbus-win.outputs.cache-hit != 'true'
-        run: |
-          git clone --branch 5.15 --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus
-          cd /tmp/qtserialbus
-          i686-w64-mingw32-qmake-qt5 qtserialbus.pro CONFIG+=release
-          make -j$(nproc)
-          make install
-          rm -rf /tmp/qtserialbus
-
-      # ---------- Cache Core libraries (Windows) ----------
-      - name: Cache Core libraries (Windows)
-        id: cache-core-win
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/_cache_win/core_binaries
-          key: win32-core-${{ hashFiles('**/*.pro') }}
-          restore-keys: |
-            win32-core-
-
-      - name: Restore cached binaries to original location (Windows)
-        if: steps.cache-core-win.outputs.cache-hit == 'true'
-        run: |
-          mkdir -p ../core-lib-binaries ../core-io-lib-binaries ../core-journal-lib-binaries ../core-modbus-lib-binaries ../core-mvc-lib-binaries ../core-utils-lib-binaries ../core-widgets-lib-binaries ../muParser-binaries
-          cp -r ${{ github.workspace }}/_cache_win/core_binaries/* ../ 2>/dev/null || true
-          echo "Cached binaries restored"
-
-      - name: Build Core libraries for Windows
-        if: steps.cache-core-win.outputs.cache-hit != 'true'
-        run: |
-          export WIN_LIBS_PATH=$(pwd)/deploy/windows/bin
-          mkdir -p $WIN_LIBS_PATH
-          find . -name "*.pro" -exec sed -i '/QMAKE_POST_LINK/d' {} \;
-
-          cd core-lib
-          i686-w64-mingw32-qmake-qt5 core-lib.pro CONFIG+=release CONFIG-=debug CONFIG+=shared
-          make -j$(nproc)
-          cp ../../core-lib-binaries/windows/gcc/x86/release/core-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-journal-lib
-          i686-w64-mingw32-qmake-qt5 core-journal-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-journal-lib-binaries/windows/gcc/x86/release/core-journal-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-modbus-lib
-          i686-w64-mingw32-qmake-qt5 core-modbus-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-modbus-lib-binaries/windows/gcc/x86/release/core-modbus-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-io-lib
-          i686-w64-mingw32-qmake-qt5 core-io-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-io-lib-binaries/windows/gcc/x86/release/core-io-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd muParser
-          i686-w64-mingw32-qmake-qt5 muParser.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../muParser-binaries/windows/gcc/x86/release/libmuParser.a $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-widgets-lib
-          i686-w64-mingw32-qmake-qt5 core-widgets-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-widgets-lib-binaries/windows/gcc/x86/release/core-widgets-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-utils-lib
-          i686-w64-mingw32-qmake-qt5 core-utils-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-utils-lib-binaries/windows/gcc/x86/release/core-utils-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-mvc-lib
-          i686-w64-mingw32-qmake-qt5 core-mvc-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-mvc-lib-binaries/windows/gcc/x86/release/core-mvc-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd qcustomplot
-          i686-w64-mingw32-qmake-qt5 qcustomplot.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../qcustomplot-binaries/windows/gcc/x86/release/qcustomplot*.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd core-plot-lib
-          i686-w64-mingw32-qmake-qt5 core-plot-lib.pro CONFIG+=release "LIBS += -L$WIN_LIBS_PATH" "WIN_LIBS_PATH=$WIN_LIBS_PATH"
-          make -j$(nproc)
-          cp ../../core-plot-lib-binaries/windows/gcc/x86/release/core-plot-lib.dll $WIN_LIBS_PATH/
-          cd ..
-
-          cd QtWebApp
-          i686-w64-mingw32-qmake-qt5 QtWebApp.pro CONFIG+=release
-          make -j$(nproc)
-          cp ../../QtWebApp-binaries/windows/gcc/x86/release/QtWebApp*.dll $WIN_LIBS_PATH/
-          cd ..
-
-      - name: Copy binaries into workspace for caching (Windows)
-        if: steps.cache-core-win.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ${{ github.workspace }}/_cache_win/core_binaries
-          cp -r ../core-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-io-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-journal-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-modbus-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-mvc-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-plot-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-utils-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../core-widgets-lib-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../muParser-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../qcustomplot-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          cp -r ../QtWebApp-binaries ${{ github.workspace }}/_cache_win/core_binaries/ 2>/dev/null || true
-          echo "Binaries copied to workspace for caching"
-
-      - name: Archive artifacts (Windows)
-        run: tar -czf core-windows-${{ github.event.inputs.tag || github.ref_name }}.tar.gz -C deploy/windows .
-
-      - name: Upload artifact (Windows)
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-windows-${{ github.event.inputs.tag || github.ref_name }}
-          path: core-windows-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
-    # ------------------------------------------------------------
-  # Релиз (создаёт GitHub Release и прикрепляет архивы)
-  # ------------------------------------------------------------
-  create-release:
+  # ────────────────────────────────────────────
+  # 0. Verify VERSION matches tag
+  # ────────────────────────────────────────────
+  verify:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-windows]
-    if: |
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '')
-    permissions:
-      contents: write    # нужно для создания релиза и загрузки файлов
-
     steps:
-      - name: Determine tag name
+      - uses: actions/checkout@v4
+      - name: Verify VERSION == tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          FILE_VER="$(tr -d '[:space:]' < VERSION)"
+          echo "tag=$TAG, VERSION=$FILE_VER"
+          if [ "v${FILE_VER}" != "${TAG}" ]; then
+            echo "ERROR: tag '${TAG}' does not match VERSION '${FILE_VER}'" >&2
+            exit 1
+          fi
+
+  # ────────────────────────────────────────────
+  # 1. Linux amd64
+  # ────────────────────────────────────────────
+  build-linux-amd64:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & export SDK
+        run: |
+          docker buildx build \
+            --target export \
+            --output type=local,dest=out/linux-amd64 \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
+            --build-arg CMAKE_CMD=cmake \
+            --build-arg BUILD_TESTING=OFF \
+            --cache-from type=gha,scope=core-linux-amd64 \
+            --cache-to   type=gha,mode=max,scope=core-linux-amd64 \
+            -f Dockerfile.core .
+      - name: Package
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p dist
+          tar -czf "dist/Core-Releases-${VERSION}-linux-amd64-qt${QT_MAJOR}.tar.gz" -C out/linux-amd64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-linux-amd64
+          path: dist/*.tar.gz
+
+  # ────────────────────────────────────────────
+  # 2. Windows x32 (cross-compiled on amd64)
+  # ────────────────────────────────────────────
+  build-win32:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & export SDK
+        run: |
+          docker buildx build \
+            --target export \
+            --output type=local,dest=out/win32 \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-win:qt5-mingw \
+            --build-arg CMAKE_CMD=i686-w64-mingw32-cmake \
+            --build-arg BUILD_TESTING=OFF \
+            --cache-from type=gha,scope=core-win32 \
+            --cache-to   type=gha,mode=max,scope=core-win32 \
+            -f Dockerfile.core .
+      - name: Package
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p dist
+          (cd out/win32 && zip -r "../../dist/Core-Releases-${VERSION}-win32-qt${QT_MAJOR}.zip" .)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-win32
+          path: dist/*.zip
+
+  # ────────────────────────────────────────────
+  # 3. Linux arm64 — native ARM runner
+  # ────────────────────────────────────────────
+  build-linux-arm64:
+    if: github.event.inputs.build_arm == 'true'
+    needs: verify
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & export SDK
+        run: |
+          docker buildx build \
+            --target export \
+            --output type=local,dest=out/linux-arm64 \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-arm64:qt5-bookworm \
+            --build-arg CMAKE_CMD=cmake \
+            --build-arg BUILD_TESTING=OFF \
+            --cache-from type=gha,scope=core-linux-arm64 \
+            --cache-to   type=gha,mode=max,scope=core-linux-arm64 \
+            -f Dockerfile.core .
+      - name: Package
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p dist
+          tar -czf "dist/Core-Releases-${VERSION}-linux-arm64-qt${QT_MAJOR}.tar.gz" -C out/linux-arm64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-linux-arm64
+          path: dist/*.tar.gz
+
+  # ────────────────────────────────────────────
+  # 4. Linux armv7 — QEMU (slow)
+  # ────────────────────────────────────────────
+  build-linux-armv7:
+    if: github.event.inputs.build_arm == 'true'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & export SDK
+        run: |
+          docker buildx build \
+            --platform linux/arm/v7 \
+            --target export \
+            --output type=local,dest=out/linux-armv7 \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-armv7:qt5-bullseye \
+            --build-arg CMAKE_CMD=cmake \
+            --build-arg BUILD_TESTING=OFF \
+            --cache-from type=gha,scope=core-linux-armv7 \
+            --cache-to   type=gha,mode=max,scope=core-linux-armv7 \
+            -f Dockerfile.core .
+      - name: Package
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p dist
+          tar -czf "dist/Core-Releases-${VERSION}-linux-armv7-qt${QT_MAJOR}.tar.gz" -C out/linux-armv7 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-linux-armv7
+          path: dist/*.tar.gz
+
+  # ────────────────────────────────────────────
+  # 5. Tests on linux amd64 (parallel with builds)
+  # ────────────────────────────────────────────
+  test-linux:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build with tests & run ctest
+        run: |
+          docker buildx build \
+            --target test \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
+            --build-arg CMAKE_CMD=cmake \
+            --cache-from type=gha,scope=core-linux-amd64 \
+            --cache-from type=gha,scope=core-linux-tests \
+            --cache-to   type=gha,mode=max,scope=core-linux-tests \
+            -f Dockerfile.core .
+
+  # ────────────────────────────────────────────
+  # 6. Publish release
+  # ────────────────────────────────────────────
+  publish:
+    needs: [build-linux-amd64, build-win32, test-linux, build-linux-arm64, build-linux-armv7]
+    if: |
+      !cancelled() &&
+      needs.build-linux-amd64.result == 'success' &&
+      needs.build-win32.result     == 'success' &&
+      needs.test-linux.result      == 'success' &&
+      (needs.build-linux-arm64.result == 'success' || needs.build-linux-arm64.result == 'skipped') &&
+      (needs.build-linux-armv7.result == 'success' || needs.build-linux-armv7.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find dist -type f \( -name '*.tar.gz' -o -name '*.zip' \) -exec cp {} release/ \;
+          ls -la release/
+      - name: SHA256SUMS
+        run: |
+          cd release
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+      - name: Determine tag
         id: tag
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
           else
-            TAG="${GITHUB_REF#refs/tags/}"
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
-          echo "tag_name=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
+      - uses: softprops/action-gh-release@v2
         with:
-          name: core-linux-${{ steps.tag.outputs.tag_name }}
-          path: artifacts/linux
-
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: core-windows-${{ steps.tag.outputs.tag_name }}
-          path: artifacts/windows
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.tag.outputs.tag_name }}
-          name: Core ${{ steps.tag.outputs.tag_name }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Core ${{ steps.tag.outputs.tag }}
           body: |
-            ## Библиотеки Core для Linux и Windows (Qt5)
-            
-            Автоматическая сборка по тегу ${{ steps.tag.outputs.tag_name }}.
-            
-            ### Состав архива Linux:
-            - `lib/` – динамические библиотеки `.so`
-            
-            ### Состав архива Windows:
-            - `bin/` – DLL-библиотеки
-            - `lib/` – статические библиотеки
-          files: |
-            artifacts/linux/*.tar.gz
-            artifacts/windows/*.tar.gz
-          draft: false
-          prerelease: false
+            ## Core SDK — ${{ steps.tag.outputs.tag }}
+
+            Qt${{ env.QT_MAJOR }} build. Archives contain `include/`, `lib/`, `lib/cmake/Core/`.
+
+            ### Usage (CMake)
+            ```cmake
+            find_package(Core CONFIG REQUIRED)
+            target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)

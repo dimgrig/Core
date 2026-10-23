@@ -5,13 +5,14 @@ FROM ${BASE_DEPS_IMAGE} AS build
 
 ARG BUILD_TYPE=Release
 ARG CMAKE_CMD=cmake
+ARG BUILD_TESTING=OFF
 # Для Linux-образов: /opt/core, итог → /opt/core/<version>/...
 # Для Windows-образа (кросс из Linux): /app/Core/applocal-staging,
 #   итог → /app/Core/applocal-staging/<version>/...
 ARG CORE_INSTALL_BASE=/opt/core
 
 WORKDIR /app
-COPY Core/ /app/Core/
+COPY . /app/Core/
 WORKDIR /app/Core
 
 # CORE_VERSION читается из VERSION,
@@ -22,16 +23,34 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
     echo "=== Core version: ${CORE_VERSION} ===" && \
     ${CMAKE_CMD} -S . -B build \
         -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-        -DBUILD_TESTING=OFF \
+        -DBUILD_TESTING=${BUILD_TESTING} \
         -DCORE_INSTALL_PREFIX="${CORE_INSTALL_BASE}/${CORE_VERSION}" \
         -DCMAKE_VERBOSE_MAKEFILE=OFF \
     && cmake --build build -j"$(nproc)" \
     && cmake --install build \
+    && ln -sfn "${CORE_INSTALL_BASE}/${CORE_VERSION}" "${CORE_INSTALL_BASE}/latest" \
     && test -d  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core" \
     && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreConfig.cmake" \
     && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreTargets.cmake" \
     && echo "=== Installed to ${CORE_INSTALL_BASE}/${CORE_VERSION} ===" \
     && find "${CORE_INSTALL_BASE}/${CORE_VERSION}" -maxdepth 2 -type d | sort
+    
+# ────────────────────────────────────────────────────────────
+# Test stage — пересобирает с BUILD_TESTING=ON и запускает ctest.
+# Использование:
+#   docker buildx build --target test \
+#       --build-arg BASE_DEPS_IMAGE=... \
+#       -f Dockerfile.core .
+# ────────────────────────────────────────────────────────────
+FROM build AS test
+ENV QT_QPA_PLATFORM=offscreen
+RUN cd /app/Core && \
+    cmake -S . -B build \
+        -DBUILD_TESTING=ON \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCORE_INSTALL_PREFIX=/tmp/test-install && \
+    cmake --build build -j"$(nproc)" && \
+    cd build && ctest --output-on-failure
 
 # ============================================================
 # Export stage — итоговое дерево SDK (для CI / --output type=local)
@@ -47,6 +66,6 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
 # CORE_VERSION ОБЯЗАТЕЛЕН (иначе layout = out/linux/1.1.0/include/…)
 # ============================================================
 FROM scratch AS export
-ARG CORE_VERSION
 ARG CORE_INSTALL_BASE=/opt/core
-COPY --from=build ${CORE_INSTALL_BASE}/${CORE_VERSION}/ /    
+# Симлинк latest создаётся в build-стадии → export не требует CORE_VERSION.
+COPY --from=build ${CORE_INSTALL_BASE}/latest/ /
