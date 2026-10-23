@@ -18,8 +18,8 @@ HEADERS += \
     MockModbusClient.h \
     ModbusBase.h \
     ModbusClient.h \
-    ModbusClientService.h \ \
-    ModbusCsvImporter.h
+    ModbusClientService.h \
+    ModbusCsvImporter.h \
     ModbusDataConverter.h \
     ModbusMultiAddressServer.h \
     ModbusRegisterSerializer.h \
@@ -42,13 +42,14 @@ HEADERS += \
     core-modbus-lib-global.h \
     modbus_functions.h
 
+
 SOURCES += \
     IModbusService.cpp \
     MockModbusClient.cpp \
     ModbusBase.cpp \
     ModbusClient.cpp \
-    ModbusClientService.cpp \ \
-    ModbusCsvImporter.cpp
+    ModbusClientService.cpp \
+    ModbusCsvImporter.cpp \
     ModbusDataConverter.cpp \
     ModbusMultiAddressServer.cpp \
     ModbusRegisterSerializer.cpp \
@@ -69,6 +70,7 @@ SOURCES += \
     bindings/RegisterBinding.cpp \
     bindings/SpinBoxBinding.cpp \
     modbus_functions.cpp
+
 
 FORMS += \
     uis/modbus_settings.ui
