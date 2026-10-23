@@ -69,3 +69,10 @@ FROM scratch AS export
 ARG CORE_INSTALL_BASE=/opt/core
 # Симлинк latest создаётся в build-стадии → export не требует CORE_VERSION.
 COPY --from=build ${CORE_INSTALL_BASE}/latest/ /
+
+# Алиас на build. Docker Compose при сборке без явного target берёт
+# ПОСЛЕДНЮЮ стадию. Без этого алиаса последняя = "export" (FROM scratch),
+# и `docker compose run ... sh -c "..."` падает — в scratch нет /bin/sh.
+# С алиасом compose собирает полноценный build-образ (Debian + /opt/core),
+# а CI по-прежнему использует `--target export` явно.
+FROM build AS final
