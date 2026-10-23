@@ -17,12 +17,21 @@ find_dependency(Qt5 REQUIRED COMPONENTS
 )
 
 # Qt5::Mqtt нужен только для Core::core-io-lib.
-# Не блокируем использование Core без qtmqtt — делаем "мягким".
-find_package(Qt5 QUIET COMPONENTS Mqtt)
+#
+# ВАЖНО: не вызываем здесь find_package(Qt5 ... Mqtt) — если на машине
+# пользователя лежит Qt5MqttConfig.cmake, но нет Qt5Mqtt.dll,
+# внутренний _qt5_Mqtt_check_file_exists() бросает FATAL_ERROR ещё
+# до возврата из find_package. QUIET это не гасит.
+#
+# Если пользователю действительно нужен Core::core-io-lib — он сам
+# должен выполнить (ДО find_package(Core)):
+#   find_package(Qt5 COMPONENTS Mqtt REQUIRED)
 if(NOT TARGET Qt5::Mqtt)
-    message(STATUS "Core: Qt5::Mqtt not found — Core::core-io-lib will be unusable. "
-                   "Install qtmqtt if you need it.")
     add_library(Qt5::Mqtt INTERFACE IMPORTED)
+    message(STATUS "Core: Qt5::Mqtt stubbed. "
+                   "Core::core-io-lib will not link unless "
+                   "you call find_package(Qt5 COMPONENTS Mqtt) "
+                   "before find_package(Core).")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/CoreTargets.cmake")
