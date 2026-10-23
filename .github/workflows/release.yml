@@ -271,8 +271,9 @@ jobs:
             find_package(Core CONFIG REQUIRED)
             target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
           files: |
-              release/.tar.gz
-              release/.zip
-              release/SHA256SUMS
-              draft: false
-              prerelease: false
+            release/*.tar.gz
+            release/*.zip
+            release/SHA256SUMS
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
