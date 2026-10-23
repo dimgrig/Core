@@ -122,11 +122,17 @@ void ModbusBase::setupDeviceData() {
         }
 
         {
-            //size fix
-            for (const auto &r : reg) {
-                QModbusDataUnit mdu = QModbusDataUnit(r.registerType(), r.startAddress(), r.valueCount());
-                reg.insert(r.registerType(), mdu);
+            //size fix — пересобираем через отдельную map, чтобы не модифицировать
+            //QMap во время его же итерации (это UB и даёт разный результат
+            //при повторных вызовах: count для IR/HR мог «съезжать» с 46 до 32/33).
+            QModbusDataUnitMap fixed;
+            for (auto it = reg.constBegin(); it != reg.constEnd(); ++it) {
+                fixed.insert(it.key(),
+                             QModbusDataUnit(it.key(),
+                                             it.value().startAddress(),
+                                             it.value().valueCount()));
             }
+            reg = fixed;
         }
 
         //manually - not calculated from json

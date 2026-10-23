@@ -189,7 +189,6 @@ void ModbusServer::disconnectFromHost() {
 void ModbusServer::onModbusStateChanged(int state) {
     QString state_str = ModbusSettingsConverter::modbus_state_to_str(modbusDevice->state());
 
-    //this->ui->le_state->setText(state_str);
     //qCDebug(logDebug()) << modbusDevice->state();
 
     emit state_changed(state_str);
@@ -297,7 +296,7 @@ void ModbusServer::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
                         }
                     }
 
-                    QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                    QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format(), size, scale);
                     _mdum[serverAddress][regName].setValues(values);
                     ok = modbusDevice->setData(_mdum[serverAddress][regName]);
                 }
@@ -342,7 +341,8 @@ void ModbusServer::setRegisterString(int serverAddress, QModbusDataUnit::Registe
                     }
                 }
 
-                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                const int expectedSize = _mdum.at(serverAddress).at(regName).valueCount();
+                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format(), expectedSize);
                 _mdum[serverAddress][regName].setValues(values);
                 ok = modbusDevice->setData(_mdum[serverAddress][regName]);
                 //qCDebug(logDebug) << "setRegisterString" << reg_name << value << "as" << values;

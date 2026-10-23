@@ -205,6 +205,9 @@ void ModbusClient::on_connect() {
         _requestQueue.clear();
     }
     _processingQueue = false;
+    _requestInProgress = false;
+    _pendingPollCount = 0;
+    _pollingCycleActive = false;
 
     if (_connection_type == ConnectionTypeSerial) {
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
@@ -250,9 +253,26 @@ void ModbusClient::on_connect() {
             } else if (_connection_type == ConnectionTypeTCP) {
                 qCDebug(logDebug) << tr("ModbusClient Connected: ") + _modbus_settings.MODBUS_IP << modbusDevice->state();
             }
-            this->setupDeviceData();
-            this->updateDeviceMap();
-            this->updatePollingGroups();
+
+            // {
+            //     qCDebug(logDebug) << "on_connect: mdum.addrs=" << _mdum.size()
+            //     << "pollingGroups=" << _pollingGroups.size();
+            //     for (const auto &[a, m] : _mdum) {
+            //         int di=0, co=0, ir=0, hr=0;
+            //         for (const auto &[n, u] : m) {
+            //             switch (u.registerType()) {
+            //             case QModbusDataUnit::DiscreteInputs: ++di; break;
+            //             case QModbusDataUnit::Coils: ++co; break;
+            //             case QModbusDataUnit::InputRegisters: ++ir; break;
+            //             case QModbusDataUnit::HoldingRegisters: ++hr; break;
+            //             }
+            //         }
+            //         qCDebug(logDebug) << "  mdum[" << a << "] di=" << di << "co=" << co << "ir=" << ir << "hr=" << hr;
+            //     }
+            //     for (const auto &g : _pollingGroups) {
+            //         qCDebug(logDebug) << "  poll: addr=" << g.serverAddress << "type=" << g.unit.registerType() << "start=" << g.unit.startAddress() << "count=" << g.unit.valueCount();
+            //     }
+            // }
         }
     } else {
         //modbusDevice->disconnectDevice();
@@ -265,6 +285,10 @@ void ModbusClient::disconnectFromHost() {
 
     this->_reconnectTimer->stop();
     this->_portCheckTimer->stop();
+
+    stopPolling();
+    clearQueue();
+    _consecutiveErrorCount = 0;
 }
 
 void ModbusClient::onModbusStateChanged(int state) {
@@ -292,11 +316,22 @@ void ModbusClient::onModbusStateChanged(int state) {
     if (state == QModbusDevice::ConnectedState) {
         _failedAttempts = 0;
 
+        this->setupDeviceData();
+        this->updateDeviceMap();
+        this->updatePollingGroups();
+
+        // qCDebug(logDebug) << "onModbusStateChanged(ConnectedState): "
+        //                   << "_reg_v.size=" << _reg_v.size()
+        //                   << "_pollingGroups.size=" << _pollingGroups.size();
+
         startPolling();
     } else if (state == QModbusDevice::UnconnectedState) {
         stopPolling();
         clearQueue();
         _consecutiveErrorCount = 0;
+        _requestInProgress = false;
+        _pendingPollCount = 0;
+        _pollingCycleActive = false;
     }
 
     if (state == QModbusDevice::ConnectedState) {
@@ -501,7 +536,7 @@ void ModbusClient::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
                         }
                     }
 
-                    QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                    QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format(), mdu.valueCount(), scale);
                     mdu.setValues(values);
                     this->on_write(serverAddress, mdu);
 
@@ -544,7 +579,7 @@ void ModbusClient::setRegisterString(int serverAddress, QModbusDataUnit::Registe
                         dataType = reg_data_type_m.at(serverAddress).at(regName);
                     }
                 }
-                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format());
+                QVector<quint16> values = ModbusDataConverter::variantToRegisters(value, regName, dataType, modbus_format(), mdu.valueCount());
                 mdu.setValues(values);
                 this->on_write(serverAddress, mdu);
                 //qCDebug(logDebug) << "setRegisterString" << reg_name << value << "as" << values;
@@ -618,6 +653,10 @@ void ModbusClient::processNextRequest()
         _lastWriteUnit = req.unit;
     }
 
+    // if (!reply) {
+    //     qCDebug(logDebug) << "  reply==nullptr (sendReadRequest failed)";
+    // }
+
     if (reply) {
         connect(reply, &QModbusReply::finished, this, [this, reply, req]() {
             bool success = (reply->error() == QModbusDevice::NoError);
@@ -631,6 +670,8 @@ void ModbusClient::processNextRequest()
                     _serverResponsiveState[addr] = true;
                     emit serverHealthChanged(addr, true);
                 }
+                // qCDebug(logDebug) << "  reply ok: type=" << req.unit.registerType()
+                //                   << "start=" << req.unit.startAddress();
             } else {
                 // Ошибка – увеличиваем счётчик
                 _serverRequestErrorCount[addr]++;
@@ -640,6 +681,10 @@ void ModbusClient::processNextRequest()
                         emit serverHealthChanged(addr, false);
                     }
                 }
+                // qCDebug(logDebug) << "  reply error: type=" << req.unit.registerType()
+                //                   << "start=" << req.unit.startAddress()
+                //                   << "err=" << reply->error()
+                //                   << reply->errorString();
             }
 
             if (!req.isWrite && success) {

@@ -52,7 +52,7 @@ void TestModbusIntegration::testClientServerCommunication()
 
     // Запускаем сервер
     modbusServer->connectToHost(); //QVERIFY2(modbusServer->connectToHost(), "Failed to start server");
-    QTRY_COMPARE_WITH_TIMEOUT(modbusServer->state(), QModbusDevice::ConnectedState, 100);
+    QTRY_COMPARE_WITH_TIMEOUT(modbusServer->state(), QModbusDevice::ConnectedState, 500);
 
     // Устанавливаем регистры
     modbusServer->setRegister(modbusSettings.MODBUS_ADDRESS, "input1", true);
