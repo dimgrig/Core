@@ -17,7 +17,7 @@ public:
                                        const QString& regName,
                                        const QString& dataType,
                                        BytesFormat format = BigEndian,
-                                       double scale = 0.0);
+                                       const ModbusScale& scale = ModbusScale());
 
     // Преобразует значение в сырые данные регистров
     static QVector<quint16> variantToRegisters(const QVariant& value,
@@ -25,7 +25,7 @@ public:
                                                const QString& dataType,
                                                BytesFormat format = BigEndian,
                                                int expectedSize = 0,
-                                               double scale = 0.0); // expectedSize для контроля размера (если нужно)
+                                               const ModbusScale& scale = ModbusScale()); // expectedSize для контроля размера (если нужно)
 
     // Утилиты для конкретных типов (могут использоваться внутри)
     static float toFloat(const QVector<quint16>& data, BytesFormat format);

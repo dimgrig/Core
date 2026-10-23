@@ -63,8 +63,13 @@ QJsonObject ModbusRegisterSerializer::toJsonObject(int serverAddress, const Modb
             else
                 obj["Access"] = "ReadWrite";
 
-            if (map.scales.count(addr) && map.scales.at(addr).count(name))
-                obj["Scale"] = map.scales.at(addr).at(name);
+            if (map.scales.count(addr) && map.scales.at(addr).count(name)) {
+                const ModbusScale& sc = map.scales.at(addr).at(name);
+                if (sc.isFactor())
+                    obj["Scale"] = sc.factor;             // число — обратная совместимость
+                else if (sc.isRange())
+                    obj["Scale"] = sc.toString();         // строка "0;100;0;1"
+            }
 
             if (regToGroup.count(addr) && regToGroup[addr].count(name))
                 obj["TransactionGroup"] = regToGroup[addr][name];
@@ -112,8 +117,16 @@ ModbusRegisterMap ModbusRegisterSerializer::fromJsonObject(int serverAddress, co
         const QString accessStr = o["Access"].toString();
         result.access[serverAddress][name] = ModbusRegisterAccess_from_text(accessStr.toStdString().c_str());
 
-        if (o.contains("Scale") && !o["Scale"].isNull())
-            result.scales[serverAddress][name] = o["Scale"].toDouble();
+        if (o.contains("Scale") && !o["Scale"].isNull()) {
+            const QJsonValue sv = o["Scale"];
+            if (sv.isDouble()) {
+                result.scales[serverAddress][name] = ModbusScale::makeFactor(sv.toDouble());
+            } else if (sv.isString()) {
+                ModbusScale sc = ModbusScale::parse(sv.toString());
+                if (!sc.isNone())
+                    result.scales[serverAddress][name] = sc;
+            }
+        }
 
         if (o.contains("TransactionGroup")) {
             const QString groupName = o["TransactionGroup"].toString();
@@ -145,7 +158,7 @@ void testSerializeDeserialize() {
         map.types[serverAddress]["reg2"] = "uint16";
         map.access[serverAddress]["reg1"] = ModbusRegisterAccess_ReadWrite;
         map.access[serverAddress]["reg2"] = ModbusRegisterAccess_ReadOnly;
-        map.scales[serverAddress]["reg1"] = 0.1;
+        map.scales[serverAddress]["reg1"] = ModbusScale::makeFactor(0.1);
         map.groups[serverAddress]["groupA"] = QStringList{"reg1", "reg2"};
 
         QString json = ModbusRegisterSerializer::serialize(serverAddress, map);
@@ -157,7 +170,23 @@ void testSerializeDeserialize() {
         ASSERT_EQUAL(m2.scales.size(), map.scales.size());
         ASSERT_EQUAL(m2.types.at(serverAddress)["reg1"], "float");
         ASSERT_EQUAL(m2.access.at(serverAddress)["reg2"], ModbusRegisterAccess_ReadOnly);
-        ASSERT(m2.scales.at(serverAddress)["reg1"] > 0.099 && m2.scales.at(serverAddress)["reg1"] < 0.101);
+        ASSERT(m2.scales.at(serverAddress)["reg1"].isFactor());
+        ASSERT(m2.scales.at(serverAddress)["reg1"].factor > 0.099 &&
+               m2.scales.at(serverAddress)["reg1"].factor < 0.101);
+    }
+    {
+        ModbusRegisterMap m;
+        m.mdum[1]["r"] = QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 1);
+        m.types[1]["r"] = "ushort";
+        m.scales[1]["r"] = ModbusScale::makeRange(0, 100, 0, 1);
+
+        QString json = ModbusRegisterSerializer::serialize(1, m);
+        auto back = ModbusRegisterSerializer::deserialize(1, json);
+        ASSERT(back.scales.at(1).at("r").isRange());
+        ASSERT_EQUAL(back.scales.at(1).at("r").srcMin, 0.0);
+        ASSERT_EQUAL(back.scales.at(1).at("r").srcMax, 100.0);
+        ASSERT_EQUAL(back.scales.at(1).at("r").dstMin, 0.0);
+        ASSERT_EQUAL(back.scales.at(1).at("r").dstMax, 1.0);
     }
     {
         {

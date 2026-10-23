@@ -965,3 +965,172 @@ void TestModbusIntegration::testBindingValueChangedTriggersWriteFromContainer() 
 
     delete container;
 }
+
+// ────────────────────────────────────────────────────────────
+//  Интеграционный тест scale: Factor ("0.1") + Range ("0;100;0;1")
+//  Проверяет весь путь: файл → _reg_scale_m → setRegister →
+//  raw в _mdum → registersToVariant на клиенте.
+// ────────────────────────────────────────────────────────────
+static void runScaleTest(const QString& configPath,
+                         quint16 expectedFactorRaw,
+                         quint16 expectedRangeRaw)
+{
+    ModbusSettings s;
+    s.MODBUS_ENABLE     = true;
+    s.MODBUS_TYPE       = "TCP";
+    s.MODBUS_IP         = "127.0.0.1";
+    s.MODBUS_PORT       = 1503;
+    s.MODBUS_ADDRESS    = 1;
+    s.MODBUS_POLL_TIMER = 100;
+
+    // ── Сервер ──────────────────────────────────────────────
+    auto server = std::make_shared<ModbusServer>(nullptr, configPath, s);
+    QTest::qWait(300);
+    server->connectToHost();
+    QTRY_COMPARE_WITH_TIMEOUT(server->state(), QModbusDevice::ConnectedState, 1000);
+
+    // ── Клиент ──────────────────────────────────────────────
+    auto client = std::make_shared<ModbusClient>(nullptr, configPath, s);
+    QTest::qWait(300);
+    client->connectToHost();
+    QTRY_COMPARE_WITH_TIMEOUT(client->state(), QModbusDevice::ConnectedState, 1000);
+
+    // ── Парсинг scale: сервер ───────────────────────────────
+    {
+        auto sm = server->get_reg_scale_m();
+        QVERIFY2(sm.count(1) == 1, "server: no _reg_scale_m[1]");
+        QVERIFY2(sm.at(1).count("hr_num")   == 1, "server: hr_num no scale");
+        QVERIFY2(sm.at(1).count("hr_range") == 1, "server: hr_range no scale");
+
+        QVERIFY2(sm.at(1).at("hr_num").isFactor(), "server: hr_num not Factor");
+        QCOMPARE(sm.at(1).at("hr_num").factor, 0.1);
+
+        QVERIFY2(sm.at(1).at("hr_range").isRange(), "server: hr_range not Range");
+        QCOMPARE(sm.at(1).at("hr_range").srcMin, 0.0);
+        QCOMPARE(sm.at(1).at("hr_range").srcMax, 100.0);
+        QCOMPARE(sm.at(1).at("hr_range").dstMin, 0.0);
+        QCOMPARE(sm.at(1).at("hr_range").dstMax, 1.0);
+    }
+
+    // ── Парсинг scale: клиент ───────────────────────────────
+    {
+        auto cm = client->get_reg_scale_m();
+        QVERIFY2(cm.count(1) == 1, "client: no _reg_scale_m[1]");
+        QVERIFY2(cm.at(1).at("hr_num").isFactor(),   "client: hr_num not Factor");
+        QVERIFY2(cm.at(1).at("hr_range").isRange(),  "client: hr_range not Range");
+    }
+
+    // ── Сервер: setRegister применяет scale ────────────────
+    // 10.0 / 0.1 = 100 (Factor), 0.5 -> 50 (Range 0..100→0..1)
+    server->setRegister(1, "hr_num",   10.0);
+    server->setRegister(1, "hr_range", 0.5);
+    QTest::qWait(200);
+
+    // На сервере _mdum обновляется setRegister'ом (в отличие от внешнего write).
+    {
+        auto mdum = server->get_mdum();
+        QVERIFY2(mdum.count(1) == 1, "server: no _mdum[1]");
+        QVERIFY2(mdum.at(1).count("hr_num")   == 1, "server: no hr_num");
+        QVERIFY2(mdum.at(1).count("hr_range") == 1, "server: no hr_range");
+        QCOMPARE(mdum.at(1).at("hr_num").value(0),   expectedFactorRaw);
+        QCOMPARE(mdum.at(1).at("hr_range").value(0), expectedRangeRaw);
+    }
+
+    // ── Клиент читает с сервера raw, применяет scale ───────
+    {
+        QSignalSpy readSpy(client.get(), &ModbusClient::read_ready);
+        client->on_read(1, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2));
+        QTRY_VERIFY_WITH_TIMEOUT(readSpy.count() >= 1, 2000);
+
+        bool found = false;
+        for (int i = 0; i < readSpy.count(); ++i) {
+            QModbusDataUnit unit = readSpy.at(i).at(1).value<QModbusDataUnit>();
+            if (unit.registerType() == QModbusDataUnit::HoldingRegisters &&
+                unit.startAddress() == 0 && unit.valueCount() >= 2) {
+                found = true;
+
+                // Raw значения в ответе — 100 и 50
+                QCOMPARE(unit.value(0), expectedFactorRaw);
+                QCOMPARE(unit.value(1), expectedRangeRaw);
+
+                // registersToVariant с scale → 10.0 и 0.5
+                auto scaleNum = client->get_reg_scale_m().at(1).at("hr_num");
+                auto scaleRng = client->get_reg_scale_m().at(1).at("hr_range");
+                QVariant numVal = ModbusDataConverter::registersToVariant(
+                    { unit.value(0) }, "hr_num", "ushort", BigEndian, scaleNum);
+                QVariant rngVal = ModbusDataConverter::registersToVariant(
+                    { unit.value(1) }, "hr_range", "ushort", BigEndian, scaleRng);
+                ASSERT(std::abs(numVal.toDouble() - 10.0) < 0.01);
+                ASSERT(std::abs(rngVal.toDouble() - 0.5)  < 0.01);
+                break;
+            }
+        }
+        QVERIFY2(found, "read_ready не пришёл с ожидаемым HR 0..1");
+    }
+
+    // ── Клиент: write path — setRegister(20.0) → raw 200 ────
+    // (не проверяем _mdum на сервере — он не обновляется при внешнем write;
+    //  проверяем raw через read-back)
+    {
+        client->setRegister(1, "hr_num",   20.0);   // 20.0 / 0.1 = 200
+        client->setRegister(1, "hr_range", 0.25);   // 0.25 → raw 25
+        QTest::qWait(500);
+
+        QSignalSpy readSpy2(client.get(), &ModbusClient::read_ready);
+        client->on_read(1, QModbusDataUnit(QModbusDataUnit::HoldingRegisters, 0, 2));
+        QTRY_VERIFY_WITH_TIMEOUT(readSpy2.count() >= 1, 2000);
+
+        bool found = false;
+        for (int i = 0; i < readSpy2.count(); ++i) {
+            QModbusDataUnit unit = readSpy2.at(i).at(1).value<QModbusDataUnit>();
+            if (unit.registerType() == QModbusDataUnit::HoldingRegisters &&
+                unit.startAddress() == 0 && unit.valueCount() >= 2) {
+                found = true;
+                QCOMPARE(unit.value(0), static_cast<quint16>(200));
+                QCOMPARE(unit.value(1), static_cast<quint16>(25));
+                break;
+            }
+        }
+        QVERIFY2(found, "read-back после client setRegister не пришёл");
+    }
+
+    client->disconnectFromHost();
+    server->disconnectFromHost();
+    QTest::qWait(100);
+}
+
+void TestModbusIntegration::testScaleJsonFactorAndRange()
+{
+    QTemporaryFile tmp(QDir::tempPath() + "/scale_test_XXXXXX.json");
+    QVERIFY(tmp.open());
+    tmp.write(R"({
+        "mdum": [
+            {"RegisterName":"hr_num",   "RegisterType":"HoldingRegister", "Address":0,
+             "DataLength":1, "RegisterDataType":"ushort",
+             "Access":"ReadWrite", "Scale":0.1},
+            {"RegisterName":"hr_range", "RegisterType":"HoldingRegister", "Address":1,
+             "DataLength":1, "RegisterDataType":"ushort",
+             "Access":"ReadWrite", "Scale":"0;100;0;1"}
+        ]
+    })");
+    tmp.close();
+
+    runScaleTest(tmp.fileName(), 100, 50);
+}
+
+void TestModbusIntegration::testScaleCsvFactorAndRange()
+{
+    QTemporaryFile tmp(QDir::tempPath() + "/scale_test_XXXXXX.csv");
+    QVERIFY(tmp.open());
+    tmp.write(
+        "\"Name\";\"Region\";\"Address\";\"DataTypeDevice\";\"DataTypeScada\";"
+        "\"Access\";\"TypeString\";\"LengthString\";\"Scale\";\"Comment\"\n"
+        "\"hr_num\";\"HOLDING_REGISTERS\";\"0\";\"WORD\";\"WORD\";"
+        "\"ReadWrite\";\"\";\"\";\"0.1\";\"hr_num\"\n"
+        "\"hr_range\";\"HOLDING_REGISTERS\";\"1\";\"WORD\";\"WORD\";"
+        "\"ReadWrite\";\"\";\"\";\"0;100;0;1\";\"hr_range\"\n"
+        );
+    tmp.close();
+
+    runScaleTest(tmp.fileName(), 100, 50);
+}

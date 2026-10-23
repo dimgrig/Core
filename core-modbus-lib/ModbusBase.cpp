@@ -40,7 +40,7 @@ ModbusBase::ModbusBase(QWidget *parent, QString config, ModbusSettings modbus_se
     QWidget(parent) ,
     _modbus_settings(modbus_settings)
 {
-    this->on_read_json(config);
+    this->set_modbus_config(config);
 }
 
 bool ModbusBase::isConnected() const {
@@ -73,11 +73,10 @@ void ModbusBase::set_modbus_settings(ModbusSettings modbus_settings) {
 };
 
 void ModbusBase::set_modbus_config(QString config) {
-    this->on_read_json(config);
-}
-
-void ModbusBase::set_modbus_config_csv(QString config) {
-    this->on_read_csv(config);
+    if (config.endsWith(".csv", Qt::CaseInsensitive))
+        this->on_read_csv(config);
+    else
+        this->on_read_json(config);
 }
 
 QModbusDataUnitMap ModbusBase::get_reg(int serverAddress) const {

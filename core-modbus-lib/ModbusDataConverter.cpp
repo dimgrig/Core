@@ -9,7 +9,7 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
                                                  const QString& regName,
                                                  const QString& dataType,
                                                  BytesFormat format,
-                                                 double scale)
+                                                 const ModbusScale& scale)
 {
     QVariant value = QVariant();
     if (data.isEmpty())
@@ -76,13 +76,15 @@ QVariant ModbusDataConverter::registersToVariant(const QVector<quint16>& data,
 //         value = value.toDouble()*0.01;
 //     }
 // #endif
-    if (scale > 0.0) {
-        value = value.toDouble() * scale;
+#ifdef ENABLE_CONVERTION
+    if (!scale.isNone()) {
+        value = scale.applyForward(value.toDouble());
     } else if (regName.contains("* 0.1")) {
         value = value.toDouble()*0.1;
     } else if (regName.contains("* 0.01")) {
         value = value.toDouble()*0.01;
     }
+#endif
 
     return value;
 }
@@ -92,7 +94,7 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
                                                          const QString& dataType,
                                                          BytesFormat format,
                                                          int expectedSize,
-                                                         double scale)
+                                                         const ModbusScale& scale)
 {
 // #ifdef ENABLE_CONVERTION
 //     QVariant _value = value;
@@ -104,8 +106,8 @@ QVector<quint16> ModbusDataConverter::variantToRegisters(const QVariant& value,
 // #endif
 #ifdef ENABLE_CONVERTION
     QVariant _value = value;
-    if (scale > 0.0) {
-        _value = value.toDouble() / scale;
+    if (!scale.isNone()) {
+        _value = scale.applyBackward(value.toDouble());
     } else if (regName.contains("* 0.1")) {
         _value = value.toDouble() / 0.1;
     } else if (regName.contains("* 0.01")) {

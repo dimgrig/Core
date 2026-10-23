@@ -17,7 +17,7 @@ struct CORE_MODBUS_LIB_EXPORT ModbusRegisterMap {
     std::map<int, std::map<QString, QModbusDataUnit>>            mdum;
     std::map<int, std::map<QString, QString>>                    types;
     std::map<int, std::map<QString, ModbusRegisterAccess>>       access;
-    std::map<int, std::map<QString, double>>                     scales;
+    std::map<int, std::map<QString, ModbusScale>>                scales;
     std::map<int, std::map<QString, QStringList>>                groups;
 };
 

@@ -44,6 +44,8 @@ private slots:
     void testRegisterWidgetsFromContainer();
     void testBindingValueChangedTriggersWrite();
     void testBindingValueChangedTriggersWriteFromContainer();
+    void testScaleJsonFactorAndRange();
+    void testScaleCsvFactorAndRange();
 };
 
 #endif // TESTMODBUSINTEGRATION_H

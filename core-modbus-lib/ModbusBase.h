@@ -14,6 +14,7 @@
 
 #include <core-lib/CoreConfig.h>
 
+#include "ModbusScale.h"
 #include "ModbusSettings.h"
 
 #include "core-modbus-lib-global.h"
@@ -77,7 +78,6 @@ public:
 
     void set_modbus_settings(ModbusSettings modbus_settings);
     void set_modbus_config(QString config);
-    void set_modbus_config_csv(QString config);
 
     QModbusDataUnitMap get_reg(int serverAddress) const;
     std::vector<QModbusDataUnitMap> get_reg_v(int serverAddress) const;
@@ -86,7 +86,7 @@ public:
     std::map<int, std::vector<std::pair<QString, QModbusDataUnit>>>     get_sort_by_start_address_mdum_v() const;
     std::map<int, std::map<QString, QString>>                           get_reg_data_type_m() const {return _reg_data_type_m;}
     std::map<int, std::map<QString, ModbusRegisterAccess>>              get_reg_access_m() const { return _reg_access_m; }
-    std::map<int, std::map<QString, double>>                            get_reg_scale_m()  const { return _reg_scale_m;  }
+    std::map<int, std::map<QString, ModbusScale>>                       get_reg_scale_m()  const { return _reg_scale_m;  }
     std::map<int, std::map<QString, QStringList>>                       getTransactionalGroups() const { return _transactionalGroups; }
 
     void set_modbus_params(int serverAddress,
@@ -145,7 +145,7 @@ protected:
     std::map<int, std::vector<QModbusDataUnitMap>> _reg_v; //vector for splitting blanc space between registers
     std::map<int, std::map<QString, QModbusDataUnit>> _mdum;
     std::map<int, std::map<QString, ModbusRegisterAccess>> _reg_access_m;  // направление каждого регистра
-    std::map<int, std::map<QString, double>> _reg_scale_m;                 // масштаб (0.0 = нет масштаба)
+    std::map<int, std::map<QString, ModbusScale>> _reg_scale_m;            // масштаб (0.0 = нет масштаба)
     std::map<int, std::map<QString, QString>> _reg_data_type_m;            //map reg_name to type
     std::map<int, std::map<QString, QStringList>> _transactionalGroups;
 

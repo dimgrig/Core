@@ -21,7 +21,7 @@ struct CORE_MODBUS_LIB_EXPORT ModbusCsvEntry {
     QString access;          // ReadOnly / ReadWrite
     QString typeString;      // ASCII, UTF-8, ...
     int     lengthString = 0;
-    double  scale = 0.0;
+    QString scale;           // "0.1" или "0;100;0;1" (MasterSCADA 4D)
     QString comment;
 };
 

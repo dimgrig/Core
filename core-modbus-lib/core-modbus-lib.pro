@@ -23,6 +23,7 @@ HEADERS += \
     ModbusDataConverter.h \
     ModbusMultiAddressServer.h \
     ModbusRegisterSerializer.h \
+    ModbusScale.h \
     ModbusServer.h \
     ModbusSettings.h \
     bindings/AdvancedClickablePixmapLabelBinding.h \
@@ -51,6 +52,7 @@ SOURCES += \
     ModbusDataConverter.cpp \
     ModbusMultiAddressServer.cpp \
     ModbusRegisterSerializer.cpp \
+    ModbusScale.cpp \
     ModbusServer.cpp \
     ModbusSettings.cpp \
     bindings/AdvancedClickablePixmapLabelBinding.cpp \

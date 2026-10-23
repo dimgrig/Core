@@ -192,7 +192,7 @@ QVector<ModbusCsvEntry> ModbusCsvImporter::parse(const QString& path,
         e.access         = field(col.access).trimmed();
         e.typeString     = field(col.typeString).trimmed();
         e.lengthString   = field(col.lengthString).trimmed().toInt();
-        e.scale          = field(col.scale).trimmed().toDouble();
+        e.scale          = field(col.scale).trimmed();
         e.comment        = field(col.comment);
 
         if (e.name.isEmpty()) continue; // пустая строка
@@ -257,8 +257,11 @@ ModbusRegisterMap ModbusCsvImporter::toRegisterMap(int serverAddress,
         map.mdum[serverAddress][e.name]   = unit;
         map.types[serverAddress][e.name]  = typeStr;
         map.access[serverAddress][e.name] = ModbusRegisterAccess_from_text(e.access.toStdString().c_str());
-        if (e.scale > 0.0)
-            map.scales[serverAddress][e.name] = e.scale;
+        if (!e.scale.isEmpty()) {
+            ModbusScale sc = ModbusScale::parse(e.scale);
+            if (!sc.isNone())
+                map.scales[serverAddress][e.name] = sc;
+        }
     }
 
     return map;
@@ -337,7 +340,7 @@ void ModbusCsvImporterTest() {
         ASSERT_EQUAL(entries[5].lengthString, 20);
 
         // Проверка scale
-        ASSERT(entries[6].scale > 0.099 && entries[6].scale < 0.101);
+        ASSERT_EQUAL(entries[6].scale, QString("0.1"));
     }
 
     // 2. toRegisterMap
@@ -382,8 +385,10 @@ void ModbusCsvImporterTest() {
 
         // Scale
         ASSERT(map.scales[1].count("hr_scaled") == 1);
-        ASSERT(map.scales[1]["hr_scaled"] > 0.099 && map.scales[1]["hr_scaled"] < 0.101);
-        ASSERT(map.scales[1].count("Coil1") == 0); // scale не задан — не должно быть записи
+        ASSERT(map.scales[1]["hr_scaled"].isFactor());
+        ASSERT(map.scales[1]["hr_scaled"].factor > 0.099 &&
+               map.scales[1]["hr_scaled"].factor < 0.101);
+        ASSERT(map.scales[1].count("Coil1") == 0);
 
         // Round-trip через ModbusDataConverter: CSV -> internal -> converter
         {
