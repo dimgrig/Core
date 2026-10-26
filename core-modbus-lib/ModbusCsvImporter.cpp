@@ -10,8 +10,6 @@
 #include "ModbusDataConverter.h"
 #include "ModbusRegisterSerializer.h"
 
-#include <core-utils-lib/functions.h>
-
 // ────────────────────────────────────────────────────────────────
 //  Низкоуровневый парсер одной CSV-строки.
 //  Разделитель — ';'. Поле в кавычках ("..."). Кавычка внутри поля — "".

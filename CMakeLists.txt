@@ -121,3 +121,29 @@ message(STATUS "Core destination path: ${CORE_PLATFORM}/${CORE_COMPILER}/${CORE_
 string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE   "${CMAKE_CXX_FLAGS_RELEASE}")
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE     "${CMAKE_C_FLAGS_RELEASE}")
 string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+
+# ────────────────────────────────────────────────────────────
+# latest → <version> — sibling symlink (Windows: junction)
+# ────────────────────────────────────────────────────────────
+# Даёт потребителям (MODBUS-CLIENT/SERVER, Saks) единый путь
+# <base>/latest без привязки к версии. Идемпотентно:
+#   - Linux:  ln -sfn (заменяет, если есть)
+#   - Windows: rmdir + mklink /J (junction без elevation)
+install(CODE [[
+    get_filename_component(_latest_base "${CMAKE_INSTALL_PREFIX}" DIRECTORY)
+    set(_latest "${_latest_base}/latest")
+    if(NOT "${_latest}" STREQUAL "${CMAKE_INSTALL_PREFIX}")
+        message(STATUS "Creating ${_latest} -> ${CMAKE_INSTALL_PREFIX}")
+        if(WIN32)
+            execute_process(COMMAND cmd /c
+                "if exist \"${_latest}\" rmdir \"${_latest}\" 2>nul & mklink /J \"${_latest}\" \"${CMAKE_INSTALL_PREFIX}\""
+                RESULT_VARIABLE _rc)
+        else()
+            execute_process(COMMAND ln -sfn "${CMAKE_INSTALL_PREFIX}" "${_latest}"
+                RESULT_VARIABLE _rc)
+        endif()
+        if(NOT _rc EQUAL 0)
+            message(WARNING "Failed to create ${_latest} (rc=${_rc})")
+        endif()
+    endif()
+]])

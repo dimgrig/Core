@@ -8,10 +8,6 @@ CONFIG += c++17
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
-CORE_LINK_LIBS = core-lib
-include(../core-build.pri)
-VERSION = $$CORE_VERSION
-
 HEADERS += \
     Categories.h \
     JournalAccess.h \
@@ -21,6 +17,10 @@ HEADERS += \
 SOURCES += \
     JournalAccess.cpp \
     JournalBase.cpp
+
+CORE_LINK_LIBS = core-lib
+include(../core-build.pri)
+VERSION = $$CORE_VERSION
 
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {
@@ -34,5 +34,9 @@ win32|win64 {
     target.path   = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
     headers.files = $$HEADERS
     headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
+}
+headers.files =
+for(h, HEADERS) {
+    headers.files += $$_PRO_FILE_PWD_/$$h
 }
 INSTALLS += target headers

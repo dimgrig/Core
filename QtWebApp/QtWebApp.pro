@@ -4,10 +4,6 @@ TEMPLATE = lib
 QT -= gui
 CONFIG += release build_all #debug_and_release
 
-CONFIG += core_no_default_defines
-CORE_DEPLOY_PREFIX = lib
-include(../core-build.pri)
-
 mac {
    QMAKE_MAC_SDK = macosx10.10
    QMAKE_CXXFLAGS += -std=c++11
@@ -583,6 +579,10 @@ HEADERS += \
 SOURCES += \
     QtWebAppGlobal.cpp
 
+CONFIG += core_no_default_defines
+CORE_DEPLOY_PREFIX = lib
+include(../core-build.pri)
+
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {
     target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
@@ -596,4 +596,7 @@ win32|win64 {
     headers.files = $$HEADERS
     headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
 }
+# НЕ пересобираем headers.files через _PRO_FILE_PWD_/$$h
+# HEADERS содержат абсолютные пути
+# и префикс даёт двойной путь. headers.files уже назначен корректно.
 INSTALLS += target headers

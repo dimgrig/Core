@@ -21,6 +21,11 @@ include($$CORE_ROOT/qmake-destination-path.pri)
     QMAKE_CXXFLAGS += -Wno-deprecated
 }
 
+# Windows/MinGW: имя файла без мажорного суффикса (core-lib.dll, не core-lib1.dll).
+# Паритет с CMake — иначе потребители вынуждены различать имена
+# (-lcore-lib vs -lcore-lib1). VERSIONINFO в DLL сохраняется.
+win32|win64: CONFIG += skip_target_version_ext
+
 # Astra / GCC10
 include($$CORE_ROOT/core-astra.pri)
 

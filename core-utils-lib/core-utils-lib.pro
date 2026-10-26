@@ -8,11 +8,6 @@ CONFIG += c++17
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
-# --- общая инфраструктура core ---
-CORE_LINK_LIBS = core-lib core-journal-lib core-widgets-lib muParser
-include(../core-build.pri)
-VERSION = $$CORE_VERSION
-
 HEADERS += \
     AsyncWaiter.h \
     CQueue.h \
@@ -41,6 +36,10 @@ SOURCES += \
     functions_degrees.cpp \
     functions_http.cpp
 
+CORE_LINK_LIBS = core-lib core-journal-lib core-widgets-lib muParser
+include(../core-build.pri)
+VERSION = $$CORE_VERSION
+
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {
     target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
@@ -53,5 +52,9 @@ win32|win64 {
     target.path   = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
     headers.files = $$HEADERS
     headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
+}
+headers.files =
+for(h, HEADERS) {
+    headers.files += $$_PRO_FILE_PWD_/$$h
 }
 INSTALLS += target headers

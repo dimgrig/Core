@@ -10,9 +10,6 @@ QMAKE_CXXFLAGS += -Wno-deprecated-copy -Wno-cast-function-type
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/include"
 
-CONFIG += core_no_default_defines
-include(../core-build.pri)
-
 SOURCES += \
     src/muParser.cpp \
     src/muParserBase.cpp \
@@ -26,6 +23,9 @@ SOURCES += \
 # Заголовки перечислены явно для IDE, но install берёт $$files(include/*.h).
 HEADERS += $$files($$_PRO_FILE_PWD_/include/*.h)
 
+CONFIG += core_no_default_defines
+include(../core-build.pri)
+
 # Install layout — паритет с CMake install (см. cmake/CoreLib.cmake).
 unix:!macx {
     target.path   = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_LIBDIR
@@ -37,4 +37,7 @@ win32|win64 {
     headers.files = $$files($$_PRO_FILE_PWD_/include/*.h)
     headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/muParser
 }
+# НЕ пересобираем headers.files через _PRO_FILE_PWD_/$$h
+# HEADERS содержат абсолютные пути ($$files($$_PRO_FILE_PWD_/include/*.h)),
+# и префикс даёт двойной путь. headers.files уже назначен корректно.
 INSTALLS += target headers
