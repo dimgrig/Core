@@ -102,8 +102,8 @@ win32|win64 {
     !isEmpty(CORE_APP_LOCAL_DIR) {
         _LATEST = $$clean_path($$CORE_APP_LOCAL_DIR/../latest)
         !equals(_LATEST, $$CORE_APP_LOCAL_DIR) {
-            QMAKE_POST_LINK += cmd /c "if exist $$shell_path($$_LATEST) rmdir $$shell_path($$_LATEST) 2>nul & mklink /J $$shell_path($$_LATEST) $$shell_path($$CORE_APP_LOCAL_DIR)" $$escape_expand(\\n\\t)
-            message("core-deploy: latest -> [$$_LATEST]")
+           QMAKE_POST_LINK += cmake -DLATEST=$$shell_quote($$clean_path($$_LATEST)) -DTARGET=$$shell_quote($$clean_path($$CORE_APP_LOCAL_DIR)) -P $$clean_path($$CORE_ROOT/cmake/CreateLatestLink.cmake) $$escape_expand(\\n\\t)
+           message("core-deploy: latest -> [$$_LATEST] (junction via cmake -P)")
         }
     }
 }

@@ -9,21 +9,26 @@ isEmpty(CORE_LINK_LIBS): CORE_LINK_LIBS = core-lib
 # на Windows/MinGW получают версионный суффикс в имени файла:
 #   qcustomplot.pro: VERSION = 2.1.1  =>  qcustomplot2.dll + libqcustomplot2.a
 # На Unix версия разрешается через симлинки, поэтому суффикс нужен только для win32/win64.
-CORE_LINK_WIN_VERSIONS = qcustomplot=2 QtWebApp=1
+#CORE_LINK_WIN_VERSIONS = qcustomplot=2 QtWebApp=1
 
 # без этого линкер ищет libcore-widgets-lib.a, а файл называется libcore-widgets-lib1.a
-CORE_VERSION_MAJOR_V = $$section(CORE_VERSION, ., 0, 0)
-!isEmpty(CORE_VERSION_MAJOR_V) {
-    CORE_LINK_WIN_VERSIONS += \
-        core-lib=$$CORE_VERSION_MAJOR_V          \
-        core-journal-lib=$$CORE_VERSION_MAJOR_V  \
-        core-widgets-lib=$$CORE_VERSION_MAJOR_V  \
-        core-modbus-lib=$$CORE_VERSION_MAJOR_V   \
-        core-io-lib=$$CORE_VERSION_MAJOR_V       \
-        core-utils-lib=$$CORE_VERSION_MAJOR_V    \
-        core-plot-lib=$$CORE_VERSION_MAJOR_V     \
-        core-mvc-lib=$$CORE_VERSION_MAJOR_V
-}
+#CORE_VERSION_MAJOR_V = $$section(CORE_VERSION, ., 0, 0)
+#!isEmpty(CORE_VERSION_MAJOR_V) {
+#    CORE_LINK_WIN_VERSIONS += \
+#        core-lib=$$CORE_VERSION_MAJOR_V          \
+#        core-journal-lib=$$CORE_VERSION_MAJOR_V  \
+#        core-widgets-lib=$$CORE_VERSION_MAJOR_V  \
+#        core-modbus-lib=$$CORE_VERSION_MAJOR_V   \
+#        core-io-lib=$$CORE_VERSION_MAJOR_V       \
+#        core-utils-lib=$$CORE_VERSION_MAJOR_V    \
+#        core-plot-lib=$$CORE_VERSION_MAJOR_V     \
+#        core-mvc-lib=$$CORE_VERSION_MAJOR_V
+#}
+
+# Все библиотеки (включая qcustomplot и QtWebApp) используют
+# skip_target_version_ext из core-build.pri — на Windows собираются
+# без мажорного суффикса. Поэтому список пуст.
+CORE_LINK_WIN_VERSIONS =
 
 for(_core_lib, CORE_LINK_LIBS) {
     _suffix = ""

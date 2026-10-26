@@ -590,11 +590,20 @@ unix:!macx {
     headers.path  = $$CORE_INSTALL_PREFIX/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
 }
 win32|win64 {
-    # На mingw .dll и .a попадают в lib — qmake INSTALLS не разделяет RUNTIME/ARCHIVE.
-    # Для разделения (bin/ для .dll) используется CMake-путь.
-    target.path   = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
-    headers.files = $$HEADERS
     headers.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_INCLUDEDIR/$$TARGET
+    INSTALLS += headers
+
+    contains(CONFIG, staticlib) {
+        target_lib.files = $$DESTDIR/lib$${TARGET}.a
+        target_lib.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
+        INSTALLS += target_lib
+    } else {
+        target_bin.files = $$DESTDIR/$${TARGET}.dll
+        target_bin.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_BINDIR
+        target_lib.files = $$DESTDIR/lib$${TARGET}.a
+        target_lib.path  = $$CORE_APP_LOCAL_DIR/$$CORE_INSTALL_LIBDIR
+        INSTALLS += target_bin target_lib
+    }
 }
 # НЕ пересобираем headers.files через _PRO_FILE_PWD_/$$h
 # HEADERS содержат абсолютные пути

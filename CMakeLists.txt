@@ -135,15 +135,31 @@ install(CODE [[
     if(NOT "${_latest}" STREQUAL "${CMAKE_INSTALL_PREFIX}")
         message(STATUS "Creating ${_latest} -> ${CMAKE_INSTALL_PREFIX}")
         if(WIN32)
-            execute_process(COMMAND cmd /c
-                "if exist \"${_latest}\" rmdir \"${_latest}\" 2>nul & mklink /J \"${_latest}\" \"${CMAKE_INSTALL_PREFIX}\""
-                RESULT_VARIABLE _rc)
+            # mklink не принимает forward slashes: "C:/Users/..." он видит
+            # как switch "/Users" → "Invalid argument: Users". Нужны нативные
+            # пути с \ . file(TO_NATIVE_PATH) даёт именно их.
+            file(TO_NATIVE_PATH "${_latest}"                 _latest_native)
+            file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}"    _prefix_native)
+
+            # rmdir принимает и / и \ — но для единообразия тоже native.
+            execute_process(COMMAND cmd /c rmdir /S /Q "${_latest_native}"
+                            RESULT_VARIABLE _rc_rm
+                            OUTPUT_QUIET ERROR_QUIET)
+            # _rc_rm != 0 если latest ещё нет — нормально.
+
+            execute_process(COMMAND cmd /c mklink /J "${_latest_native}" "${_prefix_native}"
+                            RESULT_VARIABLE _rc
+                            OUTPUT_VARIABLE _out
+                            ERROR_VARIABLE _err)
+            if(NOT _rc EQUAL 0)
+                message(WARNING "Failed to create ${_latest} (rc=${_rc}): ${_err}")
+            endif()
         else()
             execute_process(COMMAND ln -sfn "${CMAKE_INSTALL_PREFIX}" "${_latest}"
                 RESULT_VARIABLE _rc)
-        endif()
-        if(NOT _rc EQUAL 0)
-            message(WARNING "Failed to create ${_latest} (rc=${_rc})")
+            if(NOT _rc EQUAL 0)
+                message(WARNING "Failed to create ${_latest} (rc=${_rc})")
+            endif()
         endif()
     endif()
 ]])
