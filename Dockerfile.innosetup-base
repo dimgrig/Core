@@ -23,7 +23,19 @@ ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
 # Копируем портативную версию Inno Setup
-COPY deb/innosetup-portable/ /tmp/innosetup-portable/
+#COPY deb/innosetup-portable/ /tmp/innosetup-portable/
+#RUN test -f "/tmp/innosetup-portable/app/ISCC.exe" || (echo "ISCC.exe not found" && exit 1)
+
+# Скачиваем портативную сборку Inno Setup как 7z-архив (portapps 7.1.0-6).
+# 7z-архив распаковывается без Wine и innoextract — быстрее и надёжнее.
+ARG INNOSETUP_7Z_URL=https://github.com/portapps/innosetup-portable/releases/download/7.1.0-6/innosetup-portable-win64-7.1.0-7.7z
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends p7zip-full wget \
+    && wget -q -O /tmp/innosetup.7z "${INNOSETUP_7Z_URL}" \
+    && mkdir -p /tmp/innosetup-portable \
+    && 7z x -y -o/tmp/innosetup-portable /tmp/innosetup.7z \
+    && rm -f /tmp/innosetup.7z
+
 RUN test -f "/tmp/innosetup-portable/app/ISCC.exe" || (echo "ISCC.exe not found" && exit 1)
 
 # Создаём свежий wine prefix

@@ -41,6 +41,17 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
 #RUN dpkg -i /tmp/CQtDeployer*.deb && \
 #rm /tmp/CQtDeployer*.deb
 
+# Устанавливаем CQtDeployer из официального deb-пакета (linux/amd64).
+# apt сам разрешит зависимости; dpkg -i без -f может оставить пакет в
+# состоянии "unpacked", поэтому используем apt install ./file.deb.
+ARG CQTDEPLOYER_DEB_URL=https://github.com/QuasarApp/CQtDeployer/releases/download/v1.6.2365/CQtDeployer_1.6.2365.7cce7f3_Linux_x86_64.deb
+RUN wget -q -O /tmp/cqtdeployer.deb "${CQTDEPLOYER_DEB_URL}" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends /tmp/cqtdeployer.deb \
+    && rm -f /tmp/cqtdeployer.deb \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Санити-чек, чтобы такой провал больше не повторился
 RUN test -f /usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake \
     && echo "Qt5Config OK" \

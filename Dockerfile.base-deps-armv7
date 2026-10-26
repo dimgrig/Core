@@ -29,11 +29,6 @@ RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullsey
         libqt5webenginewidgets5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем CQtDeployer
-#COPY /deb/CQtDeployer*.deb /tmp/
-#RUN dpkg -i /tmp/CQtDeployer*.deb && \
-#rm /tmp/CQtDeployer*.deb
-
 # Клонирование, инициализация сабмодулей, сборка и установка CQtDeployer через QMake
 RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cqtdeployer && \
     cd /tmp/cqtdeployer && \
