@@ -102,8 +102,13 @@ if(NOT DEFINED CORE_INSTALL_PREFIX)
                 CACHE PATH "Core staging directory (cross-build)")
         endif()
     else()
-        set(CORE_INSTALL_PREFIX "/opt/core/${CORE_VERSION}"
-            CACHE PATH "Core install prefix")
+        if(DEFINED ENV{HOME} AND NOT "$ENV{HOME}" STREQUAL "")
+            set(CORE_INSTALL_PREFIX "$ENV{HOME}/.local/core/${CORE_VERSION}"
+                CACHE PATH "Core install prefix")
+        else()
+            set(CORE_INSTALL_PREFIX "/opt/core/${CORE_VERSION}"
+                CACHE PATH "Core install prefix")
+        endif()
     endif()
 endif()
 
