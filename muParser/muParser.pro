@@ -2,6 +2,7 @@ CONFIG -= qt
 TEMPLATE = lib
 CONFIG += c++11
 CONFIG += staticlib
+CONFIG += unicode
 TARGET = muParser
 
 DEFINES += QT_DEPRECATED_WARNINGS MUPARSER_STATIC

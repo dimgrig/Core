@@ -11,18 +11,18 @@
 #include <QCheckBox>
 #include <QSpinBox>
 
-#include "Logger.h"
-#include "ModbusClient.h"
-#include "ModbusDataConverter.h"
-#include "ModbusServer.h"
-#include "ModbusSettings.h"
+#include <core-lib/Logger.h>
+#include <core-modbus-lib/ModbusClient.h>
+#include <core-modbus-lib/ModbusDataConverter.h>
+#include <core-modbus-lib/ModbusServer.h>
+#include <core-modbus-lib/ModbusSettings.h>
 
-#include "BindingManager.h"
-#include "BitAwareBindingManager.h"
-#include "CheckBoxBinding.h"
-#include "DoubleSpinBoxBinding.h"
-#include "SpinBoxBinding.h"
-#include "LineEditBinding.h"
+#include <core-modbus-lib/bindings/BindingManager.h>
+#include <core-modbus-lib/bindings/BitAwareBindingManager.h>
+#include <core-modbus-lib/bindings/CheckBoxBinding.h>
+#include <core-modbus-lib/bindings/DoubleSpinBoxBinding.h>
+#include <core-modbus-lib/bindings/SpinBoxBinding.h>
+#include <core-modbus-lib/bindings/LineEditBinding.h>
 
 ////QTEST_MAIN(TestModbusIntegration) //need when no main.cpp with main function
 

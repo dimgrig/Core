@@ -4,7 +4,7 @@
 #include <QtTest/QtTest>
 #include <QSignalSpy>
 
-#include "RegisterBinding.h"
+#include <core-modbus-lib/bindings/RegisterBinding.h>
 
 class TestRegisterBinding : public RegisterBinding {
 public:

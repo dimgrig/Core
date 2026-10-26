@@ -1,95 +1,16 @@
 QT += gui core widgets network serialport serialbus mqtt printsupport sql testlib # подключаем QtTest
 
 TEMPLATE = app
-TARGET = core-tests    # имя исполняемого файла тестов
+TARGET = core-tests
 CONFIG += c++17
+CONFIG += core_no_deploy    # tests — приложение, deploy-копирование .so/.dll не нужно
 
-include(../qmake-target-platform.pri)   # если эти файлы лежат в корне
-include(../qmake-core-version.pri)
-include(../qmake-destination-path.pri)
-
-exists(/etc/astra_version) {
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-io-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-mvc-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-utils-lib
-    LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
-    LIBS += -L/usr/local/lib/ -lmuparser
-
-    DISTFILES += core-gcc10.pri
-    include(core-gcc10.pri)
-} else {
-    unix {
-        LIBS += -ldl
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-io-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-journal-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-modbus-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-mvc-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-utils-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$${LINUX_LIBS_PATH} -lmuParser
-    }
-
-    win32 {
-        DEFINES += win32
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-io-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
-    }
-    win64 {
-        DEFINES += win64
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-io-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-journal-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-modbus-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-mvc-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-utils-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lcore-widgets-lib
-        LIBS += -L$${WIN_LIBS_PATH} -lmuParser
-    }
-}
-
-# Пути к заголовкам библиотеки
-# чтобы видеть заголовки библиотеки (они лежат на уровень выше)
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-io-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-journal-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-modbus-lib/bindings"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-mvc-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-utils-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../core-widgets-lib/"
-INCLUDEPATH += "$$_PRO_FILE_PWD_/../muParser/include"
-
-BUILD_DIR = $$PWD/../../build/$${TARGET}-build/
-DESTDIR = $$PWD/../../$${TARGET}-binaries/$$DESTINATION_PATH
-OBJECTS_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.obj
-MOC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.moc
-RCC_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.qrc
-UI_DIR = $$PWD/../../$${TARGET}-build/$$DESTINATION_PATH/.ui
-
-# Запуск тестов сразу после сборки (кросс-платформенно)
-exists(/etc/astra_version) {
-
-} else {
-    unix {
-        QMAKE_POST_LINK = LD_LIBRARY_PATH=$$shell_path($${LINUX_LIBS_PATH}):$$LD_LIBRARY_PATH $$shell_path($$DESTDIR/$$TARGET)
-    }
-    #    win32|win64 {
-    #        #QMAKE_POST_LINK = set PATH=$$shell_path($${WIN_LIBS_PATH});%PATH% && $$shell_path($$DESTDIR/$$TARGET.exe)
-    #        QMAKE_POST_LINK = cmd /c "set PATH=$${WIN_LIBS_PATH};%PATH% && $$DESTDIR/$${TARGET}.exe"
-    #    }
-}
+CORE_LINK_LIBS = core-lib core-journal-lib core-modbus-lib \
+                 core-io-lib core-mvc-lib core-utils-lib core-widgets-lib \
+                 muParser
+include(../core-build.pri)
 
 #DIR_ROOT = $$PWD/../
 
@@ -153,3 +74,15 @@ SOURCES += \
 RESOURCES += \
    resources/resources.qrc
 
+# Запуск тестов сразу после сборки (кросс-платформенно)
+exists(/etc/astra_version) {
+
+} else {
+    unix {
+        QMAKE_POST_LINK = LD_LIBRARY_PATH=$$shell_path($${LINUX_LIBS_PATH}):$$LD_LIBRARY_PATH $$shell_path($$DESTDIR/$$TARGET)
+    }
+    #    win32|win64 {
+    #        #QMAKE_POST_LINK = set PATH=$$shell_path($${WIN_LIBS_PATH});%PATH% && $$shell_path($$DESTDIR/$$TARGET.exe)
+    #        QMAKE_POST_LINK = cmd /c "set PATH=$${WIN_LIBS_PATH};%PATH% && $$DESTDIR/$${TARGET}.exe"
+    #    }
+}

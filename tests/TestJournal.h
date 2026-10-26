@@ -5,8 +5,8 @@
 #include <QDateTime>
 #include <QVector>
 
-#include "JournalBase.h"
-#include "JournalAccess.h"
+#include <core-journal-lib/JournalBase.h>
+#include <core-journal-lib/JournalAccess.h>
 
 // Тестовая реализация JournalBase
 class TestJournal : public JournalBase {

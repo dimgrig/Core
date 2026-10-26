@@ -11,6 +11,20 @@ isEmpty(CORE_LINK_LIBS): CORE_LINK_LIBS = core-lib
 # На Unix версия разрешается через симлинки, поэтому суффикс нужен только для win32/win64.
 CORE_LINK_WIN_VERSIONS = qcustomplot=2 QtWebApp=1
 
+# без этого линкер ищет libcore-widgets-lib.a, а файл называется libcore-widgets-lib1.a
+CORE_VERSION_MAJOR_V = $$section(CORE_VERSION, ., 0, 0)
+!isEmpty(CORE_VERSION_MAJOR_V) {
+    CORE_LINK_WIN_VERSIONS += \
+        core-lib=$$CORE_VERSION_MAJOR_V          \
+        core-journal-lib=$$CORE_VERSION_MAJOR_V  \
+        core-widgets-lib=$$CORE_VERSION_MAJOR_V  \
+        core-modbus-lib=$$CORE_VERSION_MAJOR_V   \
+        core-io-lib=$$CORE_VERSION_MAJOR_V       \
+        core-utils-lib=$$CORE_VERSION_MAJOR_V    \
+        core-plot-lib=$$CORE_VERSION_MAJOR_V     \
+        core-mvc-lib=$$CORE_VERSION_MAJOR_V
+}
+
 for(_core_lib, CORE_LINK_LIBS) {
     _suffix = ""
     for(_pair, CORE_LINK_WIN_VERSIONS) {
@@ -20,6 +34,7 @@ for(_core_lib, CORE_LINK_LIBS) {
         equals(_lib_name, $$_core_lib): _suffix = $$_lib_ver
     }
     unix:  LIBS += -L$${LINUX_LIBS_PATH} -l$${_core_lib}
-    win32: LIBS += -L$${WIN_LIBS_PATH} -l$${_core_lib}$${_suffix}
-    win64: LIBS += -L$${WIN_LIBS_PATH} -l$${_core_lib}$${_suffix}
+    win32: LIBS += -L$${WIN_LIBS_PATH}   -l$${_core_lib}$${_suffix}
+    win64: LIBS += -L$${WIN_LIBS_PATH}   -l$${_core_lib}$${_suffix}
 }
+

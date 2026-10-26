@@ -5,8 +5,8 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 
-#include "CoreConfig.h"
-#include "DynamicListPanel.h"
+#include <core-lib/CoreConfig.h>
+#include <core-widgets-lib/DynamicListPanel.h>
 
 static QStringList splitStringToList(const QString &str)
 {

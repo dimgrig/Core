@@ -4,7 +4,7 @@
 #include <QtTest/QtTest>
 #include <QSignalSpy>
 
-#include "Auth.h"
+#include <core-widgets-lib/Auth.h>
 
 class TestAuthWithPublicUsers : public Auth {
 public:
