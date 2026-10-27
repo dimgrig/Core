@@ -4,7 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 greaterThan(QT_MAJOR_VERSION, 4): CONFIG += c++11
 lessThan(QT_MAJOR_VERSION, 5): QMAKE_CXXFLAGS += -std=c++11
 
-DEFINES += QCUSTOMPLOT_COMPILE_LIBRARY
+DEFINES += QCUSTOMPLOT_COMPILE_LIBRARY QCUSTOMPLOT_USE_OPENGL
 TEMPLATE = lib
 CONFIG += release build_all #debug_and_release
 static {

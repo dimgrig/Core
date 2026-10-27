@@ -1,10 +1,12 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport opengl
 
 TEMPLATE = lib
 DEFINES += CORE_PLOT_LIB_LIBRARY
-DEFINES += QCUSTOMPLOT_COMPILE_LIBRARY
+DEFINES += QCUSTOMPLOT_COMPILE_LIBRARY QCUSTOMPLOT_USE_OPENGL
 CONFIG += c++17
+
+win32|win64: LIBS += -lopengl32 -lglu32
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 

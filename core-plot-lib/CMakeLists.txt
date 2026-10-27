@@ -1,10 +1,13 @@
 core_add_library(core-plot-lib
     QT Core PrintSupport
     DEPENDS core-lib core-journal-lib qcustomplot
-    #DEFINES QCUSTOMPLOT_COMPILE_LIBRARY
+    DEFINES QCUSTOMPLOT_COMPILE_LIBRARY QCUSTOMPLOT_USE_OPENGL
 )
 
 target_link_libraries(core-plot-lib PRIVATE qcustomplot)
+if(WIN32)
+    target_link_libraries(core-plot-lib PUBLIC opengl32 glu32)
+endif()
 
 target_sources(core-plot-lib PRIVATE
     CursorManager.cpp
