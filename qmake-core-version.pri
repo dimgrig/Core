@@ -9,12 +9,15 @@ _CORE_INSTALL_PREFIX_ENV = $$(CORE_INSTALL_PREFIX)
     CORE_INSTALL_PREFIX = $$_CORE_INSTALL_PREFIX_ENV
 }
 
+isEmpty(QT_MAJOR_VERSION): QT_MAJOR_VERSION = 5
+CORE_INSTALL_QT_SUBDIR = qt$${QT_MAJOR_VERSION}
+
 # ── Priority 2: дефолт по платформе ────────────────────────
 isEmpty(CORE_INSTALL_PREFIX) {
     win32|win64 {
         _LA = $$(LOCALAPPDATA)
         !isEmpty(_LA) {
-            CORE_INSTALL_PREFIX = $$_LA/Core/$$CORE_VERSION
+            CORE_INSTALL_PREFIX = $$_LA/Core/$$CORE_INSTALL_QT_SUBDIR/$$CORE_VERSION
         } else {
             _UP = $$(USERPROFILE)
             !isEmpty(_UP) {
@@ -25,8 +28,8 @@ isEmpty(CORE_INSTALL_PREFIX) {
         }
     } else {
         _HOME = $$(HOME)
-        !isEmpty(_HOME): CORE_INSTALL_PREFIX = $$_HOME/.local/core/$$CORE_VERSION
-        else:             CORE_INSTALL_PREFIX = /opt/core/$$CORE_VERSION
+        !isEmpty(_HOME): CORE_INSTALL_PREFIX = $$_HOME/.local/core/$$CORE_INSTALL_QT_SUBDIR/$$CORE_VERSION
+        else:            CORE_INSTALL_PREFIX = /opt/core/$$CORE_VERSION
     }
 }
 

@@ -2,7 +2,11 @@
 //#include "ui_modbus_client.h"
 
 #include <QModbusTcpClient>
+
 #include <QModbusRtuSerialMaster>
+
+//#include <QtSerialBus/qmodbusrtuserialclient.h>
+
 #include <QStandardItemModel>
 #include <QSerialPort>
 #include <QSerialPortInfo>
@@ -15,6 +19,29 @@
 
 #include "Categories.h"
 #include "JournalAccess.h"
+
+namespace {
+
+// Qt6 (>= 6.x): QModbusClient для Coils/DiscreteInputs возвращает
+// valueCount = byteCount * 8 (выравнивание до байта). Qt5 отдавал
+// valueCount = numberOfValues из запроса. Нормализуем к запрошенному,
+// чтобы потребители видели одинаковые данные на Qt5 и Qt6.
+QModbusDataUnit normalizeBitReadReply(const QModbusDataUnit &request,
+                                      QModbusDataUnit reply)
+{
+    const auto rt = request.registerType();
+    if ((rt == QModbusDataUnit::Coils ||
+         rt == QModbusDataUnit::DiscreteInputs) &&
+        reply.valueCount() > request.valueCount())
+    {
+        QVector<quint16> vals = reply.values();
+        vals.resize(request.valueCount());
+        reply.setValues(vals);   // setValues обновляет valueCount
+    }
+    return reply;
+}
+
+} // namespace
 
 ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbus_settings)
     : ModbusBase(parent, config, modbus_settings)
@@ -412,7 +439,22 @@ void ModbusClient::settings_change() {
 void ModbusClient::sendSingleRequest(int serverAddress, QModbusDataUnit mdu) {
     if (auto *reply = modbusDevice->sendReadRequest(mdu, serverAddress)) {
         if (!reply->isFinished()) {
-            connect(reply, &QModbusReply::finished, this, &ModbusClient::on_read_ready);
+            connect(reply, &QModbusReply::finished, this, [this, reply, mdu]() {
+                if (reply->error() == QModbusDevice::NoError) {
+                    emit read_ready(reply->serverAddress(),
+                                    normalizeBitReadReply(mdu, reply->result()));
+                    _failedAttempts = 0;
+                } else if (reply->error() == QModbusDevice::ProtocolError) {
+                    qCDebug(logDebug) << (tr("Read response error: %1 (Modbus exception: 0x%2)")
+                                              .arg(reply->errorString())
+                                              .arg(reply->rawResult().exceptionCode(), -1, 16));
+                } else {
+                    qCDebug(logDebug) << (tr("Read response error: %1 (code: 0x%2)")
+                                              .arg(reply->errorString())
+                                              .arg(reply->error(), -1, 16));
+                }
+                reply->deleteLater();
+            });
         } else {
             _processingQueue = false;
             processNextRequest();
@@ -688,7 +730,7 @@ void ModbusClient::processNextRequest()
             }
 
             if (!req.isWrite && success) {
-                emit read_ready(req.serverAddress, reply->result());
+                emit read_ready(req.serverAddress, normalizeBitReadReply(req.unit, reply->result()));
             }
 
             reply->deleteLater();

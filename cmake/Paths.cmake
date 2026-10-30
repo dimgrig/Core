@@ -78,6 +78,12 @@ if(NOT DEFINED CORE_VERSION)
         "BEFORE include(cmake/Paths.cmake) in CMakeLists.txt.")
 endif()
 
+# Qt-подкаталог для разведения Qt5/Qt6
+if(NOT DEFINED QT_VERSION_MAJOR)
+    message(FATAL_ERROR "QT_VERSION_MAJOR must be set before include(cmake/Paths.cmake)")
+endif()
+set(CORE_INSTALL_QT_SUBDIR "qt${QT_VERSION_MAJOR}")
+
 set(_CORE_INSTALL_PREFIX_USER_SET FALSE)
 if(DEFINED CORE_INSTALL_PREFIX)
     set(_CORE_INSTALL_PREFIX_USER_SET TRUE)
@@ -95,18 +101,18 @@ endif()
 if(NOT DEFINED CORE_INSTALL_PREFIX)
     if(WIN32)
         if(DEFINED ENV{LOCALAPPDATA} AND NOT "$ENV{LOCALAPPDATA}" STREQUAL "")
-            set(CORE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Core/${CORE_VERSION}"
+            set(CORE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Core/${CORE_INSTALL_QT_SUBDIR}/${CORE_VERSION}"
                 CACHE PATH "Core install prefix")
         else()
-            set(CORE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/applocal-staging"
+            set(CORE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/applocal-staging/${CORE_INSTALL_QT_SUBDIR}"
                 CACHE PATH "Core staging directory (cross-build)")
         endif()
     else()
         if(DEFINED ENV{HOME} AND NOT "$ENV{HOME}" STREQUAL "")
-            set(CORE_INSTALL_PREFIX "$ENV{HOME}/.local/core/${CORE_VERSION}"
+            set(CORE_INSTALL_PREFIX "$ENV{HOME}/.local/core/${CORE_INSTALL_QT_SUBDIR}/${CORE_VERSION}"
                 CACHE PATH "Core install prefix")
         else()
-            set(CORE_INSTALL_PREFIX "/opt/core/${CORE_VERSION}"
+            set(CORE_INSTALL_PREFIX "/opt/core/${CORE_INSTALL_QT_SUBDIR}/${CORE_VERSION}"
                 CACHE PATH "Core install prefix")
         endif()
     endif()
@@ -143,6 +149,7 @@ endif()
 # Абсолютный путь для POST_BUILD deploy-копий (аналог core-deploy.pri)
 set(CORE_DEPLOY_LIBDIR "${CMAKE_INSTALL_PREFIX}/${CORE_INSTALL_LIBDIR}")
 
+message(STATUS "Core Qt subdir: ${CORE_INSTALL_QT_SUBDIR}")
 message(STATUS "Core install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  headers: ${CORE_INSTALL_INCLUDEDIR}")
 message(STATUS "  libs:    ${CORE_INSTALL_LIBDIR}")

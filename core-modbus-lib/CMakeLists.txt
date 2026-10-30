@@ -63,5 +63,10 @@ target_sources(core-modbus-lib PRIVATE
 
 target_include_directories(core-modbus-lib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings>
-    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/core-modbus-lib/bindings>)
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/core-modbus-lib/bindings>
+)
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(core-modbus-lib PRIVATE Qt6::Core5Compat) #QTextCodec
+endif()
 

@@ -1,41 +1,37 @@
-# Игнорировать все бинарные и сборочные папки на любом уровне
+# ============================================================
+#  Контекст сборки Core = ~/QtProjects/Core/
+#  (docker buildx build -f Dockerfile.core .)
+# ============================================================
+
+# ── Build outputs (qmake + cmake + CI) ────────────────────
 **/*-binaries/
 **/*-build/
-**/binaries/
 **/build/
 **/out/
-**/deploy/
 **/dist/
 **/applocal-staging/
-.git/
-.github/
-*.user
-.gitignore
 
-# Игнорировать системные файлы
+# ── VCS / CI ──────────────────────────────────────────────
 **/.git/
+**/.github/
 **/.gitignore
+
+# ── IDE / Qt Creator ──────────────────────────────────────
 **/.vs/
+**/.vscode/
+**/.idea/
 **/*.user
-**/*.o
-**/*.so
-**/*.a
-**/*.qm
-**/*.pyc
-**/__pycache__/
-
-# Игнорировать временные файлы
-**/*.swp
-**/*.swo
-**/*~
-
-**/.dockerignore
-.gitignore
-**/docker-compose.**
-**/Dockerfile.**
 **/*.pro.user
+**/*.pro.user.*
+**/*.creator*
 
-# Временные файлы сборки
+# ── Infra (правка Dockerfile не должна инвалидировать COPY) ─
+**/.dockerignore
+**/Dockerfile.*
+**/docker-*.sh
+**/docker-compose.*.yml
+
+# ── qmake / cmake build artifacts ─────────────────────────
 **/Makefile
 **/Makefile.*
 **/.qmake.stash
@@ -43,17 +39,16 @@
 **/*.obj
 **/*.moc
 **/moc_*
-**/ui_*
+**/ui_*.h
 **/*.qrc.depends
-**/*.user
-**/*.creator*
 **/*.files
 **/*.includes
 **/*.config
-**/*.pro.user*
-**/*.creator*
-**/*.files
-**/*.includes
-**/*.config
-**/*-build
-**/*-binaries
+
+# ── Temp / OS ─────────────────────────────────────────────
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/__pycache__/
+**/*.pyc

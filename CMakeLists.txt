@@ -17,14 +17,36 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Цветной вывод
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-# Qt detection (до того, как понадобится QT_VERSION_MAJOR)
-#find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-#find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-#message(STATUS "Qt version: ${QT_VERSION_MAJOR}")
-# Qt5
-find_package(Qt5 REQUIRED COMPONENTS Core)
-set(QT_VERSION_MAJOR 5)
-message(STATUS "Qt version: ${Qt5Core_VERSION} (forced Qt5)")
+# ── Qt detection ────────────────────────────────────────────
+set(QT_VERSION_MAJOR "" CACHE STRING "Qt major version (5 or 6). Empty = auto-detect")
+
+# ── Qt detection ────────────────────────────────────────────
+# QT_VERSION_MAJOR:
+#   1) -DQT_VERSION_MAJOR=5|6 (рекомендуется: Qt Creator kit / CI),
+#   2) QT_DEFAULT_MAJOR_VERSION (QtCreator ≥11 проставляет из kit),
+#   3) иначе — автоопределение: Qt6 первым, Qt5 как fallback.
+if(NOT QT_VERSION_MAJOR AND DEFINED QT_DEFAULT_MAJOR_VERSION)
+    set(QT_VERSION_MAJOR ${QT_DEFAULT_MAJOR_VERSION})
+endif()
+
+if(NOT QT_VERSION_MAJOR)
+    find_package(Qt6 QUIET COMPONENTS Core)
+    if(Qt6_FOUND)
+        set(QT_VERSION_MAJOR 6)
+    else()
+        find_package(Qt5 REQUIRED COMPONENTS Core)
+        set(QT_VERSION_MAJOR 5)
+    endif()
+endif()
+
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+message(STATUS "Qt version: ${Qt${QT_VERSION_MAJOR}Core_VERSION} (major ${QT_VERSION_MAJOR})")
+
+# Qt6: QTextCodec/QRegExp вынесены в Core5Compat (LineEditBinding, QtWebApp)
+if(QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core5Compat)
+    message(STATUS "Qt6 Core5Compat: ${Qt6Core5Compat_VERSION}")
+endif()
 
 include(cmake/Platform.cmake)
 include(cmake/Paths.cmake)

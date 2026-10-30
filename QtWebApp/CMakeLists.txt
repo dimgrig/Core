@@ -60,4 +60,9 @@ target_include_directories(QtWebApp PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logging>
     $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/httpserver>
     $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/templateengine>
-    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/logging>)
+    $<INSTALL_INTERFACE:${CORE_INSTALL_INCLUDEDIR}/QtWebApp/logging>
+)
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(QtWebApp PRIVATE Qt6::Core5Compat) #QTextCodec
+endif()

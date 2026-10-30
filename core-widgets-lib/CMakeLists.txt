@@ -1,10 +1,18 @@
-core_add_library(core-widgets-lib
-    QT Core Gui Widgets Svg #StateMachine
-    DEPENDS core-lib core-journal-lib
-)
-
-qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
+if(QT_VERSION_MAJOR EQUAL 6)
+    core_add_library(core-widgets-lib
+        QT Core Gui Widgets Svg StateMachine
+        DEPENDS core-lib core-journal-lib
+    )
+    qt_add_resources(CORE_WIDGETS_RESOURCES_QRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
+else()
+    core_add_library(core-widgets-lib
+        QT Core Gui Widgets Svg #StateMachine
+        DEPENDS core-lib core-journal-lib
+    )
+    qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
+endif()
 
 target_sources(core-widgets-lib PRIVATE
     ${CORE_WIDGETS_RESOURCES_QRC}
