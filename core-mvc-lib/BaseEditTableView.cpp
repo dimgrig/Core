@@ -56,27 +56,21 @@ QVariant BaseEditTableView::getDefaultValueForColumn(int column) {
 
     QVariant sampleData = model->data(sampleIndex);
 
-    switch (sampleData.type()) {
-    case QVariant::Bool:
-        return false;
-    case QVariant::String:
-        return QString("");
-    case QVariant::Int:
-    case QVariant::UInt:
-    case QVariant::LongLong:
-    case QVariant::ULongLong:
-        return 0;
-    case QVariant::Double:
-        return 0.0;
-    // moved to initializeNewRow
-    // case QVariant::Date:
-    //     return QDate::currentDate();
-    // case QVariant::DateTime:
-    //     return QDateTime::currentDateTime();
-    // case QVariant::Time:
-    //     return QTime::currentTime();
-    default:
-        return QVariant();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    const int typeId = static_cast<int>(sampleData.typeId());
+#else
+    const int typeId = static_cast<int>(sampleData.type());
+#endif
+
+    switch (typeId) {
+    case QMetaType::Bool:      return false;
+    case QMetaType::QString:   return QString("");
+    case QMetaType::Int:
+    case QMetaType::UInt:
+    case QMetaType::LongLong:
+    case QMetaType::ULongLong: return 0;
+    case QMetaType::Double:    return 0.0;
+    default:                   return QVariant();
     }
 }
 

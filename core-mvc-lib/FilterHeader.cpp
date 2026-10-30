@@ -104,7 +104,11 @@ void FilterHeader::mouseDoubleClickEvent(QMouseEvent* event) {
         return;
 
     if (event->button() == Qt::LeftButton) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        showFilterMenu(section, event->globalPosition().toPoint());
+#else
         showFilterMenu(section, event->globalPos());
+#endif
     } else {
         QHeaderView::mouseDoubleClickEvent(event);
     }

@@ -347,18 +347,25 @@ QModbusDataUnit BindingManager::buildTransactionalUnit(const QString& groupName)
     auto mdum = m_modbusClient->get_mdum();
     const QStringList& regs = m_transactionalGroups[groupName];
 
-    // Определяем минимальный адрес и полный размер
     int startAddress = std::numeric_limits<int>::max();
     unsigned int endAddress = 0;
+    bool anyFound = false;
+
     for (const auto& regName : regs) {
         if (mdum.count(m_serverAddress) && mdum.at(m_serverAddress).count(regName)) {
             const auto& unit = mdum.at(m_serverAddress).at(regName);
             startAddress = std::min(startAddress, unit.startAddress());
-            endAddress = std::max(endAddress, (unsigned int)(unit.startAddress() + unit.valueCount()));
+            endAddress   = std::max(endAddress,
+                                  static_cast<unsigned int>(unit.startAddress() + unit.valueCount()));
+            anyFound = true;
         }
     }
 
-    int totalSize = endAddress - startAddress;
+    if (!anyFound || startAddress >= static_cast<int>(endAddress)) {
+        return QModbusDataUnit();   // пустая группа / битый диапазон
+    }
+
+    const int totalSize = static_cast<int>(endAddress) - startAddress;
     QVector<quint16> values(totalSize, 0);
 
     // Заполняем данными из кэша

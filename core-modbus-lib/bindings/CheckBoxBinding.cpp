@@ -17,8 +17,13 @@ CheckBoxBinding::CheckBoxBinding(QCheckBox* checkBox,
 {
     if (m_checkBox) {
         if (direction != ReadOnly) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            connect(m_checkBox, &QCheckBox::checkStateChanged,
+                    this, [this](Qt::CheckState) { this->onStateChanged(0); });
+#else
             connect(m_checkBox, &QCheckBox::stateChanged,
                     this, &CheckBoxBinding::onStateChanged);
+#endif
         }
         m_checkBox->setEnabled(direction != ReadOnly);
     }

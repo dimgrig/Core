@@ -3,9 +3,11 @@
 
 #include <QModbusTcpClient>
 
-#include <QModbusRtuSerialMaster>
-
-//#include <QtSerialBus/qmodbusrtuserialclient.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    #include <QModbusRtuSerialClient>
+#else
+    #include <QModbusRtuSerialMaster>
+#endif
 
 #include <QStandardItemModel>
 #include <QSerialPort>
@@ -203,7 +205,11 @@ void ModbusClient::on_connect_type(int index) {
     }
 
     if (_connection_type == ConnectionTypeSerial) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        modbusDevice = std::make_shared<QModbusRtuSerialClient>();
+#else
         modbusDevice = std::make_shared<QModbusRtuSerialMaster>();
+#endif
     } else if (_connection_type == ConnectionTypeTCP) {
         modbusDevice = std::make_shared<QModbusTcpClient>();
     }

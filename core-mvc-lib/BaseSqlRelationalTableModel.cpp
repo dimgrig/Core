@@ -192,7 +192,16 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
             //QString escapedValue = driver->escapeIdentifier(value, QSqlDriver::FieldName);
             QString escapedValue = "%" + value + "%";
 
-            QVariant::Type type = this->record().field(col).type();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            const int typeId = this->record().field(col).metaType().id();
+            const bool typeIsInt    = (typeId == QMetaType::Int);
+            const bool typeIsDouble = (typeId == QMetaType::Double);
+#else
+            const QVariant::Type type = this->record().field(col).type();
+            const bool typeIsInt    = (type == QVariant::Int);
+            const bool typeIsDouble = (type == QVariant::Double);
+#endif
+
             QString fieldNameLower = fieldName.toLower();
 
             if (fieldNameLower.contains("date")) {
@@ -206,15 +215,14 @@ void BaseSqlRelationalTableModel::filter_changed(int column, const QString &text
                     conditions << condition;
             } else {
                 // Формируем условие в зависимости от типа данных
-                if (type == QVariant::Int) {
+                if (typeIsInt) {
                     int num = value.toInt();
                     conditions << QString("%1 = %2").arg(fieldName).arg(num);
-                } else if (type == QVariant::Double) {
+                } else if (typeIsDouble) {
                     double num = value.toDouble();
                     conditions << QString("%1 = %2").arg(fieldName).arg(num);
                 } else {
-                    //string or date
-                    conditions << QString("%1 LIKE '%2'").arg(fieldName).arg(escapedValue); //'%%2%'
+                    conditions << QString("%1 LIKE '%2'").arg(fieldName).arg(escapedValue);
                 }
             }
         }

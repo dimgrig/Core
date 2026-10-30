@@ -1,8 +1,14 @@
 #include "ModbusServer.h"
 //#include "ui_modbus_server.h"
 
-#include <QModbusRtuSerialSlave>
 #include <QModbusTcpServer>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+    #include <QModbusRtuSerialServer>
+#else
+    #include <QModbusRtuSerialSlave>
+#endif
+
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QSerialPort>
@@ -86,7 +92,11 @@ void ModbusServer::on_connect_type(int index) {
     }
 
     if (_connection_type == ConnectionTypeSerial) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        modbusDevice = std::make_shared<QModbusRtuSerialServer>();
+#else
         modbusDevice = std::make_shared<QModbusRtuSerialSlave>();
+#endif
     } else if (_connection_type == ConnectionTypeTCP) {
         modbusDevice = std::make_shared<QModbusTcpServer>();
     }

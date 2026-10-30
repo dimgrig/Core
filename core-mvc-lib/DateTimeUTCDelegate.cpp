@@ -15,7 +15,11 @@ QWidget *DateTimeUTCDelegate::createEditor(QWidget *parent, const QStyleOptionVi
     QDateTimeEdit *editor = new QDateTimeEdit(parent);
     editor->setDisplayFormat(_format);
     editor->setCalendarPopup(true);      // Показывать календарь
-    editor->setTimeSpec(Qt::UTC);        // Предполагаем, что данные в UTC
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    editor->setTimeZone(QTimeZone("UTC"));
+#else
+    editor->setTimeSpec(Qt::UTC);
+#endif
     return editor;
 }
 
@@ -25,7 +29,11 @@ void DateTimeUTCDelegate::setEditorData(QWidget *editor, const QModelIndex &inde
 
     // Из модели получаем число (Unix timestamp в секундах)
     qint64 timestamp = index.data(Qt::EditRole).toLongLong();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    QDateTime dateTime = QDateTime::fromSecsSinceEpoch(timestamp, QTimeZone("UTC"));
+#else
     QDateTime dateTime = QDateTime::fromSecsSinceEpoch(timestamp, Qt::UTC);
+#endif
 
     dateTimeEdit->setDateTime(dateTime);
 }

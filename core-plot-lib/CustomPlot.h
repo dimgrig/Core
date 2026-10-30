@@ -11,7 +11,9 @@
 
 #include "core-plot-lib-global.h"
 
-#define QCUSTOMPLOT_USE_OPENGL
+#ifndef QCUSTOMPLOT_USE_OPENGL
+    #define QCUSTOMPLOT_USE_OPENGL
+#endif
 
 class CORE_PLOT_LIB_EXPORT CustomPlot : public CustomPlotBase {
 Q_OBJECT

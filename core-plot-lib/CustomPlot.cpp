@@ -366,7 +366,11 @@ void CustomPlot::set_cp_data(std::vector<double> &data, std::vector<double> &tic
     {
         if (index < graph_v.size()) {
             //Profiler pr1("CP SCPD setData"); // 12 ms QVector and 12 mcs setData
-            graph_v[index].data()->setData(QVector(ticks.begin(), ticks.end()), QVector(data.begin(), data.end()), true);
+            //graph_v[index].data()->setData(QVector(ticks.begin(), ticks.end()), QVector(data.begin(), data.end()), true);
+            graph_v[index].data()->setData(
+                QVector<double>(ticks.begin(), ticks.end()),
+                QVector<double>(data.begin(), data.end()),
+                true);
         }
     }
     {
