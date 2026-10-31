@@ -21,31 +21,56 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - plat: linux
+          # ── Linux amd64 ──────────────────────────────────
+          - name:     linux-qt5
             dockerfile: Dockerfile.base-deps-linux
-            tag: qt5-bookworm
-            runner: ubuntu-latest
+            image:    core-base-deps-linux
+            tag:      qt5-bookworm
+            runner:   ubuntu-latest
             platforms: linux/amd64
-          - plat: win
+          - name:     linux-qt6
+            dockerfile: Dockerfile.base-deps-linux-qt6
+            image:    core-base-deps-linux
+            tag:      qt6-bookworm
+            runner:   ubuntu-latest
+            platforms: linux/amd64
+
+          # ── Windows (Qt5-only) ───────────────────────────
+          - name:     win-qt5
             dockerfile: Dockerfile.base-deps-win
-            tag: qt5-mingw
-            runner: ubuntu-latest
+            image:    core-base-deps-win
+            tag:      qt5-mingw
+            runner:   ubuntu-latest
             platforms: linux/amd64
-          - plat: arm64
+
+          # ── ARM64 ────────────────────────────────────────
+          - name:     arm64-qt5
             dockerfile: Dockerfile.base-deps-arm64
-            tag: qt5-bookworm
-            runner: ubuntu-24.04-arm
+            image:    core-base-deps-arm64
+            tag:      qt5-bookworm
+            runner:   ubuntu-24.04-arm
             platforms: linux/arm64
-          - plat: armv7
+          - name:     arm64-qt6
+            dockerfile: Dockerfile.base-deps-arm64-qt6
+            image:    core-base-deps-arm64
+            tag:      qt6-trixie
+            runner:   ubuntu-24.04-arm
+            platforms: linux/arm64
+
+          # ── ARMv7 (Qt5-only) ─────────────────────────────
+          - name:     armv7-qt5
             dockerfile: Dockerfile.base-deps-armv7
-            tag: qt5-bullseye
-            runner: ubuntu-latest
+            image:    core-base-deps-armv7
+            tag:      qt5-bullseye
+            runner:   ubuntu-latest
             platforms: linux/arm/v7
     steps:
       - uses: actions/checkout@v4
 
+      # QEMU нужен только для armv7 (linux/arm/v7 на amd64-раннере).
+      # linux/amd64 и linux/arm64 на native ARM runner — без QEMU.
       - name: Set up QEMU (cross-arch only)
-        if: matrix.platforms != 'linux/amd64' && matrix.runner != 'ubuntu-24.04-arm'
+        if: matrix.platforms == 'linux/arm/v7'
         uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
@@ -62,9 +87,10 @@ jobs:
           file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platforms }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-${{ matrix.plat }}:${{ matrix.tag }}
-          cache-from: type=gha,scope=base-deps-${{ matrix.plat }}
-          cache-to:   type=gha,mode=max,scope=base-deps-${{ matrix.plat }}
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:${{ matrix.tag }}
+          cache-from: type=gha,scope=base-deps-${{ matrix.name }}
+          cache-to:   type=gha,mode=max,scope=base-deps-${{ matrix.name }}
+
   build-innosetup-base:
     runs-on: ubuntu-latest
     permissions:
@@ -72,15 +98,12 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: docker/build-push-action@v5
         with:
           context: .

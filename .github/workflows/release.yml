@@ -15,7 +15,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  QT_MAJOR: 5
+  QT_MAJOR_BUILD: 5
+  QT6_INSTALL_PREFIX: /opt/Qt/6.8.0/gcc_64
 
 jobs:
   # ────────────────────────────────────────────
@@ -36,14 +37,21 @@ jobs:
           fi
 
   # ────────────────────────────────────────────
-  # 1. Linux amd64
+  # 1. Linux amd64 — matrix qt5/qt6
   # ────────────────────────────────────────────
   build-linux-amd64:
     needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
+    permissions: { contents: read, packages: read }
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_major: ['5', '6']
+    env:
+      QT_MAJOR: ${{ matrix.qt_major }}
+      # Qt6 для linux-amd64 — Qt6.8.0 из stateoftheartio/qt6.
+      # Qt5 → пустая строка, Dockerfile.core игнорирует.
+      QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.0/gcc_64' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -52,36 +60,42 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & export SDK
+
+      - name: Build & export SDK (Qt${{ env.QT_MAJOR }})
         run: |
           docker buildx build \
             --target export \
-            --output type=local,dest=out/linux-amd64 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
+            --output type=local,dest=out/linux-amd64-qt${QT_MAJOR} \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt${QT_MAJOR}-bookworm \
             --build-arg CMAKE_CMD=cmake \
+            --build-arg QT_VERSION_MAJOR=${QT_MAJOR} \
+            --build-arg QT6_INSTALL_PREFIX=${QT6_PREFIX} \
             --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-amd64 \
-            --cache-to   type=gha,mode=max,scope=core-linux-amd64 \
+            --cache-from type=gha,scope=core-linux-amd64-qt${QT_MAJOR} \
+            --cache-to   type=gha,mode=max,scope=core-linux-amd64-qt${QT_MAJOR} \
             -f Dockerfile.core .
+
       - name: Package
         run: |
           VERSION="$(tr -d '[:space:]' < VERSION)"
           mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-amd64-qt${QT_MAJOR}.tar.gz" -C out/linux-amd64 .
+          tar -czf "dist/Core-Releases-${VERSION}-linux-amd64-qt${QT_MAJOR}.tar.gz" \
+            -C out/linux-amd64-qt${QT_MAJOR} .
+
       - uses: actions/upload-artifact@v4
         with:
-          name: sdk-linux-amd64
+          name: sdk-linux-amd64-qt${{ matrix.qt_major }}
           path: dist/*.tar.gz
 
   # ────────────────────────────────────────────
-  # 2. Windows x32 (cross-compiled on amd64)
+  # 2. Windows x32 — Qt5-only
   # ────────────────────────────────────────────
   build-win32:
     needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
+    permissions: { contents: read, packages: read }
+    env:
+      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -90,37 +104,47 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & export SDK
+
+      - name: Build & export SDK (Qt5 win32)
         run: |
           docker buildx build \
             --target export \
-            --output type=local,dest=out/win32 \
+            --output type=local,dest=out/win32-qt5 \
             --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-win:qt5-mingw \
             --build-arg CMAKE_CMD=i686-w64-mingw32-cmake \
+            --build-arg QT_VERSION_MAJOR=5 \
             --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-win32 \
-            --cache-to   type=gha,mode=max,scope=core-win32 \
+            --cache-from type=gha,scope=core-win32-qt5 \
+            --cache-to   type=gha,mode=max,scope=core-win32-qt5 \
             -f Dockerfile.core .
+
       - name: Package
         run: |
           VERSION="$(tr -d '[:space:]' < VERSION)"
           mkdir -p dist
-          (cd out/win32 && zip -r "../../dist/Core-Releases-${VERSION}-win32-qt${QT_MAJOR}.zip" .)
+          (cd out/win32-qt5 && zip -r "../../dist/Core-Releases-${VERSION}-win32-qt5.zip" .)
+
       - uses: actions/upload-artifact@v4
         with:
-          name: sdk-win32
+          name: sdk-win32-qt5
           path: dist/*.zip
 
   # ────────────────────────────────────────────
-  # 3. Linux arm64 — native ARM runner
+  # 3. Linux arm64 — native ARM runner, matrix qt5/qt6
   # ────────────────────────────────────────────
   build-linux-arm64:
     if: github.event.inputs.build_arm == 'true'
     needs: verify
     runs-on: ubuntu-24.04-arm
-    permissions:
-      contents: read
-      packages: read
+    permissions: { contents: read, packages: read }
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_major: ['5', '6']
+    env:
+      QT_MAJOR: ${{ matrix.qt_major }}
+      # Qt5 → qt5-bookworm, Qt6 → qt6-trixie (apt)
+      QT6_PREFIX: ${{ matrix.qt_major == '6' && 'apt' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -129,37 +153,49 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & export SDK
+
+      - name: Build & export SDK (Qt${{ env.QT_MAJOR }} arm64)
         run: |
+          # для Qt5 → distro=bookworm, для Qt6 → distro=trixie
+          DISTRO=${{ matrix.qt_major == '6' && 'trixie' || 'bookworm' }}
+          # Qt6-arm64: Qt из apt, QT6_INSTALL_PREFIX пустой (Dockerfile.core
+          # не передаст CMAKE_PREFIX_PATH, CMake найдёт Qt6 в /usr).
+          QT6_PREFIX_ARG=""
           docker buildx build \
+            --platform linux/arm64 \
             --target export \
-            --output type=local,dest=out/linux-arm64 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-arm64:qt5-bookworm \
+            --output type=local,dest=out/linux-arm64-qt${QT_MAJOR} \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-arm64:qt${QT_MAJOR}-${DISTRO} \
             --build-arg CMAKE_CMD=cmake \
+            --build-arg QT_VERSION_MAJOR=${QT_MAJOR} \
+            --build-arg QT6_INSTALL_PREFIX=${QT6_PREFIX_ARG} \
             --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-arm64 \
-            --cache-to   type=gha,mode=max,scope=core-linux-arm64 \
+            --cache-from type=gha,scope=core-linux-arm64-qt${QT_MAJOR} \
+            --cache-to   type=gha,mode=max,scope=core-linux-arm64-qt${QT_MAJOR} \
             -f Dockerfile.core .
+
       - name: Package
         run: |
           VERSION="$(tr -d '[:space:]' < VERSION)"
           mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-arm64-qt${QT_MAJOR}.tar.gz" -C out/linux-arm64 .
+          tar -czf "dist/Core-Releases-${VERSION}-linux-arm64-qt${QT_MAJOR}.tar.gz" \
+            -C out/linux-arm64-qt${QT_MAJOR} .
+
       - uses: actions/upload-artifact@v4
         with:
-          name: sdk-linux-arm64
+          name: sdk-linux-arm64-qt${{ matrix.qt_major }}
           path: dist/*.tar.gz
 
   # ────────────────────────────────────────────
-  # 4. Linux armv7 — QEMU (slow)
+  # 4. Linux armv7 — Qt5-only (QEMU, медленно)
   # ────────────────────────────────────────────
   build-linux-armv7:
     if: github.event.inputs.build_arm == 'true'
     needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
+    permissions: { contents: read, packages: read }
+    env:
+      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -169,37 +205,47 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & export SDK
+
+      - name: Build & export SDK (Qt5 armv7)
         run: |
           docker buildx build \
             --platform linux/arm/v7 \
             --target export \
-            --output type=local,dest=out/linux-armv7 \
+            --output type=local,dest=out/linux-armv7-qt5 \
             --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-armv7:qt5-bullseye \
             --build-arg CMAKE_CMD=cmake \
+            --build-arg QT_VERSION_MAJOR=5 \
             --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-armv7 \
-            --cache-to   type=gha,mode=max,scope=core-linux-armv7 \
+            --cache-from type=gha,scope=core-linux-armv7-qt5 \
+            --cache-to   type=gha,mode=max,scope=core-linux-armv7-qt5 \
             -f Dockerfile.core .
+
       - name: Package
         run: |
           VERSION="$(tr -d '[:space:]' < VERSION)"
           mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-armv7-qt${QT_MAJOR}.tar.gz" -C out/linux-armv7 .
+          tar -czf "dist/Core-Releases-${VERSION}-linux-armv7-qt5.tar.gz" \
+            -C out/linux-armv7-qt5 .
+
       - uses: actions/upload-artifact@v4
         with:
-          name: sdk-linux-armv7
+          name: sdk-linux-armv7-qt5
           path: dist/*.tar.gz
 
   # ────────────────────────────────────────────
-  # 5. Tests on linux amd64 (parallel with builds)
+  # 5. Tests on linux amd64 — matrix qt5/qt6
   # ────────────────────────────────────────────
   test-linux:
     needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
+    permissions: { contents: read, packages: read }
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_major: ['5', '6']
+    env:
+      QT_MAJOR: ${{ matrix.qt_major }}
+      QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.0/gcc_64' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -208,15 +254,18 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build with tests & run ctest
+
+      - name: Build & run ctest (Qt${{ env.QT_MAJOR }})
         run: |
           docker buildx build \
             --target test \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
+            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt${QT_MAJOR}-bookworm \
             --build-arg CMAKE_CMD=cmake \
-            --cache-from type=gha,scope=core-linux-amd64 \
-            --cache-from type=gha,scope=core-linux-tests \
-            --cache-to   type=gha,mode=max,scope=core-linux-tests \
+            --build-arg QT_VERSION_MAJOR=${QT_MAJOR} \
+            --build-arg QT6_INSTALL_PREFIX=${QT6_PREFIX} \
+            --cache-from type=gha,scope=core-linux-amd64-qt${QT_MAJOR} \
+            --cache-from type=gha,scope=core-linux-tests-qt${QT_MAJOR} \
+            --cache-to   type=gha,mode=max,scope=core-linux-tests-qt${QT_MAJOR} \
             -f Dockerfile.core .
 
   # ────────────────────────────────────────────
@@ -236,19 +285,23 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
+
       - name: Flatten artifacts
         run: |
           mkdir -p release
           find dist -type f \( -name '*.tar.gz' -o -name '*.zip' \) -exec cp {} release/ \;
           ls -la release/
+
       - name: SHA256SUMS
         run: |
           cd release
           sha256sum * > SHA256SUMS
           cat SHA256SUMS
+
       - name: Determine tag
         id: tag
         run: |
@@ -257,6 +310,7 @@ jobs:
           else
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
+
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -264,10 +318,23 @@ jobs:
           body: |
             ## Core SDK — ${{ steps.tag.outputs.tag }}
 
-            Qt${{ env.QT_MAJOR }} build. Archives contain `include/`, `lib/`, `lib/cmake/Core/`.
+            Qt5.15 + Qt6.8 build. Archives contain `include/`, `lib/`, `lib/cmake/Core/`.
+
+            ### Artifacts
+            - `Core-Releases-*-linux-amd64-qt5.tar.gz`  — Linux x86_64, Qt5
+            - `Core-Releases-*-linux-amd64-qt6.tar.gz`  — Linux x86_64, Qt6.8
+            - `Core-Releases-*-win32-qt5.zip`           — Windows x32 (MinGW), Qt5
+            - `Core-Releases-*-linux-arm64-qt5.tar.gz`  — Linux arm64, Qt5 (если `build_arm`)
+            - `Core-Releases-*-linux-arm64-qt6.tar.gz`  — Linux arm64, Qt6.8 (если `build_arm`)
+            - `Core-Releases-*-linux-armv7-qt5.tar.gz`  — Linux armv7, Qt5 (если `build_arm`)
 
             ### Usage (CMake)
             ```cmake
+            # Qt5
+            find_package(Core CONFIG REQUIRED)
+            target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
+
+            # Qt6 — скачать linux-amd64-qt6.tar.gz, распаковать, задать CMAKE_PREFIX_PATH
             find_package(Core CONFIG REQUIRED)
             target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
           files: |
