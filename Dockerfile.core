@@ -6,42 +6,39 @@ FROM ${BASE_DEPS_IMAGE} AS build
 ARG BUILD_TYPE=Release
 ARG CMAKE_CMD=cmake
 ARG BUILD_TESTING=OFF
-# Для Linux-образов: /opt/core, итог → /opt/core/<version>/...
-# Для Windows-образа (кросс из Linux): /app/Core/applocal-staging,
-#   итог → /app/Core/applocal-staging/<version>/...
+ARG QT_VERSION_MAJOR=5
+# Для linux-qt6: /opt/Qt/6.8.0/gcc_64 (stateoftheartio/qt6)
+# Для arm64-qt6: пусто — Qt6 из apt уже в /usr и найдётся по умолчанию
+ARG QT6_INSTALL_PREFIX=
 ARG CORE_INSTALL_BASE=/opt/core
 
 WORKDIR /app
 COPY . /app/Core/
 WORKDIR /app/Core
 
-# CORE_VERSION читается из VERSION,
-# CMakeLists.txt повторно парсит тот же файл — версия гарантированно одна.
-# install(TARGETS …) в cmake/CoreLib.cmake раскладывает
-#   include/<lib>/…, lib/lib<lib>.so.<version>, lib/cmake/Core/*.cmake
 RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
-    echo "=== Core version: ${CORE_VERSION} ===" && \
+    CORE_PREFIX="${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/${CORE_VERSION}" && \
+    echo "=== Core version: ${CORE_VERSION} (Qt${QT_VERSION_MAJOR}) ===" && \
+    CMAKE_QT_ARG="" && \
+    if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ]; then \
+        CMAKE_QT_ARG="-DCMAKE_PREFIX_PATH=${QT6_INSTALL_PREFIX}"; \
+    fi && \
     ${CMAKE_CMD} -S . -B build \
         -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -DBUILD_TESTING=${BUILD_TESTING} \
-        -DCORE_INSTALL_PREFIX="${CORE_INSTALL_BASE}/${CORE_VERSION}" \
-        -DCMAKE_VERBOSE_MAKEFILE=OFF \
+        -DQT_VERSION_MAJOR=${QT_VERSION_MAJOR} \
+        -DCORE_INSTALL_PREFIX="${CORE_PREFIX}" \
+        ${CMAKE_QT_ARG} \
     && cmake --build build -j"$(nproc)" \
     && cmake --install build \
-    && ln -sfn "${CORE_INSTALL_BASE}/${CORE_VERSION}" "${CORE_INSTALL_BASE}/latest" \
-    && test -d  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core" \
-    && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreConfig.cmake" \
-    && test -f  "${CORE_INSTALL_BASE}/${CORE_VERSION}/lib/cmake/Core/CoreTargets.cmake" \
-    && echo "=== Installed to ${CORE_INSTALL_BASE}/${CORE_VERSION} ===" \
-    && find "${CORE_INSTALL_BASE}/${CORE_VERSION}" -maxdepth 2 -type d | sort
-    
-# ────────────────────────────────────────────────────────────
-# Test stage — пересобирает с BUILD_TESTING=ON и запускает ctest.
-# Использование:
-#   docker buildx build --target test \
-#       --build-arg BASE_DEPS_IMAGE=... \
-#       -f Dockerfile.core .
-# ────────────────────────────────────────────────────────────
+    && ln -sfn "${CORE_PREFIX}" "${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/latest" \
+    && test -d  "${CORE_PREFIX}/lib/cmake/Core" \
+    && test -f  "${CORE_PREFIX}/lib/cmake/Core/CoreConfig.cmake" \
+    && test -f  "${CORE_PREFIX}/lib/cmake/Core/CoreTargets.cmake" \
+    && echo "=== Installed to ${CORE_PREFIX} ===" \
+    && find "${CORE_PREFIX}" -maxdepth 2 -type d | sort
+
+# ── Test stage ────────────────────────────────────────────
 FROM build AS test
 ENV QT_QPA_PLATFORM=offscreen
 RUN cd /app/Core && \
@@ -52,27 +49,10 @@ RUN cd /app/Core && \
     cmake --build build -j"$(nproc)" && \
     cd build && ctest --output-on-failure
 
-# ============================================================
-# Export stage — итоговое дерево SDK (для CI / --output type=local)
-#
-# Использование:
-#   docker buildx build \
-#       --target export \
-#       --output type=local,dest=out/linux \
-#       --build-arg CORE_VERSION=$(tr -d '[:space:]' < VERSION) \
-#       -f Dockerfile.core ..
-#   # out/linux/{include,lib,bin}
-#
-# CORE_VERSION ОБЯЗАТЕЛЕН (иначе layout = out/linux/1.1.0/include/…)
-# ============================================================
+# ── Export stage ──────────────────────────────────────────
 FROM scratch AS export
 ARG CORE_INSTALL_BASE=/opt/core
-# Симлинк latest создаётся в build-стадии → export не требует CORE_VERSION.
-COPY --from=build ${CORE_INSTALL_BASE}/latest/ /
+ARG QT_VERSION_MAJOR=5
+COPY --from=build ${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/latest/ /
 
-# Алиас на build. Docker Compose при сборке без явного target берёт
-# ПОСЛЕДНЮЮ стадию. Без этого алиаса последняя = "export" (FROM scratch),
-# и `docker compose run ... sh -c "..."` падает — в scratch нет /bin/sh.
-# С алиасом compose собирает полноценный build-образ (Debian + /opt/core),
-# а CI по-прежнему использует `--target export` явно.
 FROM build AS final

@@ -3,19 +3,9 @@
 include(CMakeFindDependencyMacro)
 
 # Обязательные Qt-модули, используемые core-* библиотеками
-find_dependency(Qt@QT_VERSION_MAJOR@ REQUIRED COMPONENTS
-    Core
-    Gui
-    Widgets
-    PrintSupport
-    Network
-    Sql
-    SerialPort
-    SerialBus
-    Svg
-    OpenGL
-    #StateMachine
-)
+# Единственный активный find_dependency — выбран при сборке Core
+# (Qt5 → Qt5, Qt6 → Qt6 + Core5Compat).
+@CORE_QT_FIND_DEPS@
 
 # Qt5::Mqtt нужен только для Core::core-io-lib.
 #

@@ -42,6 +42,8 @@ endif()
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 message(STATUS "Qt version: ${Qt${QT_VERSION_MAJOR}Core_VERSION} (major ${QT_VERSION_MAJOR})")
 
+set(CORE_QT_MAJOR_FOR_EXPORT "${QT_VERSION_MAJOR}")
+
 # Qt6: QTextCodec/QRegExp вынесены в Core5Compat (LineEditBinding, QtWebApp)
 if(QT_VERSION_MAJOR EQUAL 6)
     find_package(Qt6 REQUIRED COMPONENTS Core5Compat)
@@ -119,6 +121,19 @@ install(EXPORT CoreTargets
     FILE CoreTargets.cmake
     NAMESPACE Core::
     DESTINATION "${CORE_INSTALL_CMAKEDIR}")
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    set(CORE_QT_FIND_DEPS
+"find_dependency(Qt6 REQUIRED COMPONENTS
+    Core Gui Widgets PrintSupport Network Sql
+    SerialPort SerialBus Svg OpenGL StateMachine
+    Core5Compat)")
+else()
+    set(CORE_QT_FIND_DEPS
+"find_dependency(Qt5 REQUIRED COMPONENTS
+    Core Gui Widgets PrintSupport Network Sql
+    SerialPort SerialBus Svg OpenGL)")
+endif()
 
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CoreConfig.cmake.in"

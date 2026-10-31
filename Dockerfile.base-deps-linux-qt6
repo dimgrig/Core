@@ -1,0 +1,147 @@
+# syntax=docker/dockerfile:1
+# ============================================================================
+# base-deps-linux-qt6: Qt5.15 (apt) + Qt6.8.0 (stateoftheartio/qt6)
+#                       + addons (Core5Compat/StateMachine/SerialPort/SerialBus/Mqtt/ShaderTools)
+#                       + CQtDeployer 1.6.2365
+# ============================================================================
+
+FROM stateoftheartio/qt6:6.8-gcc-aqt AS qt68-source
+
+FROM debian:bookworm-slim
+ENV DEBIAN_FRONTEND=noninteractive
+ARG QT6_VERSION=6.8.0
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && \
+    apt install -y --no-install-recommends \
+        build-essential cmake ninja-build \
+        # ── Qt5 (dev-пакеты для сборки Core-Qt5) ──
+        qt5-qmake qtbase5-dev qtbase5-private-dev \
+        qtdeclarative5-dev libqt5quick5 libqt5quickwidgets5 \
+        qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-layouts \
+        qttools5-dev-tools qtquickcontrols2-5-dev \
+        qtwebengine5-dev libqt5webenginewidgets5 \
+        libqt5serialbus5-dev libqt5serialport5-dev libqt5sql5-sqlite \
+        libqt5svg5-dev libqt5x11extras5-dev libqt5opengl5-dev \
+        # ── Qt6 runtime-зависимости (Config-файлы ищут find_dependency) ──
+        libcups2-dev \
+        libssl-dev \
+        libsqlite3-dev \
+        libudev-dev \
+        # ── Qt6 сборка модулей (qtshadertools/qt5compat) ──
+        libvulkan-dev glslang-tools spirv-tools \
+        # ── Qt6 Gui/Widgets runtime ──
+        libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev \
+        libfontconfig1-dev libfreetype-dev \
+        libxkbcommon-dev libxkbcommon-x11-dev \
+        libx11-xcb-dev \
+        libxcb1-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
+        libxcb-render-util0-dev libxcb-shape0-dev libxcb-xinerama0-dev \
+        libxcb-randr0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev \
+        libxcb-cursor-dev \
+        libpng-dev libjpeg-dev \
+        # ── общее ──
+        libxerces-c-dev \
+        wget git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# qtmqtt5
+RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt5 && \
+    cd /tmp/qtmqtt5 && qmake qtmqtt.pro && make -j"$(nproc)" && make install && \
+    cd / && rm -rf /tmp/qtmqtt5 && ldconfig
+
+# Qt6.8.0 — базовые модули из stateoftheartio/qt6
+COPY --from=qt68-source /opt/Qt/${QT6_VERSION}/gcc_64 /opt/Qt/${QT6_VERSION}/gcc_64
+
+# ── Сборка дополнительных Qt6-модулей (их нет в stateoftheartio/qt6) ──
+# qtshadertools — нужен для QtGraphicalEffects (qt5compat)
+RUN git clone --branch v${QT6_VERSION} --depth 1 https://github.com/qt/qtshadertools.git /tmp/qtshadertools && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qtshadertools -B /tmp/qtshadertools/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qtshadertools/build -j"$(nproc)" && \
+    cmake --install /tmp/qtshadertools/build && \
+    rm -rf /tmp/qtshadertools
+
+# qt5compat (Core5Compat) — QTextCodec, QRegExp
+RUN git clone --branch v${QT6_VERSION} --depth 1 https://github.com/qt/qt5compat.git /tmp/qt5compat && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qt5compat -B /tmp/qt5compat/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qt5compat/build -j"$(nproc)" && \
+    cmake --install /tmp/qt5compat/build && \
+    rm -rf /tmp/qt5compat
+
+# qtscxml (StateMachine) — QStateMachine
+RUN git clone --branch v${QT6_VERSION} --depth 1 https://github.com/qt/qtscxml.git /tmp/qtscxml && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qtscxml -B /tmp/qtscxml/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qtscxml/build -j"$(nproc)" && \
+    cmake --install /tmp/qtscxml/build && \
+    rm -rf /tmp/qtscxml
+
+# qtserialport (SerialPort) — QSerialPort
+RUN git clone --branch v${QT6_VERSION} --depth 1 https://github.com/qt/qtserialport.git /tmp/qtserialport && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qtserialport -B /tmp/qtserialport/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qtserialport/build -j"$(nproc)" && \
+    cmake --install /tmp/qtserialport/build && \
+    rm -rf /tmp/qtserialport
+
+# qtserialbus (SerialBus) — QModbusClient/Server
+RUN git clone --branch v${QT6_VERSION} --depth 1 https://github.com/qt/qtserialbus.git /tmp/qtserialbus && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qtserialbus -B /tmp/qtserialbus/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qtserialbus/build -j"$(nproc)" && \
+    cmake --install /tmp/qtserialbus/build && \
+    rm -rf /tmp/qtserialbus
+
+# qtmqtt6 (Mqtt)
+RUN git clone --branch ${QT6_VERSION} --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt6 && \
+    /opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake -S /tmp/qtmqtt6 -B /tmp/qtmqtt6/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_64 -GNinja && \
+    cmake --build /tmp/qtmqtt6/build -j"$(nproc)" && \
+    cmake --install /tmp/qtmqtt6/build && \
+    rm -rf /tmp/qtmqtt6
+
+# ldconfig + qmake6/qt-cmake6
+RUN echo "/opt/Qt/${QT6_VERSION}/gcc_64/lib" > /etc/ld.so.conf.d/qt68.conf && \
+    ldconfig && \
+    ln -sfn "/opt/Qt/${QT6_VERSION}/gcc_64/bin/qmake"    /usr/local/bin/qmake6 && \
+    ln -sfn "/opt/Qt/${QT6_VERSION}/gcc_64/bin/qt-cmake" /usr/local/bin/qt-cmake6
+
+# CQtDeployer 1.6.2365 (pre-built, поддерживает Qt5+Qt6)
+ARG CQTDEPLOYER_DEB_URL=https://github.com/QuasarApp/CQtDeployer/releases/download/v1.6.2365/CQtDeployer_1.6.2365.7cce7f3_Linux_x86_64.deb
+RUN wget -q -O /tmp/cqtdeployer.deb "${CQTDEPLOYER_DEB_URL}" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends /tmp/cqtdeployer.deb && \
+    rm -f /tmp/cqtdeployer.deb && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    ldconfig && cqtdeployer
+
+# ── SANITY CHECK с диагностикой ──
+RUN set -eu; \
+    for f in \
+        /usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake \
+        /usr/lib/x86_64-linux-gnu/libQt5Mqtt.so.5 \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6/Qt6Config.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6Core5Compat/Qt6Core5CompatConfig.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6StateMachine/Qt6StateMachineConfig.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6SerialPort/Qt6SerialPortConfig.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6SerialBus/Qt6SerialBusConfig.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/cmake/Qt6ShaderTools/Qt6ShaderToolsConfig.cmake \
+        /opt/Qt/${QT6_VERSION}/gcc_64/lib/libQt6Mqtt.so.6 \
+        /usr/include/cups/cups.h \
+        /usr/include/openssl/ssl.h \
+        /usr/include/sqlite3.h \
+        /usr/include/libudev.h ; do \
+        if [ ! -e "$f" ]; then echo "MISSING: $f" >&2; exit 1; fi; \
+    done; \
+    qmake6 -query QT_VERSION | grep -q '^6\.8' || { echo "BAD qmake6 version" >&2; exit 1; }; \
+    echo "OK: base-deps-linux-qt6 (Qt5.15 + Qt6.8.0 + addons + CQtDeployer 1.6.2365)"
+
+# docker build -t base-deps-linux-qt6:latest -f Dockerfile.base-deps-linux-qt6 ..

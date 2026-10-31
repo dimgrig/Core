@@ -1,0 +1,139 @@
+# syntax=docker/dockerfile:1
+# ============================================================================
+# base-deps-arm64-qt6 (trixie):
+#   Qt5.15 (apt, runtime для cqtdeployer)
+# + Qt6.8 (apt, dev, для сборки Core-Qt6)
+# + qtmqtt6 (source, нет в apt)
+# + CQtDeployer 1.6.2365 (собирается в bookworm, чтобы обойти gcc-14)
+# ============================================================================
+
+# ---------- CQtDeployer (bookworm, gcc-12) ----------
+FROM debian:bookworm-slim AS cqtdeployer-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && \
+    apt install -y --no-install-recommends \
+        build-essential \
+        qt5-qmake qtbase5-dev qtbase5-private-dev \
+        qtdeclarative5-dev libqt5quick5 libqt5quickwidgets5 \
+        qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-layouts \
+        qttools5-dev-tools qtquickcontrols2-5-dev \
+        qtwebengine5-dev libqt5webenginewidgets5 \
+        libqt5serialbus5-dev libqt5serialport5-dev \
+        wget git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cqtdeployer && \
+    cd /tmp/cqtdeployer && \
+    git submodule update --init --recursive && \
+    qmake && make -j"$(nproc)" && make install && \
+    cp "$(find /tmp/cqtdeployer -name cqtdeployer -type f | head -1)" /usr/local/bin/cqtdeployer && \
+    find /tmp/cqtdeployer -name "*.so*" -type f -exec cp -d {} /usr/local/lib/ \; && \
+    rm -rf /tmp/cqtdeployer && ldconfig
+
+# ---------- Финальный образ: trixie, Qt5 (runtime) + Qt6 (dev) ----------
+FROM debian:trixie-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && \
+    apt install -y --no-install-recommends \
+        build-essential cmake ninja-build \
+        # ── Qt5: runtime для cqtdeployer + dev, чтобы его бинарь линковался ──
+        qt5-qmake qtbase5-dev qtbase5-private-dev \
+        qtdeclarative5-dev libqt5quick5 libqt5quickwidgets5 \
+        qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-layouts \
+        qttools5-dev-tools qtquickcontrols2-5-dev \
+        libqt5webenginewidgets5 libqt5webenginecore5 \
+        # libqt5serialbus5-dev — НЕТ в trixie (удалён из Debian);
+        # cqtdeployer его не использует, а Core на Qt6 его тоже не требует.
+        libqt5serialport5-dev libqt5sql5-sqlite \
+        libqt5svg5-dev libqt5x11extras5-dev libqt5opengl5-dev \
+        # ── Qt6 dev-пакеты (все модули, которые использует Core) ──
+        qt6-base-dev qt6-base-private-dev \
+        qt6-svg-dev qt6-serialport-dev qt6-serialbus-dev \
+        qt6-5compat-dev qt6-scxml-dev \
+        qt6-tools-dev qt6-tools-dev-tools \
+        qt6-declarative-dev \
+        libqt6opengl6-dev \
+        # ── Qt6 Config-зависимости (find_dependency на уровне CMake) ──
+        libcups2-dev \
+        libssl-dev \
+        libsqlite3-dev \
+        libudev-dev \
+        # ── Qt6 Gui/Widgets runtime/build ──
+        libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev \
+        libfontconfig1-dev libfreetype-dev libpng-dev libjpeg-dev \
+        libxkbcommon-dev libxkbcommon-x11-dev libx11-xcb-dev \
+        libxcb1-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
+        libxcb-render-util0-dev libxcb-shape0-dev libxcb-xinerama0-dev \
+        libxcb-randr0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev \
+        libxcb-cursor-dev \
+        # ── QML runtime (для core-widgets-lib / QtQuick) ──
+        qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
+        # ── общее ──
+        libxerces-c-dev \
+        wget git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# qtmqtt6 — нет в apt; ставим ровно туда, где Qt6 из trixie
+RUN set -e; \
+    QT_PREFIX="$(qmake6 -query QT_INSTALL_PREFIX)"; \
+    QT_LIBS="$(qmake6 -query QT_INSTALL_LIBS)"; \
+    QT_LIBDIR_REL="$(realpath --relative-to="$QT_PREFIX" "$QT_LIBS")"; \
+    echo "qtmqtt6 → prefix=$QT_PREFIX libdir=$QT_LIBDIR_REL"; \
+    git clone --branch 6.8.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt6; \
+    cmake -S /tmp/qtmqtt6 -B /tmp/qtmqtt6/build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX="$QT_PREFIX" \
+        -DCMAKE_INSTALL_LIBDIR="$QT_LIBDIR_REL" \
+        -DCMAKE_INSTALL_INCLUDEDIR=include; \
+    cmake --build /tmp/qtmqtt6/build -j"$(nproc)"; \
+    cmake --install /tmp/qtmqtt6/build; \
+    rm -rf /tmp/qtmqtt6; \
+    ldconfig; \
+    ls "$QT_LIBS"/libQt6Mqtt.so*
+
+# CQtDeployer из bookworm-стадии
+COPY --from=cqtdeployer-builder /usr/local/bin/cqtdeployer /usr/local/bin/cqtdeployer
+COPY --from=cqtdeployer-builder /usr/local/lib/lib* /usr/local/lib/
+RUN ldconfig
+
+# ── SANITY CHECK с диагностикой (одной строкой MISSING: ...) ──
+RUN set -eu; \
+    check() { \
+        if [ ! -e "$1" ]; then \
+            echo "MISSING: $1" >&2; \
+            if [ -n "${2:-}" ]; then \
+                echo "search pattern: $2" >&2; \
+                find /usr -name "$2" 2>/dev/null | head -5 >&2 || true; \
+            fi; \
+            exit 1; \
+        fi; \
+    }; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt5/Qt5Config.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6/Qt6Config.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6Core5Compat/Qt6Core5CompatConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6StateMachine/Qt6StateMachineConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6SerialPort/Qt6SerialPortConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6SerialBus/Qt6SerialBusConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6PrintSupport/Qt6PrintSupportConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6Svg/Qt6SvgConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6Sql/Qt6SqlConfig.cmake; \
+    check /usr/lib/aarch64-linux-gnu/cmake/Qt6Network/Qt6NetworkConfig.cmake; \    
+    check /usr/lib/aarch64-linux-gnu/libQt6Mqtt.so.6  "libQt6Mqtt*"; \
+    check /usr/include/cups/cups.h; \
+    check /usr/include/openssl/ssl.h; \
+    check /usr/include/sqlite3.h; \
+    check /usr/include/libudev.h; \
+    qmake6 -query QT_VERSION | grep -q '^6\.8' || { echo "BAD qmake6 version" >&2; exit 1; }; \
+    test -x /usr/local/bin/cqtdeployer || { echo "MISSING: cqtdeployer" >&2; exit 1; }; \
+    echo "OK: base-deps-arm64-qt6 (trixie)"
+
+# docker buildx build --platform linux/arm64 \
+#   -t base-deps-arm64-qt6:latest -f Dockerfile.base-deps-arm64-qt6 ..

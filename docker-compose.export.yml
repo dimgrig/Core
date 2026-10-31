@@ -1,14 +1,26 @@
 # docker-compose.export.yml
-# Dev-экспорт артефактов Core из контейнеров в ${OUT_ROOT}/{linux,arm64,armv7,win}.
+# Dev-экспорт артефактов Core из контейнеров в ${OUT_ROOT}/{linux,linux-qt6,win,arm64,arm64-qt6,armv7}.
 # НЕ для продакшена: prod-путь — CI → Core-SDK releases.
 #
 # Требует env: CORE_VERSION (из VERSION), OUT_ROOT (см. docker-export-core.sh).
-# Прямой запуск:
-#   CORE_VERSION=$(tr -d '[:space:]' < VERSION) \
-#   OUT_ROOT=$HOME/deploy/core/${CORE_VERSION} \
-#   docker compose -f docker-compose.export.yml run --rm core-linux
+#
+# Раскладка внутри контейнера (задаётся Dockerfile.core через QT_VERSION_MAJOR):
+#   Linux/Qt5   → /opt/core/qt5/${CORE_VERSION}
+#   Linux/Qt6   → /opt/core/qt6/${CORE_VERSION}
+#   Win/Qt5     → /app/Core/applocal-staging/qt5/${CORE_VERSION}
+#   Win/Qt6     → /app/Core/applocal-staging/qt6/${CORE_VERSION}   (пока нет base-образа)
+#
+# На хосте (OUT_ROOT/...):
+#   linux/       ← Qt5 linux amd64
+#   linux-qt6/   ← Qt6 linux amd64
+#   win/         ← Qt5 windows x32
+#   arm64/       ← Qt5 arm64
+#   arm64-qt6/   ← Qt6 arm64
+#   armv7/       ← Qt5 armv7
 
 services:
+
+  # ── Linux amd64 ──────────────────────────────────────────
   core-linux:
     build:
       context: .
@@ -16,49 +28,34 @@ services:
       args:
         BASE_DEPS_IMAGE: base-deps-linux:latest
         CMAKE_CMD: cmake
+        QT_VERSION_MAJOR: "5"
         CORE_INSTALL_BASE: /opt/core
+        QT6_INSTALL_PREFIX: "/opt/Qt/6.8.0/gcc_64"
     image: core-builder-cmake-linux:latest
     volumes:
       - ${OUT_ROOT:?OUT_ROOT must be set}/linux:/out
     command: >
-      sh -c "rm -rf /out/* && cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+      sh -c "rm -rf /out/* &&
+             cp -r /opt/core/qt5/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
-  core-arm64:
+  core-linux-qt6:
     build:
       context: .
       dockerfile: Dockerfile.core
       args:
-        BASE_DEPS_IMAGE: base-deps-arm64:latest
+        BASE_DEPS_IMAGE: base-deps-linux-qt6:latest
         CMAKE_CMD: cmake
+        QT_VERSION_MAJOR: "6"
         CORE_INSTALL_BASE: /opt/core
-    image: core-builder-cmake-arm64:latest
-    platform: linux/arm64
+        QT6_INSTALL_PREFIX: "/opt/Qt/6.8.0/gcc_64" 
+    image: core-builder-cmake-linux-qt6:latest
     volumes:
-      - ${OUT_ROOT:?OUT_ROOT must be set}/arm64:/out
+      - ${OUT_ROOT:?OUT_ROOT must be set}/linux-qt6:/out
     command: >
-      sh -c "set -e
-             cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
-             rm -rf /out/*
-             cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+      sh -c "rm -rf /out/* &&
+             cp -r /opt/core/qt6/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
-  core-armv7:
-    build:
-      context: .
-      dockerfile: Dockerfile.core
-      args:
-        BASE_DEPS_IMAGE: base-deps-armv7:latest
-        CMAKE_CMD: cmake
-        CORE_INSTALL_BASE: /opt/core
-    image: core-builder-cmake-armv7:latest
-    platform: linux/arm/v7
-    volumes:
-      - ${OUT_ROOT:?OUT_ROOT must be set}/armv7:/out
-    command: >
-      sh -c "set -e
-             cmake --install /app/Core/build --prefix /opt/core/${CORE_VERSION:?CORE_VERSION must be set}
-             rm -rf /out/*
-             cp -r /opt/core/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
-
+  # ── Windows (Qt5-only; Qt6-win пока нет) ─────────────────
   core-win:
     build:
       context: .
@@ -66,12 +63,64 @@ services:
       args:
         BASE_DEPS_IMAGE: base-deps-win:latest
         CMAKE_CMD: i686-w64-mingw32-cmake
+        QT_VERSION_MAJOR: "5"
         CORE_INSTALL_BASE: /app/Core/applocal-staging
     image: core-builder-cmake-win:latest
     volumes:
       - ${OUT_ROOT:?OUT_ROOT must be set}/win:/out
     command: >
-      sh -c "set -e
-             cmake --install /app/Core/build --prefix /app/Core/applocal-staging/${CORE_VERSION:?CORE_VERSION must be set}
-             rm -rf /out/*
-             cp -r /app/Core/applocal-staging/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+      sh -c "rm -rf /out/* &&
+             cp -r /app/Core/applocal-staging/qt5/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+
+  # ── ARM64 ────────────────────────────────────────────────
+  core-arm64:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-arm64:latest
+        CMAKE_CMD: cmake
+        QT_VERSION_MAJOR: "5"
+        CORE_INSTALL_BASE: /opt/core
+    image: core-builder-cmake-arm64:latest
+    platform: linux/arm64
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/arm64:/out
+    command: >
+      sh -c "rm -rf /out/* &&
+             cp -r /opt/core/qt5/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+
+  core-arm64-qt6:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-arm64-qt6:latest
+        CMAKE_CMD: cmake
+        QT_VERSION_MAJOR: "6"
+        CORE_INSTALL_BASE: /opt/core
+    image: core-builder-cmake-arm64-qt6:latest
+    platform: linux/arm64
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/arm64-qt6:/out
+    command: >
+      sh -c "rm -rf /out/* &&
+             cp -r /opt/core/qt6/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+
+  # ── ARMv7 (Qt5-only) ─────────────────────────────────────
+  core-armv7:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-armv7:latest
+        CMAKE_CMD: cmake
+        QT_VERSION_MAJOR: "5"
+        CORE_INSTALL_BASE: /opt/core
+    image: core-builder-cmake-armv7:latest
+    platform: linux/arm/v7
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/armv7:/out
+    command: >
+      sh -c "rm -rf /out/* &&
+             cp -r /opt/core/qt5/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
