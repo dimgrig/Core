@@ -48,4 +48,3 @@ RUN pacman -S --noconfirm --needed autoconf automake libtool \
     && pacman -Scc --noconfirm   # очистка кэша pacman
 
 # docker build -t base-deps-win:latest -f Dockerfile.base-deps-win ..
-

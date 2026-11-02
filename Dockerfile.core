@@ -11,6 +11,7 @@ ARG QT_VERSION_MAJOR=5
 # Для arm64-qt6: пусто — Qt6 из apt уже в /usr и найдётся по умолчанию
 ARG QT6_INSTALL_PREFIX=
 ARG CORE_INSTALL_BASE=/opt/core
+ARG CMAKE_TOOLCHAIN_FILE=
 
 WORKDIR /app
 COPY . /app/Core/
@@ -20,8 +21,12 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
     CORE_PREFIX="${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/${CORE_VERSION}" && \
     echo "=== Core version: ${CORE_VERSION} (Qt${QT_VERSION_MAJOR}) ===" && \
     CMAKE_QT_ARG="" && \
+    CMAKE_TOOLCHAIN_ARG="" && \
     if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ]; then \
         CMAKE_QT_ARG="-DCMAKE_PREFIX_PATH=${QT6_INSTALL_PREFIX}"; \
+    fi && \
+    if [ -n "${CMAKE_TOOLCHAIN_FILE}" ]; then \
+        CMAKE_TOOLCHAIN_ARG="-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"; \
     fi && \
     ${CMAKE_CMD} -S . -B build \
         -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -29,6 +34,7 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
         -DQT_VERSION_MAJOR=${QT_VERSION_MAJOR} \
         -DCORE_INSTALL_PREFIX="${CORE_PREFIX}" \
         ${CMAKE_QT_ARG} \
+        ${CMAKE_TOOLCHAIN_ARG} \
     && cmake --build build -j"$(nproc)" \
     && cmake --install build \
     && ln -sfn "${CORE_PREFIX}" "${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/latest" \

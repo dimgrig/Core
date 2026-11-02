@@ -11,6 +11,15 @@ endif()
 add_library(muParser STATIC ${MUPARSER_SOURCES} ${MUPARSER_HEADERS})
 add_library(Core::muParser ALIAS muParser)
 
+# ── Windows: Qt/mingw headers могут протаскивать _UNICODE в consumer builds ──
+# ── (MathParser.cpp получает wide-версию DefineOprt/AddCallback/SetExpr),   ──
+# ── а сам muParser собирается narrow → mangling mismatch → undefined ref.    ──
+# ── Принудительно делаем muParser wide через PUBLIC, чтобы и библиотека,     ──
+# ── и все её потребители видели одинаковый mu::string_type.                  ──
+if(WIN32)
+    target_compile_definitions(muParser PUBLIC _UNICODE UNICODE)
+endif()
+
 # PUBLIC: MUPARSER_STATIC нужен и потребителям (MathParser.h → muParser.h)
 target_compile_definitions(muParser PUBLIC MUPARSER_STATIC)
 

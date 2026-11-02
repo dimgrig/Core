@@ -8,12 +8,13 @@
 #   Linux/Qt5   → /opt/core/qt5/${CORE_VERSION}
 #   Linux/Qt6   → /opt/core/qt6/${CORE_VERSION}
 #   Win/Qt5     → /app/Core/applocal-staging/qt5/${CORE_VERSION}
-#   Win/Qt6     → /app/Core/applocal-staging/qt6/${CORE_VERSION}   (пока нет base-образа)
+#   Win/Qt6     → /app/Core/applocal-staging/qt6/${CORE_VERSION}
 #
 # На хосте (OUT_ROOT/...):
 #   linux/       ← Qt5 linux amd64
 #   linux-qt6/   ← Qt6 linux amd64
 #   win/         ← Qt5 windows x32
+#   win-qt6/     ← Qt6 windows x64
 #   arm64/       ← Qt5 arm64
 #   arm64-qt6/   ← Qt6 arm64
 #   armv7/       ← Qt5 armv7
@@ -55,7 +56,7 @@ services:
       sh -c "rm -rf /out/* &&
              cp -r /opt/core/qt6/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
-  # ── Windows (Qt5-only; Qt6-win пока нет) ─────────────────
+  # ── Windows x32 Qt5 ──────────────────────────────────────
   core-win:
     build:
       context: .
@@ -71,6 +72,25 @@ services:
     command: >
       sh -c "rm -rf /out/* &&
              cp -r /app/Core/applocal-staging/qt5/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
+
+  # ── Windows x64 Qt6 ──────────────────────────────────────
+  core-win-qt6:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+      args:
+        BASE_DEPS_IMAGE: base-deps-win64-qt6:latest
+        CMAKE_CMD: cmake
+        CMAKE_TOOLCHAIN_FILE: /opt/x86_64-w64-mingw32.cmake
+        QT_VERSION_MAJOR: "6"
+        QT6_INSTALL_PREFIX: /opt/Qt/6.8.0/mingw_64
+        CORE_INSTALL_BASE: /app/Core/applocal-staging
+    image: core-builder-cmake-win64-qt6:latest
+    volumes:
+      - ${OUT_ROOT:?OUT_ROOT must be set}/win-qt6:/out
+    command: >
+      sh -c "rm -rf /out/* &&
+             cp -r /app/Core/applocal-staging/qt6/${CORE_VERSION:?CORE_VERSION must be set}/* /out/"
 
   # ── ARM64 ────────────────────────────────────────────────
   core-arm64:

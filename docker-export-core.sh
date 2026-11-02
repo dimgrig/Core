@@ -69,10 +69,10 @@ if [ "$BUILD_QT6" = "1" ]; then
     add core-linux-qt6 linux-qt6
 fi
 
-# win — Qt5-only (Qt6-win пока нет base-образа)
+# win (Qt5 (win32) всегда, Qt6 (win64) — по флагу)
 add core-win win
 if [ "$BUILD_QT6" = "1" ]; then
-    echo "⏭️  core-win-qt6: пропущен (нет base-deps-win-qt6)"
+    add core-win-qt6 win-qt6
 fi
 
 # arm
@@ -98,6 +98,7 @@ for svc in "${SERVICES[@]}"; do
         core-linux)         img="base-deps-linux:latest"       ;;
         core-linux-qt6)     img="base-deps-linux-qt6:latest"   ;;
         core-win)           img="base-deps-win:latest"         ;;
+        core-win-qt6)       img="base-deps-win64-qt6:latest"   ;;
         core-arm64)         img="base-deps-arm64:latest"       ;;
         core-arm64-qt6)     img="base-deps-arm64-qt6:latest"   ;;
         core-armv7)         img="base-deps-armv7:latest"       ;;

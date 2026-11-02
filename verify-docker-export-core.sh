@@ -20,7 +20,7 @@ export LC_ALL=C LANG=C
 CORE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 DEPLOY_ROOT="${DEPLOY_ROOT:-$HOME/deploy/core}"
 CORE_VERSION="${CORE_VERSION:-$(tr -d '[:space:]' < "$CORE_ROOT/VERSION")}"
-PLATFORMS="${PLATFORMS:-linux win arm64 armv7}"
+PLATFORMS="${PLATFORMS:-linux win win-qt6 arm64 armv7}"
 WIN_IMAGE="${WIN_IMAGE:-core-builder-cmake-win:latest}"
 
 SDK_ROOT="$DEPLOY_ROOT/$CORE_VERSION"
@@ -163,8 +163,8 @@ for plat in $PLATFORMS; do
         fi
     fi
 
-    # ── Windows ──
-    if [ "$plat" = "win" ]; then
+    # ── Windows (win32-qt5 и win64-qt6) ──
+    if [ "$plat" = "win" ] || [ "$plat" = "win-qt6" ]; then
         check_dir "$SDK_ROOT/$plat/bin"
         for lib in "${CORE_LIBS[@]}"; do
             check_file "$SDK_ROOT/$plat/bin/lib${lib}.dll"
