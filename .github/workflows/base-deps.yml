@@ -35,11 +35,17 @@ jobs:
             runner:   ubuntu-latest
             platforms: linux/amd64
 
-          # ── Windows (Qt5-only) ───────────────────────────
+          # ── Windows ────────────────────────────────────────
           - name:     win-qt5
             dockerfile: Dockerfile.base-deps-win
             image:    core-base-deps-win
             tag:      qt5-mingw
+            runner:   ubuntu-latest
+            platforms: linux/amd64
+          - name:     win-qt6
+            dockerfile: Dockerfile.base-deps-win64-qt6
+            image:    core-base-deps-win64
+            tag:      qt6-mingw
             runner:   ubuntu-latest
             platforms: linux/amd64
 
