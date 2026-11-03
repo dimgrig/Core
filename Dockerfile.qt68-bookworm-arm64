@@ -74,7 +74,7 @@ RUN --mount=type=cache,id=qt68-src-${QT6_VERSION},target=/tmp/qt-src \
     if [ ! -d "$SRC" ]; then \
         if [ ! -f "$TAR" ]; then \
             echo "Downloading ${TAR}..."; \
-            wget -q "https://download.qt.io/official_releases/qt/$(echo "$QT6_VERSION" | cut -d. -f1-2)/${QT6_VERSION}/single/${TAR}"; \
+            wget -q "https://download.qt.io/archive/qt/$(echo "$QT6_VERSION" | cut -d. -f1-2)/${QT6_VERSION}/single/${TAR}";
         fi; \
         tar xf "$TAR"; \
     fi; \
