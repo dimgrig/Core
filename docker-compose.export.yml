@@ -118,7 +118,7 @@ services:
         BASE_DEPS_IMAGE: base-deps-arm64-qt6:latest
         CMAKE_CMD: cmake
         QT_VERSION_MAJOR: "6"
-        QT6_INSTALL_PREFIX: "/opt/Qt/6.8.0/gcc_arm64"
+        QT6_INSTALL_PREFIX: "/opt/Qt/6.8.5/gcc_arm64"
         CORE_INSTALL_BASE: /opt/core
     image: core-builder-cmake-arm64-qt6:latest
     platform: linux/arm64

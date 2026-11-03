@@ -174,7 +174,7 @@ jobs:
         qt_major: ['5', '6']
     env:
       QT_MAJOR: ${{ matrix.qt_major }}
-      QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.0/gcc_arm64' || '' }}
+      QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.5/gcc_arm64' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -186,7 +186,7 @@ jobs:
 
       - name: Build & export SDK (Qt${{ env.QT_MAJOR }} arm64)
         run: |
-          # base-deps-arm64:qt6-bookworm-aqt → собран из qt68-bookworm-arm64:6.8.0
+          # base-deps-arm64:qt6-bookworm-aqt → собран из qt68-bookworm-arm64:6.8.5
           # (собран из исходников под bookworm → нет GLIBC_2.38+)
           DISTRO=${{ matrix.qt_major == '6' && 'bookworm-aqt' || 'bookworm' }}
           echo "BASE_DEPS_IMAGE=...core-base-deps-arm64:qt${QT_MAJOR}-${DISTRO}"

@@ -88,7 +88,7 @@ RUN set -eux; \
     echo "Using SRC=$SRC"; \
     mkdir -p /tmp/qt-build; \
     cd /tmp/qt-build; \
-    "$SRC/configure" \
+        "$SRC/configure" \
         -release \
         -prefix "$PREFIX" \
         -nomake examples \
@@ -115,8 +115,7 @@ RUN set -eux; \
         -qt-zlib -qt-libpng -qt-libjpeg \
         -system-freetype -fontconfig \
         -openssl-runtime \
-        -opengl dynamic \
-        -feature-openglwidgets \
+        -opengl desktop \
         -dbus-runtime \
         -no-pch; \
     cmake --build . -j"$(nproc)"; \
