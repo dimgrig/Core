@@ -20,6 +20,14 @@ WORKDIR /app/Core
 RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
     CORE_PREFIX="${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/${CORE_VERSION}" && \
     echo "=== Core version: ${CORE_VERSION} (Qt${QT_VERSION_MAJOR}) ===" && \
+    echo "=== QT6_INSTALL_PREFIX='${QT6_INSTALL_PREFIX}' (Qt${QT_VERSION_MAJOR}) ===" && \
+    if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ] && \
+       [ ! -f "${QT6_INSTALL_PREFIX}/lib/cmake/Qt6/Qt6Config.cmake" ]; then \
+        echo "FATAL: Qt6Config.cmake not found in ${QT6_INSTALL_PREFIX}/lib/cmake/Qt6/" >&2; \
+        echo "QT6_INSTALL_PREFIX=${QT6_INSTALL_PREFIX}" >&2; \
+        ls -la "${QT6_INSTALL_PREFIX}/lib/cmake/" >&2 || true; \
+        exit 1; \
+    fi && \
     CMAKE_QT_ARG="" && \
     CMAKE_TOOLCHAIN_ARG="" && \
     if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ]; then \
