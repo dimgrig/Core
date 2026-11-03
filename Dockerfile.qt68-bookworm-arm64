@@ -15,24 +15,24 @@
 # Core их не использует (см. CoreConfig.cmake.in find_dependency list).
 #
 # Результат:
-#   qt68-bookworm-arm64:6.8.0   (immutable)
-#   qt68-bookworm-arm64:latest  (symlink-like tag на 6.8.0)
+#   qt68-bookworm-arm64:6.8.5   (immutable)
+#   qt68-bookworm-arm64:latest  (symlink-like tag на 6.8.5)
 #
 # Использование:
 #   docker buildx build --platform linux/arm64 \
-#       -t qt68-bookworm-arm64:6.8.0 \
+#       -t qt68-bookworm-arm64:6.8.5 \
 #       -t qt68-bookworm-arm64:latest \
 #       -f Dockerfile.qt68-bookworm-arm64 .
 # ============================================================================
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 
 # ────────────────────────────────────────────────────────────────────────────
 # СТАДИЯ 1: сборка Qt 6.8 из исходников
 # ────────────────────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS qt6-builder
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt update && \
     apt install -y --no-install-recommends \
         build-essential cmake ninja-build perl python3 \
-        git wget ca-certificates xz-utils \
+        git wget curl ca-certificates xz-utils \
         # X11 / xcb
         libx11-dev libx11-xcb-dev libxcb1-dev \
         libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
@@ -163,7 +163,7 @@ RUN set -eu; \
 # ────────────────────────────────────────────────────────────────────────────
 FROM qt6-builder AS qtmqtt-builder
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 
 RUN set -e; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
@@ -195,7 +195,7 @@ RUN set -e; \
 # ────────────────────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS runtime
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV QT6_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64
