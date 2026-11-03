@@ -71,9 +71,14 @@ RUN set -eux; \
     echo "Downloaded: $GOT.tar.xz"; \
     tar xf qt.tar.xz; \
     rm qt.tar.xz; \
-    test -d "/tmp/$GOT" || { echo "FATAL: /tmp/$GOT not found after extract" >&2; ls /tmp >&2; exit 1; }; \
-    echo "OK: /tmp/$GOT ready"
-
+    # Имя архива (qt-everywhere-opensource-src-X.Y.Z.tar.xz) и имя каталога
+    # внутри (qt-everywhere-src-X.Y.Z) не совпадают — не гадаем, а находим
+    # реально распакованный каталог через glob.
+    EXTRACTED="$(ls -d /tmp/qt-everywhere*-src-${QT6_VERSION} 2>/dev/null | head -1)"; \
+    [ -n "$EXTRACTED" ] && [ -d "$EXTRACTED" ] \
+        || { echo "FATAL: no extracted Qt source dir under /tmp" >&2; ls /tmp >&2; exit 1; }; \
+    echo "OK: $EXTRACTED ready"
+    
 # ── configure + build + install ──
 RUN set -eux; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
