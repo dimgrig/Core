@@ -69,16 +69,36 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 RUN --mount=type=cache,id=qt68-src-${QT6_VERSION},target=/tmp/qt-src \
     set -eux; \
     cd /tmp/qt-src; \
-    SRC="qt-everywhere-src-${QT6_VERSION}"; \
-    TAR="${SRC}.tar.xz"; \
-    URL="https://download.qt.io/archive/qt/6.8/6.8.5/single/${TAR}"; \
-    if [ ! -d "$SRC" ]; then \
-        if [ ! -f "$TAR" ]; then \
-            echo "Downloading ${URL} ..."; \
-            curl -fL --retry 3 --retry-delay 5 -o "$TAR" "$URL"; \
-        fi; \
-        tar xf "$TAR"; \
+    MAJOR_MINOR="$(echo "$QT6_VERSION" | cut -d. -f1-2)"; \
+    # Уже распаковано от прошлой сборки — выходим
+    if ls -d qt-everywhere*-src-${QT6_VERSION} >/dev/null 2>&1; then \
+        echo "OK: already extracted: $(ls -d qt-everywhere*-src-${QT6_VERSION})"; \
+        exit 0; \
     fi; \
+    # Qt переименовал tarball: <=6.8.3 → qt-everywhere-src-X.Y.Z.tar.xz
+    #                          >=6.8.5 → qt-everywhere-opensource-src-X.Y.Z.tar.xz
+    # Пробуем оба.
+    FOUND_TAR=""; \
+    for NAME in \
+        "qt-everywhere-opensource-src-${QT6_VERSION}" \
+        "qt-everywhere-src-${QT6_VERSION}" \
+    ; do \
+        TAR="${NAME}.tar.xz"; \
+        URL="https://download.qt.io/archive/qt/${MAJOR_MINOR}/${QT6_VERSION}/single/${TAR}"; \
+        if [ -f "$TAR" ]; then FOUND_TAR="$TAR"; break; fi; \
+        echo "Trying ${URL}"; \
+        if curl -fL --retry 3 --retry-delay 5 \
+                --connect-timeout 30 --max-time 3600 \
+                -o "$TAR" "$URL"; then \
+            FOUND_TAR="$TAR"; break; \
+        fi; \
+        rm -f "$TAR"; \
+    done; \
+    [ -n "$FOUND_TAR" ] || { echo "FATAL: cannot download Qt ${QT6_VERSION}" >&2; exit 1; }; \
+    echo "OK: downloaded ${FOUND_TAR}"; \
+    tar xf "$FOUND_TAR"; \
+    SRC="$(ls -d qt-everywhere*-src-${QT6_VERSION} | head -1)"; \
+    [ -d "$SRC" ] || { echo "FATAL: extracted dir not found" >&2; exit 1; }; \
     echo "OK: /tmp/qt-src/$SRC ready"
 
 # ── Configure + build + install ──
@@ -87,7 +107,8 @@ RUN --mount=type=cache,id=qt68-src-${QT6_VERSION},target=/tmp/qt-src \
 # -qt-* для zlib/png/jpeg (избегаем version mismatch с чужой системой)
 RUN set -e; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
-    SRC=/tmp/qt-src/qt-everywhere-src-${QT6_VERSION}; \
+    SRC="$(ls -d /tmp/qt-src/qt-everywhere*-src-${QT6_VERSION} | head -1)"; \
+    [ -d "$SRC" ] || { echo "FATAL: Qt source dir not found" >&2; ls /tmp/qt-src/ >&2; exit 1; }; \
     BUILD=/tmp/qt-build; \
     mkdir -p "$BUILD"; \
     cd "$BUILD"; \
@@ -163,14 +184,29 @@ RUN set -eu; \
 # ────────────────────────────────────────────────────────────────────────────
 FROM qt6-builder AS qtmqtt-builder
 
-ARG QT6_VERSION=6.8.5
+ARG QT6_VERSION=6.8.3
 
 RUN set -e; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
-    SRC=/tmp/qtmqtt-${QT6_VERSION}; \
+    SRC=/tmp/qtmqtt-src; \
     BUILD=/tmp/qtmqtt-build; \
-    # qtmqtt — маленький репо, качаем всегда (нет смысла кэшировать 5 MB)
-    git clone --depth 1 --branch "$QT6_VERSION" https://github.com/qt/qtmqtt.git "$SRC"; \
+    REF=""; \
+    # Пробуем оба варианта: "6.8.3" и "v6.8.3". \
+    # Для 6.8.3 существует ветка без префикса, но для других версий \
+    # может понадобиться "v". \
+    for r in "${QT6_VERSION}" "v${QT6_VERSION}"; do \
+        if git ls-remote --exit-code --heads https://github.com/qt/qtmqtt.git "refs/heads/$r" >/dev/null 2>&1; then \
+            REF="$r"; break; \
+        fi; \
+        if git ls-remote --exit-code --tags https://github.com/qt/qtmqtt.git "refs/tags/$r" >/dev/null 2>&1; then \
+            REF="$r"; break; \
+        fi; \
+    done; \
+    [ -n "$REF" ] || { echo "FATAL: qtmqtt ref for ${QT6_VERSION} not found" >&2; \
+                       echo "--- available branches: ---" >&2; \
+                       git ls-remote --heads https://github.com/qt/qtmqtt.git | tail -20 >&2; exit 1; }; \
+    echo "Using qtmqtt ref: $REF"; \
+    git clone --depth 1 --branch "$REF" https://github.com/qt/qtmqtt.git "$SRC"; \
     mkdir -p "$BUILD"; \
     cd "$BUILD"; \
     "$PREFIX/bin/qt-configure-module" "$SRC" -- -DCMAKE_BUILD_TYPE=Release; \
@@ -180,7 +216,7 @@ RUN set -e; \
     rm -rf "$SRC" "$BUILD"; \
     test -f "$PREFIX/lib/cmake/Qt6Mqtt/Qt6MqttConfig.cmake" \
         || { echo "FATAL: Qt6MqttConfig.cmake not installed" >&2; exit 1; }; \
-    # qtmqtt6 тоже не должен тащить GLIBC_2.38+ (унаследует от Qt6Gui)
+    # qtmqtt не должен тащить GLIBC_2.38+ (унаследует от Qt6Gui) \
     if readelf --dyn-syms "$PREFIX"/lib/libQt6Mqtt.so.6* 2>/dev/null \
          | grep -qE "@GLIBC_2\.(3[89]|4[0-9])"; then \
         echo "FATAL: Qt6Mqtt links to GLIBC_2.38+" >&2; \
@@ -188,7 +224,7 @@ RUN set -e; \
           | grep -E "@GLIBC_2\.(3[89]|4[0-9])" | head >&2; \
         exit 1; \
     fi; \
-    echo "OK: qtmqtt6 installed to $PREFIX"
+    echo "OK: qtmqtt ($REF) installed to $PREFIX"
 
 # ────────────────────────────────────────────────────────────────────────────
 # СТАДИЯ 3: runtime — только Qt + системные runtime-зависимости
