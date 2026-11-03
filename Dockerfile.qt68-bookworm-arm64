@@ -67,14 +67,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Cache для tarball: при пересборке того же QT6_VERSION не скачиваем 700 MB
 # заново. Build dir НЕ кэшируем — ~5 GB раздуют cache mount.
 RUN --mount=type=cache,id=qt68-src-${QT6_VERSION},target=/tmp/qt-src \
-    set -e; \
+    set -eux; \
     cd /tmp/qt-src; \
     SRC="qt-everywhere-src-${QT6_VERSION}"; \
     TAR="${SRC}.tar.xz"; \
+    URL="https://download.qt.io/archive/qt/6.8/6.8.5/single/${TAR}"; \
     if [ ! -d "$SRC" ]; then \
         if [ ! -f "$TAR" ]; then \
-            echo "Downloading ${TAR}..."; \
-            wget -q "https://download.qt.io/archive/qt/$(echo "$QT6_VERSION" | cut -d. -f1-2)/${QT6_VERSION}/single/${TAR}";
+            echo "Downloading ${URL} ..."; \
+            curl -fL --retry 3 --retry-delay 5 -o "$TAR" "$URL"; \
         fi; \
         tar xf "$TAR"; \
     fi; \
