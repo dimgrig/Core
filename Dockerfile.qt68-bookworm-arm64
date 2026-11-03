@@ -78,7 +78,7 @@ RUN set -eux; \
     [ -n "$EXTRACTED" ] && [ -d "$EXTRACTED" ] \
         || { echo "FATAL: no extracted Qt source dir under /tmp" >&2; ls /tmp >&2; exit 1; }; \
     echo "OK: $EXTRACTED ready"
-    
+
 # ── configure + build + install ──
 RUN set -eux; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
@@ -113,7 +113,7 @@ RUN set -eux; \
         -skip qtlanguageserver \
         -submodules qtbase,qtsvg,qtserialbus,qtserialport,qt5compat,qtscxml,qttools \
         -qt-zlib -qt-libpng -qt-libjpeg \
-        -system-freetype -system-fontconfig \
+        -system-freetype -fontconfig \
         -openssl-runtime \
         -opengl dynamic \
         -feature-openglwidgets \
