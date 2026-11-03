@@ -12,7 +12,7 @@
 # Сборка: ~5 мин (после того как qt68-bookworm-arm64:latest готов).
 # ============================================================================
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 ARG QT68_IMAGE=ghcr.io/dimgrig/qt68-bookworm-arm64:${QT6_VERSION}
 
 FROM ${QT68_IMAGE}
@@ -51,7 +51,7 @@ RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cq
 # ────────────────────────────────────────────────────────────────────────────
 FROM ${QT68_IMAGE}
 
-ARG QT6_VERSION=6.8.0
+ARG QT6_VERSION=6.8.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV QT6_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64

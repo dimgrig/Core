@@ -12,7 +12,7 @@ env:
   REGISTRY: ghcr.io
   # qt68-bookworm-arm64 собирается ЛОКАЛЬНО на arm64-машине и пушится
   # вручную (см. Dockerfile.qt68-bookworm-arm64). CI его только тянет.
-  QT68_IMAGE: ghcr.io/dimgrig/qt68-bookworm-arm64:6.8.0
+  QT68_IMAGE: ghcr.io/dimgrig/qt68-bookworm-arm64:6.8.5
 
 jobs:
   # ────────────────────────────────────────────────────────────
@@ -76,9 +76,7 @@ jobs:
             tag:      qt6-bookworm-aqt
             runner:   ubuntu-24.04-arm
             platforms: linux/arm64
-            # Единственное отличие: FROM qt68-bookworm-arm64 из ghcr
-            extra_build_args: >-
-              QT68_IMAGE=${{ env.QT68_IMAGE }}
+            extra_build_args: "QT68_IMAGE=ghcr.io/dimgrig/qt68-bookworm-arm64:6.8.5"
 
           # ── ARMv7 (QEMU) ──────────────────────────────────
           - name:     armv7-qt5
