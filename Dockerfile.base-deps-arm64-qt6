@@ -1,12 +1,25 @@
 # syntax=docker/dockerfile:1
 # ============================================================================
-# base-deps-arm64-qt6 (bookworm): glibc 2.36, ICU 72, libssl3
+# base-deps-arm64-qt6 — ТОНКИЙ слой над qt68-bookworm-arm64.
 #
-#   Qt5.15 (apt)  +  Qt6.8 (aqtinstall, linux_arm64)
-#   + qtmqtt6 (source)  +  CQtDeployer (source)
+# Qt 6.8 собран в отдельном образе (Dockerfile.qt68-bookworm-arm64) из
+# исходников против bookworm glibc 2.36 → никаких патчей, шимов, хирургии
+# .gnu.version_r. Здесь только:
+#   • Qt5.15 apt (нужен CQtDeployer'у и Qt5-legacy потребителям)
+#   • dev-инструменты (gcc, cmake, ninja, headers)
+#   • CQtDeployer v1.5 (скрипт деплоя)
+#
+# Сборка: ~5 мин (после того как qt68-bookworm-arm64:latest готов).
 # ============================================================================
 
-# ---------- CQtDeployer (bookworm, gcc-12) ----------
+ARG QT6_VERSION=6.8.0
+ARG QT68_IMAGE=ghcr.io/dimgrig/qt68-bookworm-arm64:${QT6_VERSION}
+
+FROM ${QT68_IMAGE}
+
+# ────────────────────────────────────────────────────────────────────────────
+# СТАДИЯ 1: CQtDeployer (bookworm, Qt5)
+# ────────────────────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS cqtdeployer-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -33,20 +46,25 @@ RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cq
     find /tmp/cqtdeployer -name "*.so*" -type f -exec cp -d {} /usr/local/lib/ \; && \
     rm -rf /tmp/cqtdeployer && ldconfig
 
-# ---------- Финальный образ: bookworm, Qt5 (apt) + Qt6 (aqt) ----------
-FROM debian:bookworm-slim
-
-ENV DEBIAN_FRONTEND=noninteractive
+# ────────────────────────────────────────────────────────────────────────────
+# СТАДИЯ 2: финальный образ = qt68 + dev-пакеты + cqtdeployer
+# ────────────────────────────────────────────────────────────────────────────
+FROM ${QT68_IMAGE}
 
 ARG QT6_VERSION=6.8.0
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV QT6_INSTALL_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64
+
+# Qt5 (dev, для Qt5-сборок и CQtDeployer) + build-инструменты.
+# Qt6 dev-хедеры и cmake-конфиги УЖЕ в /opt/Qt (из qt68-image).
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && \
     apt install -y --no-install-recommends \
-        build-essential cmake ninja-build \
-        python3 python3-pip \
-        # ── Qt5 (runtime для cqtdeployer + dev для Qt5-сборок) ──
+        build-essential cmake ninja-build pkg-config \
+        wget git ca-certificates p7zip-full binutils \
+        # ── Qt5 (dev для cqtdeployer + Qt5-legacy) ──
         qt5-qmake qtbase5-dev qtbase5-private-dev \
         qtdeclarative5-dev libqt5quick5 libqt5quickwidgets5 \
         qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-layouts \
@@ -54,167 +72,25 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         libqt5webenginewidgets5 libqt5webenginecore5 \
         libqt5serialport5-dev libqt5sql5-sqlite \
         libqt5svg5-dev libqt5x11extras5-dev libqt5opengl5-dev \
-        # ── Qt6 build deps для qtmqtt6 ──
+        libqt5serialbus5-dev \
+        # ── Qt6 build deps (то, что в headers Qt6 нужно потребителям) ──
         libcups2-dev libssl-dev libsqlite3-dev libudev-dev \
-        # ── Qt6 Gui/Widgets build+runtime deps ──
-        libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev \
-        libfontconfig1-dev libfreetype-dev libpng-dev libjpeg-dev \
+        libfontconfig1-dev libfreetype-dev libpng-dev libjpeg62-turbo-dev \
         libxkbcommon-dev libxkbcommon-x11-dev libx11-xcb-dev \
         libxcb1-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
         libxcb-render-util0-dev libxcb-shape0-dev libxcb-xinerama0-dev \
         libxcb-randr0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev \
         libxcb-cursor-dev \
-        # ── общее ──
+        # ── прочее ──
         libxerces-c-dev \
-        wget git ca-certificates p7zip-full \
     && rm -rf /var/lib/apt/lists/*
 
-# ── aqtinstall (зеркало yandex) ──
-RUN pip3 install --break-system-packages aqtinstall && \
-    mkdir -p /root/.config && \
-    cat > /root/.config/aqt-settings.ini <<'EOF'
-[aqt]
-baseurl: https://mirror.yandex.ru/mirrors/qt.io
-
-[requests]
-max_retries_on_checksum_error: 1
-max_retries_to_retrieve_hash: 1
-INSECURE_NOT_FOR_PRODUCTION_ignore_hash: True
-
-[mirrors]
-trusted_mirrors: https://mirror.yandex.ru/mirrors/qt.io
-blacklist: https://download.qt.io https://ftp2.nluug.nl/languages/qt
-fallbacks: https://mirrors.ocf.berkeley.edu/qt https://ftp.jaist.jp/pub/qtproject
-EOF
-
-# ── Qt6.8.0 linux_arm64 (host == target) ──
-# Доп. модули — через -m, как в linux-qt6/win64-qt6.
-# qtbase/qtdeclarative/qtsvg/qttools приходят по умолчанию.
-RUN aqt -c /root/.config/aqt-settings.ini install-qt linux_arm64 desktop ${QT6_VERSION} linux_gcc_arm64 \
-        -m qtserialbus qtserialport qt5compat qtscxml qtshadertools \
-        -O /opt/Qt
-
-# ── qtmqtt6 (нет в архивах Qt) — из исходников в тот же prefix ──
-# ─────────────────────────────────────────────────────────────────────────────
-# qtmqtt6 build workaround for ARM64 bookworm:
-#   Qt 6.8 ARM64 binaries from aqt are built on Ubuntu 24.04 (glibc 2.39+).
-#   Host tools (syncqt/moc/rcc/cmake_automoc_parser/...) cannot run on
-#   bookworm (glibc 2.36). Solution: bundle glibc 2.39 + libstdc++ locally
-#   and redirect Qt tools via patchelf.
-#   The final libQt6Mqtt.so.6 is compiled by bookworm g++-12 → links
-#   against bookworm system glibc/libstdc++ → compatible with target devices.
-# ─────────────────────────────────────────────────────────────────────────────
-# ── 1. Tooling ────────────────────────────────────────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        patchelf wget ca-certificates binutils file \
-    && rm -rf /var/lib/apt/lists/*
-
-# ── 2. Bundle glibc 2.39 + libstdc++14 из Ubuntu noble (arm64) ───────────────
-# Ubuntu 24.04 = merged-usr: ld-linux лежит в usr/lib/, не в lib/ —
-# поэтому ниже ищем пути через find, а не хардкодим.
-RUN set -e; \
-    TOOLS=/opt/qt-build-tools; \
-    mkdir -p "$TOOLS"; \
-    cd /tmp; \
-    POOL=http://ports.ubuntu.com/pool/main/g; \
-    LIBC6_NAME=$(wget -qO- "$POOL/glibc/" \
-                 | grep -oE 'libc6_2\.39[^"<>]*_arm64\.deb' | sort -V | tail -1); \
-    test -n "$LIBC6_NAME" \
-        || { echo "FATAL: no libc6_2.39_arm64 in pool" >&2; exit 1; }; \
-    LIBSTDC_NAME=$(wget -qO- "$POOL/gcc-14/" \
-                   | grep -oE 'libstdc\+\+6_14[^"<>]*_arm64\.deb' | sort -V | tail -1); \
-    test -n "$LIBSTDC_NAME" \
-        || { echo "FATAL: no libstdc++6_14_arm64 in pool" >&2; exit 1; }; \
-    LIBGCC_NAME=$(wget -qO- "$POOL/gcc-14/" \
-                  | grep -oE 'libgcc-s1_14[^"<>]*_arm64\.deb' | sort -V | tail -1); \
-    test -n "$LIBGCC_NAME" \
-        || { echo "FATAL: no libgcc-s1_14_arm64 in pool" >&2; exit 1; }; \
-    echo "Download: $LIBC6_NAME | $LIBSTDC_NAME | $LIBGCC_NAME"; \
-    wget -q "$POOL/glibc/$LIBC6_NAME"    -O libc6.deb; \
-    wget -q "$POOL/gcc-14/$LIBSTDC_NAME" -O libstdc6.deb; \
-    wget -q "$POOL/gcc-14/$LIBGCC_NAME"  -O libgcc.deb; \
-    dpkg-deb -x libc6.deb    "$TOOLS"; \
-    dpkg-deb -x libstdc6.deb "$TOOLS"; \
-    dpkg-deb -x libgcc.deb   "$TOOLS"; \
-    rm -f /tmp/*.deb; \
-    LD=$(find "$TOOLS" -name 'ld-linux-aarch64.so.1' -type f -print -quit); \
-    LIBC6=$(find "$TOOLS" -name 'libc.so.6' -type f -print -quit); \
-    test -n "$LD"    || { echo "FATAL: ld-linux not found"  >&2; find "$TOOLS" -name 'ld-linux*'  ; exit 1; }; \
-    test -n "$LIBC6" || { echo "FATAL: libc.so.6 not found" >&2; find "$TOOLS" -name 'libc.so.6*' ; exit 1; }; \
-    echo "glibc bundle OK: LD=$LD  LIBC6=$LIBC6"
-
-# ── 3. Patchelf Qt executables → bundled glibc, verify moc works ─────────────
-RUN set -e; \
-    QP="/opt/Qt/${QT6_VERSION}/gcc_arm64"; \
-    TOOLS=/opt/qt-build-tools; \
-    LD=$(find "$TOOLS" -name 'ld-linux-aarch64.so.1' -type f -print -quit); \
-    LIBC6=$(find "$TOOLS" -name 'libc.so.6' -type f -print -quit); \
-    RPATH="$(dirname "$LIBC6"):$(dirname "$LD"):$QP/lib"; \
-    echo "LD=$LD"; echo "LIBC6=$LIBC6"; echo "RPATH=$RPATH"; \
-    count=0; \
-    for f in $(find "$QP/bin" "$QP/libexec" -type f -executable 2>/dev/null); do \
-        if readelf -l "$f" 2>/dev/null | grep -q 'INTERP'; then \
-            patchelf --set-interpreter "$LD" --set-rpath "$RPATH" "$f"; \
-            count=$((count+1)); \
-        fi; \
-    done; \
-    echo "Patchelfed $count Qt executables"; \
-    "$QP/libexec/moc" --version >/dev/null 2>&1 \
-        || { echo "FATAL: moc still broken" >&2; "$QP/libexec/moc" --version; exit 1; }; \
-    echo "OK: moc works with bundled glibc 2.39"
-
-# ── 4. Build qtmqtt6 via qt-configure-module (from a dedicated build dir) ──
-# qt-configure-module must be launched from an empty build directory,
-# not from '/', otherwise CMake generates build.ninja in '/' with no 'all' target.
-RUN set -e; \
-    QP="/opt/Qt/${QT6_VERSION}/gcc_arm64"; \
-    git clone --branch ${QT6_VERSION} --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt6; \
-    mkdir -p /tmp/qtmqtt6-build; \
-    cd /tmp/qtmqtt6-build; \
-    "$QP/bin/qt-configure-module" /tmp/qtmqtt6 -- \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DQT_BUILD_TESTS=OFF \
-        -DQT_BUILD_EXAMPLES=OFF; \
-    cmake --build . -j"$(nproc)"; \
-    cmake --install .; \
-    cd /; \
-    rm -rf /tmp/qtmqtt6 /tmp/qtmqtt6-build; \
-    echo "--- installed Mqtt artifacts ---"; \
-    ls -la "$QP/lib/libQt6Mqtt.so"*; \
-    ls -la "$QP/lib/cmake/Qt6Mqtt/" 2>/dev/null || true
-
-# ── 5. Verify: configs + bookworm-compatible .so ─────────────────────────────
-RUN set -e; \
-    QP="/opt/Qt/${QT6_VERSION}/gcc_arm64"; \
-    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttConfig.cmake" \
-        || { echo "FATAL: Qt6MqttConfig.cmake not installed" >&2; exit 1; }; \
-    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttConfigVersion.cmake" \
-        || { echo "FATAL: Qt6MqttConfigVersion.cmake not installed" >&2; exit 1; }; \
-    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttTargets.cmake" \
-        || { echo "FATAL: Qt6MqttTargets.cmake not installed" >&2; exit 1; }; \
-    echo "OK: Qt6Mqtt CMake configs installed"; \
-    echo "=== libQt6Mqtt.so.6 GLIBC/GLIBCXX (must be ≤ 2.36 / ≤ 3.4.30) ==="; \
-    objdump -T "$QP/lib/libQt6Mqtt.so.6" \
-        | grep -oE 'GLIBC_[0-9.]+|GLIBCXX_[0-9.]+' | sort -u; \
-    ldd "$QP/lib/libQt6Mqtt.so.6" | grep -E 'libc\.so|libstdc\+\+|not found' || true
-
-
-
-
-
-# ── CQtDeployer из bookworm-стадии ──
+# ── CQtDeployer из stage 1 ──
 COPY --from=cqtdeployer-builder /usr/local/bin/cqtdeployer /usr/local/bin/cqtdeployer
 COPY --from=cqtdeployer-builder /usr/local/lib/lib* /usr/local/lib/
 RUN ldconfig
 
-# ── ldconfig + симлинки ──
-RUN echo "/opt/Qt/${QT6_VERSION}/gcc_arm64/lib" > /etc/ld.so.conf.d/qt68.conf && \
-    ldconfig && \
-    ln -sfn "/opt/Qt/${QT6_VERSION}/gcc_arm64/bin/qmake"    /usr/local/bin/qmake6 && \
-    ln -sfn "/opt/Qt/${QT6_VERSION}/gcc_arm64/bin/qt-cmake" /usr/local/bin/qt-cmake6 && \
-    (ln -sfn "/opt/Qt/${QT6_VERSION}/gcc_arm64/bin/qmake" /usr/local/bin/qmake || true)
-
-# ── SANITY CHECK ──
+# ── SANITY ──
 RUN set -eu; \
     check() { \
         if [ ! -e "$1" ]; then \
@@ -223,33 +99,38 @@ RUN set -eu; \
             exit 1; \
         fi; \
     }; \
-    QT=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
+    QT=${QT6_INSTALL_PREFIX}; \
     check $QT/lib/cmake/Qt6/Qt6Config.cmake "Qt6Config.cmake"; \
-    check $QT/lib/cmake/Qt6Core5Compat/Qt6Core5CompatConfig.cmake "Qt6Core5CompatConfig.cmake"; \
-    check $QT/lib/cmake/Qt6StateMachine/Qt6StateMachineConfig.cmake "Qt6StateMachineConfig.cmake"; \
-    check $QT/lib/cmake/Qt6SerialPort/Qt6SerialPortConfig.cmake "Qt6SerialPortConfig.cmake"; \
-    check $QT/lib/cmake/Qt6SerialBus/Qt6SerialBusConfig.cmake "Qt6SerialBusConfig.cmake"; \
-    check $QT/lib/cmake/Qt6PrintSupport/Qt6PrintSupportConfig.cmake "Qt6PrintSupportConfig.cmake"; \
-    check $QT/lib/cmake/Qt6Svg/Qt6SvgConfig.cmake "Qt6SvgConfig.cmake"; \
-    check $QT/lib/cmake/Qt6Sql/Qt6SqlConfig.cmake "Qt6SqlConfig.cmake"; \
-    check $QT/lib/cmake/Qt6Network/Qt6NetworkConfig.cmake "Qt6NetworkConfig.cmake"; \
-    check $QT/lib/cmake/Qt6ShaderTools/Qt6ShaderToolsConfig.cmake "Qt6ShaderToolsConfig.cmake"; \
+    check $QT/lib/cmake/Qt6Core5Compat/Qt6Core5CompatConfig.cmake; \
+    check $QT/lib/cmake/Qt6StateMachine/Qt6StateMachineConfig.cmake; \
+    check $QT/lib/cmake/Qt6SerialPort/Qt6SerialPortConfig.cmake; \
+    check $QT/lib/cmake/Qt6SerialBus/Qt6SerialBusConfig.cmake; \
+    check $QT/lib/cmake/Qt6PrintSupport/Qt6PrintSupportConfig.cmake; \
+    check $QT/lib/cmake/Qt6Svg/Qt6SvgConfig.cmake; \
+    check $QT/lib/cmake/Qt6Sql/Qt6SqlConfig.cmake; \
+    check $QT/lib/cmake/Qt6Network/Qt6NetworkConfig.cmake; \
+    check $QT/lib/cmake/Qt6Mqtt/Qt6MqttConfig.cmake; \
     check $QT/lib/libQt6Mqtt.so.6 "libQt6Mqtt*"; \
     check /usr/lib/aarch64-linux-gnu/cmake/Qt5/Qt5Config.cmake "Qt5Config.cmake"; \
     check /usr/include/cups/cups.h; \
     check /usr/include/openssl/ssl.h; \
     check /usr/include/sqlite3.h; \
     check /usr/include/libudev.h; \
-    if LD_LIBRARY_PATH=$QT/lib ldd $QT/lib/libQt6Core.so.6 | grep -q "not found"; then \
-        echo "FATAL: libQt6Core has unresolved deps" >&2; \
-        LD_LIBRARY_PATH=$QT/lib ldd $QT/lib/libQt6Core.so.6 | grep "not found" >&2; \
+    # ── Никаких @GLIBC_2.38+ ──
+    if readelf --dyn-syms "$QT"/lib/libQt6*.so.6* 2>/dev/null \
+         | grep -qE "@GLIBC_2\.(3[89]|4[0-9])"; then \
+        echo "FATAL: Qt6 links to GLIBC_2.38+" >&2; \
+        readelf --dyn-syms "$QT"/lib/libQt6*.so.6* 2>/dev/null \
+          | grep -E "@GLIBC_2\.(3[89]|4[0-9])" | head >&2; \
         exit 1; \
     fi; \
-    if LD_LIBRARY_PATH=$QT/lib ldd $QT/lib/libQt6Core.so.6 | grep -qE "/lib/aarch64-linux-gnu/libicuuc\.so\.7[2-9]"; then \
-        echo "FATAL: libQt6Core тянет системную ICU вместо bundle" >&2; \
-        exit 1; \
-    fi; \
+    # ── ldd без unresolved ──
+    for lib in libQt6Core libQt6Gui libQt6Widgets libQt6Mqtt; do \
+        if ldd "$QT/lib/${lib}.so.6" | grep -q "not found"; then \
+            echo "FATAL: $lib has unresolved deps" >&2; \
+            ldd "$QT/lib/${lib}.so.6" | grep "not found" >&2; \
+            exit 1; \
+        fi; \
+    done; \
     test -x /usr/local/bin/cqtdeployer || { echo "MISSING: cqtdeployer" >&2; exit 1; }; \
-    echo "OK: base-deps-arm64-qt6 (bookworm, Qt ${QT6_VERSION} from aqt + qtmqtt6 + CQtDeployer)"
-
-# docker buildx build --platform linux/arm64 -t base-deps-arm64-qt6:latest -f Dockerfile.base-deps-arm64-qt6 ..
+    echo "OK: base-deps-arm64-qt6 (qt68-bookworm-arm64 + dev + CQtDeployer)"

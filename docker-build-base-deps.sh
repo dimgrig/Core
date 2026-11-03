@@ -7,6 +7,16 @@ cd "$(dirname "$0")" || exit
 ./docker-build-base-deps.sh
 COMMENT
 
+# ── 0. Pull qt68 (собирается вручную через GitHub Actions) ──
+echo "=== qt68: pull ${QT68_IMAGE} ==="
+docker pull "${QT68_IMAGE}" || {
+    echo "ERROR: cannot pull ${QT68_IMAGE}" >&2
+    echo "" >&2
+    echo "Build it once via GitHub Actions:" >&2
+    echo "  Actions → 'Build qt68-bookworm-arm64 (manual)' → Run workflow → qt_version=${QT68_VERSION}" >&2
+    exit 1
+}
+
 echo "=== Qt5 base images ==="
 echo "=== base-deps-linux:latest ==="
 docker build -t base-deps-linux:latest -f Dockerfile.base-deps-linux ..
@@ -22,8 +32,12 @@ echo "=== base-deps-linux-qt6:latest ==="
 docker build -t base-deps-linux-qt6:latest -f Dockerfile.base-deps-linux-qt6 ..
 echo "=== base-deps-win64-qt6:latest ==="
 docker build -t base-deps-win64-qt6:latest -f Dockerfile.base-deps-win64-qt6 ..
+
 echo "=== base-deps-arm64-qt6:latest ==="
-docker buildx build --platform linux/arm64 -t base-deps-arm64-qt6:latest -f Dockerfile.base-deps-arm64-qt6 ..
+docker buildx build --platform linux/arm64 \
+    --build-arg QT68_IMAGE="${QT68_IMAGE}" \
+    -t base-deps-arm64-qt6:latest \
+    -f Dockerfile.base-deps-arm64-qt6 ..
 
 if [ "${BUILD_ASTRA:-0}" = "1" ]; then
     echo "=== base-deps-astra:latest  ==="

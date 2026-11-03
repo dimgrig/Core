@@ -7,8 +7,8 @@ ARG BUILD_TYPE=Release
 ARG CMAKE_CMD=cmake
 ARG BUILD_TESTING=OFF
 ARG QT_VERSION_MAJOR=5
-# Для linux-qt6: /opt/Qt/6.8.0/gcc_64 (stateoftheartio/qt6)
-# Для arm64-qt6: пусто — Qt6 из apt уже в /usr и найдётся по умолчанию
+# Для linux-qt6 / arm64-qt6 / win64-qt6 — путь из aqt prefix.
+# Для Qt5 / armv7 — пусто (Qt5 из системного apt).
 ARG QT6_INSTALL_PREFIX=
 ARG CORE_INSTALL_BASE=/opt/core
 ARG CMAKE_TOOLCHAIN_FILE=
@@ -20,7 +20,7 @@ WORKDIR /app/Core
 RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
     CORE_PREFIX="${CORE_INSTALL_BASE}/qt${QT_VERSION_MAJOR}/${CORE_VERSION}" && \
     echo "=== Core version: ${CORE_VERSION} (Qt${QT_VERSION_MAJOR}) ===" && \
-    echo "=== QT6_INSTALL_PREFIX='${QT6_INSTALL_PREFIX}' (Qt${QT_VERSION_MAJOR}) ===" && \
+    echo "=== Qt${QT_VERSION_MAJOR} prefix: '${QT6_INSTALL_PREFIX}' ===" && \
     if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ] && \
        [ ! -f "${QT6_INSTALL_PREFIX}/lib/cmake/Qt6/Qt6Config.cmake" ]; then \
         echo "FATAL: Qt6Config.cmake not found in ${QT6_INSTALL_PREFIX}/lib/cmake/Qt6/" >&2; \

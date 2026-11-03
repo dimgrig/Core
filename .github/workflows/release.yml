@@ -19,9 +19,6 @@ env:
   QT6_INSTALL_PREFIX: /opt/Qt/6.8.0/gcc_64
 
 jobs:
-  # ────────────────────────────────────────────
-  # 0. Verify VERSION matches tag
-  # ────────────────────────────────────────────
   verify:
     runs-on: ubuntu-latest
     steps:
@@ -36,9 +33,7 @@ jobs:
             exit 1
           fi
 
-  # ────────────────────────────────────────────
-  # 1. Linux amd64 — matrix qt5/qt6
-  # ────────────────────────────────────────────
+  # ── Linux amd64 — qt5/qt6 ─────────────────────────────────
   build-linux-amd64:
     needs: verify
     runs-on: ubuntu-latest
@@ -49,8 +44,6 @@ jobs:
         qt_major: ['5', '6']
     env:
       QT_MAJOR: ${{ matrix.qt_major }}
-      # Qt6 для linux-amd64 — Qt6.8.0 из stateoftheartio/qt6.
-      # Qt5 → пустая строка, Dockerfile.core игнорирует.
       QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.0/gcc_64' || '' }}
     steps:
       - uses: actions/checkout@v4
@@ -87,9 +80,7 @@ jobs:
           name: sdk-linux-amd64-qt${{ matrix.qt_major }}
           path: dist/*.tar.gz
 
-  # ────────────────────────────────────────────
-  # 2. Windows x32 — Qt5-only
-  # ────────────────────────────────────────────
+  # ── Windows x32 — Qt5 ─────────────────────────────────────
   build-win32:
     needs: verify
     runs-on: ubuntu-latest
@@ -129,9 +120,7 @@ jobs:
           name: sdk-win32-qt5
           path: dist/*.zip
 
-  # ────────────────────────────────────────────
-  # 3. Windows x64 — Qt6-only
-  # ────────────────────────────────────────────
+  # ── Windows x64 — Qt6 ─────────────────────────────────────
   build-win64-qt6:
     needs: verify
     runs-on: ubuntu-latest
@@ -173,9 +162,7 @@ jobs:
           name: sdk-win64-qt6
           path: dist/*.zip
 
-  # ────────────────────────────────────────────
-  # 4. Linux arm64 — native ARM runner, matrix qt5/qt6
-  # ────────────────────────────────────────────
+  # ── Linux arm64 — qt5/qt6 (native ARM runner, gated) ──────
   build-linux-arm64:
     if: github.event.inputs.build_arm == 'true'
     needs: verify
@@ -187,8 +174,6 @@ jobs:
         qt_major: ['5', '6']
     env:
       QT_MAJOR: ${{ matrix.qt_major }}
-      # Qt6 на arm64 ставится через aqt в /opt/Qt/6.8.0/gcc_arm64
-      # (base-deps-arm64-qt6:qt6-bookworm-aqt). Qt5 — apt в /usr, путь не нужен.
       QT6_PREFIX: ${{ matrix.qt_major == '6' && '/opt/Qt/6.8.0/gcc_arm64' || '' }}
     steps:
       - uses: actions/checkout@v4
@@ -201,9 +186,10 @@ jobs:
 
       - name: Build & export SDK (Qt${{ env.QT_MAJOR }} arm64)
         run: |
+          # base-deps-arm64:qt6-bookworm-aqt → собран из qt68-bookworm-arm64:6.8.0
+          # (собран из исходников под bookworm → нет GLIBC_2.38+)
           DISTRO=${{ matrix.qt_major == '6' && 'bookworm-aqt' || 'bookworm' }}
           echo "BASE_DEPS_IMAGE=...core-base-deps-arm64:qt${QT_MAJOR}-${DISTRO}"
-          echo "QT6_INSTALL_PREFIX=${QT6_PREFIX}"
           docker buildx build \
             --platform linux/arm64 \
             --target export \
@@ -229,9 +215,7 @@ jobs:
           name: sdk-linux-arm64-qt${{ matrix.qt_major }}
           path: dist/*.tar.gz
 
-  # ────────────────────────────────────────────
-  # 5. Linux armv7 — Qt5-only (QEMU, медленно)
-  # ────────────────────────────────────────────
+  # ── Linux armv7 — Qt5 (QEMU, gated) ───────────────────────
   build-linux-armv7:
     if: github.event.inputs.build_arm == 'true'
     needs: verify
@@ -275,9 +259,7 @@ jobs:
           name: sdk-linux-armv7-qt5
           path: dist/*.tar.gz
 
-  # ────────────────────────────────────────────
-  # 6. Tests on linux amd64 — matrix qt5/qt6
-  # ────────────────────────────────────────────
+  # ── Tests on linux amd64 — qt5/qt6 ────────────────────────
   test-linux:
     needs: verify
     runs-on: ubuntu-latest
@@ -311,9 +293,7 @@ jobs:
             --cache-to   type=gha,mode=max,scope=core-linux-tests-qt${QT_MAJOR} \
             -f Dockerfile.core .
 
-  # ────────────────────────────────────────────
-  # 7. Publish release
-  # ────────────────────────────────────────────
+  # ── Publish release ───────────────────────────────────────
   publish:
     needs: [build-linux-amd64, build-win32, build-win64-qt6, test-linux, build-linux-arm64, build-linux-armv7]
     if: |
@@ -375,19 +355,6 @@ jobs:
 
             ### Usage (CMake)
             ```cmake
-            # Qt5
-            find_package(Core CONFIG REQUIRED)
-            target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
-
-            # Qt6 — скачать linux-amd64-qt6.tar.gz, распаковать, задать CMAKE_PREFIX_PATH
-            find_package(Core CONFIG REQUIRED)
-            target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
-
-            ### Windows x64 (Qt6)
-            1. Скачать `Core-Releases-*-win64-qt6.zip`, распаковать.
-            2. Задать `CMAKE_PREFIX_PATH` из Qt 6.8.0 mingw_64 **и** распакованного SDK:
-            ```cmake
-            set(CMAKE_TOOLCHAIN_FILE ...)  # mingw-w64 toolchain
             find_package(Core CONFIG REQUIRED)
             target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
           files: |
