@@ -1,22 +1,9 @@
 # syntax=docker/dockerfile:1
 # ============================================================================
-# qt68-bookworm-arm64 — Qt 6.8 собран из исходников под Debian 12 bookworm (arm64)
+# qt68-bookworm-arm64 — Qt 6.8 из исходников под Debian 12 bookworm (arm64)
 #
-# Зачем: официальный Qt 6.8 arm64 от aqtinstall собран под Ubuntu 24.04
-# (glibc 2.39), требует GLIBC_2.38 от libc/libm. Bookworm 2.36 этого
-# не предоставляет. Сборка из исходников даёт Qt, слинкованный против
-# системной glibc 2.36 — никаких patchelf, шимов и VERNEED-хирургии.
-#
-# Время сборки: 6-8 ч на первой итерации. Дальше — кэш Docker-слоёв.
-#
-# Модули: qtbase, qtsvg, qtserialbus, qtserialport, qt5compat, qtscxml,
-#         qttools, qtmqtt (qtmqtt — отдельно, в архивах Qt его нет).
-# Пропущены: qtdeclarative, qtquick, qtwebengine, qt3d, charts и т.д. —
-# Core их не использует (см. CoreConfig.cmake.in find_dependency list).
-#
-# Результат:
-#   qt68-bookworm-arm64:6.8.5   (immutable)
-#   qt68-bookworm-arm64:latest  (symlink-like tag на 6.8.5)
+# Собран против системной glibc 2.36 — никаких GLIBC_2.38+, patchelf,
+# шимов и хирургии .gnu.version_r.
 #
 # Использование:
 #   docker buildx build --platform linux/arm64 \
@@ -28,90 +15,74 @@
 ARG QT6_VERSION=6.8.5
 
 # ────────────────────────────────────────────────────────────────────────────
-# СТАДИЯ 1: сборка Qt 6.8 из исходников
+# СТАДИЯ 1: Qt 6.8 из исходников
 # ────────────────────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS qt6-builder
 
-ARG QT6_VERSION=6.8.5
+ARG QT6_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Зависимости для сборки Qt 6.8. Минимальный, но полный набор под Core:
-# xcb (X11), fontconfig/freetype (шрифты), OpenGL (QOpenGLWidget), OpenSSL
-# (для QtNetwork HTTPS, если Core понадобится).
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && \
     apt install -y --no-install-recommends \
         build-essential cmake ninja-build perl python3 \
         git wget curl ca-certificates xz-utils \
-        # X11 / xcb
         libx11-dev libx11-xcb-dev libxcb1-dev \
         libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
         libxcb-render-util0-dev libxcb-shape0-dev libxcb-xinerama0-dev \
         libxcb-randr0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev \
         libxcb-cursor-dev \
         libxkbcommon-dev libxkbcommon-x11-dev \
-        # шрифты
         libfontconfig1-dev libfreetype-dev \
-        # GL
         libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev libgles2-mesa-dev \
-        # OpenSSL 3 (system)
         libssl-dev \
-        # Qt6 core deps
         libcups2-dev libsqlite3-dev libudev-dev libdbus-1-dev \
         zlib1g-dev libpng-dev libjpeg62-turbo-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Исходники Qt (кэш /tmp/qt-src — только tarball, не build dir) ──
-# Cache для tarball: при пересборке того же QT6_VERSION не скачиваем 700 MB
-# заново. Build dir НЕ кэшируем — ~5 GB раздуют cache mount.
-RUN --mount=type=cache,id=qt68-src-${QT6_VERSION},target=/tmp/qt-src \
-    set -eux; \
-    cd /tmp/qt-src; \
-    MAJOR_MINOR="$(echo "$QT6_VERSION" | cut -d. -f1-2)"; \
-    # Уже распаковано от прошлой сборки — выходим
-    if ls -d qt-everywhere*-src-${QT6_VERSION} >/dev/null 2>&1; then \
-        echo "OK: already extracted: $(ls -d qt-everywhere*-src-${QT6_VERSION})"; \
-        exit 0; \
-    fi; \
-    # Qt переименовал tarball: <=6.8.3 → qt-everywhere-src-X.Y.Z.tar.xz
-    #                          >=6.8.5 → qt-everywhere-opensource-src-X.Y.Z.tar.xz
-    # Пробуем оба.
-    FOUND_TAR=""; \
+# ── Скачивание и распаковка исходников Qt ──
+# БЕЗ --mount=type=cache: cache mount живёт только в одном RUN.
+# Docker layer cache сам переиспользует этот шаг, пока URL не менялся.
+#
+# Имена tarball:
+#   6.8.0–6.8.3  → qt-everywhere-src-X.Y.Z.tar.xz
+#   >=6.8.5      → qt-everywhere-opensource-src-X.Y.Z.tar.xz
+# Пробуем оба — устойчиво к смене схемы имён Qt.
+RUN set -eux; \
+    cd /tmp; \
+    MM="$(echo "$QT6_VERSION" | cut -d. -f1-2)"; \
+    GOT=""; \
     for NAME in \
         "qt-everywhere-opensource-src-${QT6_VERSION}" \
         "qt-everywhere-src-${QT6_VERSION}" \
     ; do \
-        TAR="${NAME}.tar.xz"; \
-        URL="https://download.qt.io/archive/qt/${MAJOR_MINOR}/${QT6_VERSION}/single/${TAR}"; \
-        if [ -f "$TAR" ]; then FOUND_TAR="$TAR"; break; fi; \
-        echo "Trying ${URL}"; \
+        URL="https://download.qt.io/archive/qt/${MM}/${QT6_VERSION}/single/${NAME}.tar.xz"; \
+        echo "Trying $URL"; \
         if curl -fL --retry 3 --retry-delay 5 \
-                --connect-timeout 30 --max-time 3600 \
-                -o "$TAR" "$URL"; then \
-            FOUND_TAR="$TAR"; break; \
+                 --connect-timeout 30 --max-time 7200 \
+                 -o qt.tar.xz "$URL"; then \
+            GOT="$NAME"; break; \
         fi; \
-        rm -f "$TAR"; \
+        rm -f qt.tar.xz; \
     done; \
-    [ -n "$FOUND_TAR" ] || { echo "FATAL: cannot download Qt ${QT6_VERSION}" >&2; exit 1; }; \
-    echo "OK: downloaded ${FOUND_TAR}"; \
-    tar xf "$FOUND_TAR"; \
-    SRC="$(ls -d qt-everywhere*-src-${QT6_VERSION} | head -1)"; \
-    [ -d "$SRC" ] || { echo "FATAL: extracted dir not found" >&2; exit 1; }; \
-    echo "OK: /tmp/qt-src/$SRC ready"
+    [ -n "$GOT" ] || { echo "FATAL: cannot download Qt ${QT6_VERSION}" >&2; exit 1; }; \
+    echo "Downloaded: $GOT.tar.xz"; \
+    tar xf qt.tar.xz; \
+    rm qt.tar.xz; \
+    test -d "/tmp/$GOT" || { echo "FATAL: /tmp/$GOT not found after extract" >&2; ls /tmp >&2; exit 1; }; \
+    echo "OK: /tmp/$GOT ready"
 
-# ── Configure + build + install ──
-# Профиль: release, минимум, без примеров и тестов, только нужные модули.
-# -system-* для freetype/fontconfig/openssl (стабильный ABI, малый размер)
-# -qt-* для zlib/png/jpeg (избегаем version mismatch с чужой системой)
-RUN set -e; \
+# ── configure + build + install ──
+RUN set -eux; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
-    SRC="$(ls -d /tmp/qt-src/qt-everywhere*-src-${QT6_VERSION} | head -1)"; \
-    [ -d "$SRC" ] || { echo "FATAL: Qt source dir not found" >&2; ls /tmp/qt-src/ >&2; exit 1; }; \
-    BUILD=/tmp/qt-build; \
-    mkdir -p "$BUILD"; \
-    cd "$BUILD"; \
+    SRC="$(ls -d /tmp/qt-everywhere*-src-${QT6_VERSION} 2>/dev/null | head -1)"; \
+    [ -n "$SRC" ] && [ -d "$SRC" ] \
+        || { echo "FATAL: Qt source dir not found under /tmp" >&2; ls /tmp >&2; exit 1; }; \
+    echo "Using SRC=$SRC"; \
+    mkdir -p /tmp/qt-build; \
+    cd /tmp/qt-build; \
     "$SRC/configure" \
         -release \
         -prefix "$PREFIX" \
@@ -139,19 +110,17 @@ RUN set -e; \
         -qt-zlib -qt-libpng -qt-libjpeg \
         -system-freetype -system-fontconfig \
         -openssl-runtime \
-        -no-opengl \
         -opengl dynamic \
         -feature-openglwidgets \
         -dbus-runtime \
-        -no-pch \
-    ; \
+        -no-pch; \
     cmake --build . -j"$(nproc)"; \
     cmake --install .; \
     cd /; \
-    rm -rf "$BUILD" "$SRC"; \
+    rm -rf /tmp/qt-build "$SRC"; \
     echo "OK: Qt ${QT6_VERSION} installed to ${PREFIX}"
 
-# ── Sanity: ключевые .so должны быть, ldd должен резолвиться ──
+# ── Sanity ──
 RUN set -eu; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
     for lib in libQt6Core libQt6Gui libQt6Widgets libQt6Network libQt6Sql \
@@ -168,10 +137,9 @@ RUN set -eu; \
             exit 1; \
         fi; \
     done; \
-    # ── Ключевая проверка: НЕТ @GLIBC_2.38+ ──
     if readelf --dyn-syms "$PREFIX"/lib/libQt6*.so.6* 2>/dev/null \
          | grep -qE "@GLIBC_2\.(3[89]|4[0-9])"; then \
-        echo "FATAL: Qt6 links to GLIBC_2.38+ symbols" >&2; \
+        echo "FATAL: Qt6 links to GLIBC_2.38+" >&2; \
         readelf --dyn-syms "$PREFIX"/lib/libQt6*.so.6* 2>/dev/null \
           | grep -E "@GLIBC_2\.(3[89]|4[0-9])" | head >&2; \
         exit 1; \
@@ -180,65 +148,48 @@ RUN set -eu; \
     echo "OK: qt6-builder sanity passed (Qt ${QT6_VERSION}, no GLIBC_2.38+)"
 
 # ────────────────────────────────────────────────────────────────────────────
-# СТАДИЯ 2: qtmqtt6 (нет в архивах Qt)
+# СТАДИЯ 2: qtmqtt (нет в архивах Qt)
 # ────────────────────────────────────────────────────────────────────────────
+# ВАЖНО: qtmqtt не имеет ветки 6.8.5. Есть ветки 6.8.0, 6.8.1, 6.8.2, 6.8.3
+# (БЕЗ префикса v) и коммерческие 6.8.4/6.8.5 с префиксом v, недоступные
+# публично. Для Qt 6.8.5 используем qtmqtt 6.8.3 — ABI Qt6 совместим в
+# пределах 6.8.x.
 FROM qt6-builder AS qtmqtt-builder
 
-ARG QT6_VERSION=6.8.3
+ARG QT6_VERSION
+ARG QTMQTT_REF=6.8.3
 
-RUN set -e; \
+RUN set -eux; \
     PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64; \
-    SRC=/tmp/qtmqtt-src; \
-    BUILD=/tmp/qtmqtt-build; \
-    REF=""; \
-    # Пробуем оба варианта: "6.8.3" и "v6.8.3". \
-    # Для 6.8.3 существует ветка без префикса, но для других версий \
-    # может понадобиться "v". \
-    for r in "${QT6_VERSION}" "v${QT6_VERSION}"; do \
-        if git ls-remote --exit-code --heads https://github.com/qt/qtmqtt.git "refs/heads/$r" >/dev/null 2>&1; then \
-            REF="$r"; break; \
-        fi; \
-        if git ls-remote --exit-code --tags https://github.com/qt/qtmqtt.git "refs/tags/$r" >/dev/null 2>&1; then \
-            REF="$r"; break; \
-        fi; \
-    done; \
-    [ -n "$REF" ] || { echo "FATAL: qtmqtt ref for ${QT6_VERSION} not found" >&2; \
-                       echo "--- available branches: ---" >&2; \
-                       git ls-remote --heads https://github.com/qt/qtmqtt.git | tail -20 >&2; exit 1; }; \
-    echo "Using qtmqtt ref: $REF"; \
-    git clone --depth 1 --branch "$REF" https://github.com/qt/qtmqtt.git "$SRC"; \
-    mkdir -p "$BUILD"; \
-    cd "$BUILD"; \
-    "$PREFIX/bin/qt-configure-module" "$SRC" -- -DCMAKE_BUILD_TYPE=Release; \
+    echo "Building qtmqtt ref=${QTMQTT_REF} against Qt ${QT6_VERSION}"; \
+    git clone --depth 1 --branch "$QTMQTT_REF" https://github.com/qt/qtmqtt.git /tmp/qtmqtt; \
+    mkdir -p /tmp/qtmqtt-build; \
+    cd /tmp/qtmqtt-build; \
+    "$PREFIX/bin/qt-configure-module" /tmp/qtmqtt -- -DCMAKE_BUILD_TYPE=Release; \
     cmake --build . -j"$(nproc)"; \
     cmake --install .; \
     cd /; \
-    rm -rf "$SRC" "$BUILD"; \
+    rm -rf /tmp/qtmqtt /tmp/qtmqtt-build; \
     test -f "$PREFIX/lib/cmake/Qt6Mqtt/Qt6MqttConfig.cmake" \
         || { echo "FATAL: Qt6MqttConfig.cmake not installed" >&2; exit 1; }; \
-    # qtmqtt не должен тащить GLIBC_2.38+ (унаследует от Qt6Gui) \
     if readelf --dyn-syms "$PREFIX"/lib/libQt6Mqtt.so.6* 2>/dev/null \
          | grep -qE "@GLIBC_2\.(3[89]|4[0-9])"; then \
         echo "FATAL: Qt6Mqtt links to GLIBC_2.38+" >&2; \
-        readelf --dyn-syms "$PREFIX"/lib/libQt6Mqtt.so.6* 2>/dev/null \
-          | grep -E "@GLIBC_2\.(3[89]|4[0-9])" | head >&2; \
         exit 1; \
     fi; \
-    echo "OK: qtmqtt ($REF) installed to $PREFIX"
+    echo "OK: qtmqtt ${QTMQTT_REF} installed to $PREFIX"
 
 # ────────────────────────────────────────────────────────────────────────────
-# СТАДИЯ 3: runtime — только Qt + системные runtime-зависимости
+# СТАДИЯ 3: runtime
 # ────────────────────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim AS runtime
 
-ARG QT6_VERSION=6.8.5
+ARG QT6_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV QT6_PREFIX=/opt/Qt/${QT6_VERSION}/gcc_arm64
 ENV PATH=${QT6_PREFIX}/bin:$PATH
 
-# Только runtime-зависимости (без -dev). CMake/ninja/gcc НЕ ставим —
-# они появятся в base-deps-arm64-qt6.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && \
@@ -256,17 +207,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         zlib1g libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Только Qt — ничего больше
 COPY --from=qtmqtt-builder ${QT6_PREFIX} ${QT6_PREFIX}
 
-# ldconfig для быстрого поиска без явного LD_LIBRARY_PATH
 RUN echo "${QT6_PREFIX}/lib" > /etc/ld.so.conf.d/qt68.conf && ldconfig
 
-# qmake/qt-cmake в /usr/local/bin для удобства
 RUN ln -sfn "${QT6_PREFIX}/bin/qmake"    /usr/local/bin/qmake6 && \
     ln -sfn "${QT6_PREFIX}/bin/qt-cmake" /usr/local/bin/qt-cmake6
 
-# ── SANITY ──
 RUN set -eu; \
     for lib in libQt6Core libQt6Gui libQt6Widgets libQt6Network libQt6Sql \
                libQt6PrintSupport libQt6Svg libQt6SerialPort libQt6SerialBus \
@@ -286,4 +233,4 @@ RUN set -eu; \
             || { echo "MISSING: ${cm}Config.cmake" >&2; exit 1; }; \
     done; \
     qmake6 --version; \
-    echo "OK: qt68-bookworm-arm64:${QT6_VERSION} ready (no GLIBC_2.38+, qtmqtt6 included)"
+    echo "OK: qt68-bookworm-arm64:${QT6_VERSION} ready"
