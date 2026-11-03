@@ -163,30 +163,39 @@ RUN set -e; \
         || { echo "FATAL: moc still broken" >&2; "$QP/libexec/moc" --version; exit 1; }; \
     echo "OK: moc works with bundled glibc 2.39"
 
-# ── 4. Build qtmqtt6 ─────────────────────────────────────────────────────────
-# bookworm g++-12 компилирует → resulting .so линкуется к системной
-# bookworm glibc 2.36 / libstdc++ 3.4.30 → совместим с целевыми устройствами.
+# ── 4. Build qtmqtt6 via qt-configure-module (from a dedicated build dir) ──
+# qt-configure-module must be launched from an empty build directory,
+# not from '/', otherwise CMake generates build.ninja in '/' with no 'all' target.
 RUN set -e; \
     QP="/opt/Qt/${QT6_VERSION}/gcc_arm64"; \
     git clone --branch ${QT6_VERSION} --depth 1 https://github.com/qt/qtmqtt.git /tmp/qtmqtt6; \
-    cmake -S /tmp/qtmqtt6 -B /tmp/qtmqtt6/build -G Ninja \
+    mkdir -p /tmp/qtmqtt6-build; \
+    cd /tmp/qtmqtt6-build; \
+    "$QP/bin/qt-configure-module" /tmp/qtmqtt6 -- \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX="$QP" \
-        -DCMAKE_INSTALL_LIBDIR=lib \
-        -DCMAKE_INSTALL_INCLUDEDIR=include \
-        -DCMAKE_PREFIX_PATH="$QP"; \
-    cmake --build /tmp/qtmqtt6/build -j"$(nproc)"; \
-    cmake --install /tmp/qtmqtt6/build; \
-    rm -rf /tmp/qtmqtt6; \
-    ls -la "$QP/lib/libQt6Mqtt.so"*
+        -DQT_BUILD_TESTS=OFF \
+        -DQT_BUILD_EXAMPLES=OFF; \
+    cmake --build . -j"$(nproc)"; \
+    cmake --install .; \
+    cd /; \
+    rm -rf /tmp/qtmqtt6 /tmp/qtmqtt6-build; \
+    echo "--- installed Mqtt artifacts ---"; \
+    ls -la "$QP/lib/libQt6Mqtt.so"*; \
+    ls -la "$QP/lib/cmake/Qt6Mqtt/" 2>/dev/null || true
 
-# ── 5. Verify: resulting .so must NOT require glibc > 2.36 ───────────────────
+# ── 5. Verify: configs + bookworm-compatible .so ─────────────────────────────
 RUN set -e; \
     QP="/opt/Qt/${QT6_VERSION}/gcc_arm64"; \
+    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttConfig.cmake" \
+        || { echo "FATAL: Qt6MqttConfig.cmake not installed" >&2; exit 1; }; \
+    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttConfigVersion.cmake" \
+        || { echo "FATAL: Qt6MqttConfigVersion.cmake not installed" >&2; exit 1; }; \
+    test -f "$QP/lib/cmake/Qt6Mqtt/Qt6MqttTargets.cmake" \
+        || { echo "FATAL: Qt6MqttTargets.cmake not installed" >&2; exit 1; }; \
+    echo "OK: Qt6Mqtt CMake configs installed"; \
     echo "=== libQt6Mqtt.so.6 GLIBC/GLIBCXX (must be ≤ 2.36 / ≤ 3.4.30) ==="; \
     objdump -T "$QP/lib/libQt6Mqtt.so.6" \
         | grep -oE 'GLIBC_[0-9.]+|GLIBCXX_[0-9.]+' | sort -u; \
-    echo "--- ldd ---"; \
     ldd "$QP/lib/libQt6Mqtt.so.6" | grep -E 'libc\.so|libstdc\+\+|not found' || true
 
 
