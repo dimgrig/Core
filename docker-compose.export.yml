@@ -119,6 +119,7 @@ services:
         CMAKE_CMD: cmake
         QT_VERSION_MAJOR: "6"
         CORE_INSTALL_BASE: /opt/core
+        QT6_INSTALL_PREFIX: "/opt/Qt/6.8.0/gcc_arm64"
     image: core-builder-cmake-arm64-qt6:latest
     platform: linux/arm64
     volumes:
