@@ -59,7 +59,7 @@ jobs:
           - name:     arm64-qt6
             dockerfile: Dockerfile.base-deps-arm64-qt6
             image:    core-base-deps-arm64
-            tag:      qt6-trixie
+            tag:      qt6-bookworm-aqt
             runner:   ubuntu-24.04-arm
             platforms: linux/arm64
 
