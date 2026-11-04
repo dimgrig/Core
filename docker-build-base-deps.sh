@@ -8,8 +8,9 @@ cd "$(dirname "$0")" || exit
 COMMENT
 
 # ── 0. Pull qt68 (собирается вручную через GitHub Actions) ──
+QT68_IMAGE=ghcr.io/dimgrig/qt68-bookworm-arm64:6.8.5
 echo "=== qt68: pull ${QT68_IMAGE} ==="
-docker pull "${QT68_IMAGE}" || {
+docker pull --platform linux/arm64 "${QT68_IMAGE}" || {
     echo "ERROR: cannot pull ${QT68_IMAGE}" >&2
     echo "" >&2
     echo "Build it once via GitHub Actions:" >&2
