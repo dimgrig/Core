@@ -15,7 +15,7 @@ on:
       build_win32_qt5:
         description: 'Also build Qt5 legacy (win32-qt5)'
         type: boolean
-        default: false        
+        default: false
       build_linux_arm64_qt5:
         description: 'Also build Qt5 legacy (linux-arm64-qt5)'
         type: boolean
@@ -27,6 +27,18 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  # base-deps image names — must match .github/workflows/base-deps.yml tags
+  CORE_BASE_DEPS_LINUX_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-linux:qt6-bookworm
+  CORE_BASE_DEPS_WIN64_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-win64:qt6-mingw
+  CORE_BASE_DEPS_ARM64_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-arm64:qt6-bookworm-aqt
+  CORE_BASE_DEPS_LINUX_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm
+  CORE_BASE_DEPS_WIN_QT5:    ghcr.io/${{ github.repository_owner }}/core-base-deps-win:qt5-mingw
+  CORE_BASE_DEPS_ARM64_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-arm64:qt5-bookworm
+  CORE_BASE_DEPS_ARMV7_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-armv7:qt5-bullseye
+  # Qt6 prefixes (used by ./docker.sh test; export resolves internally)
+  QT6_PREFIX_X86_64:         /opt/Qt/6.8.0/gcc_64
+  QT6_PREFIX_ARM64:          /opt/Qt/6.8.5/gcc_arm64
+  QT6_PREFIX_MINGW:          /opt/Qt/6.8.0/mingw_64
 
 jobs:
   verify:
@@ -51,9 +63,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 6
-      QT6_PREFIX: /opt/Qt/6.8.0/gcc_64
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -64,25 +73,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt6)
-        run: |
-          docker buildx build \
-            --target export \
-            --output type=local,dest=out/linux-amd64-qt6 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt6-bookworm \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=6 \
-            --build-arg QT6_INSTALL_PREFIX=${QT6_PREFIX} \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-amd64-qt6 \
-            --cache-to   type=gha,mode=max,scope=core-linux-amd64-qt6 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-amd64-qt6.tar.gz" \
-            -C out/linux-amd64-qt6 .
+        env:
+          PLATFORMS: "linux-qt6"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-linux-amd64-qt6
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-amd64-qt6
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -93,8 +90,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 6
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -105,25 +100,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt6 win64)
-        run: |
-          docker buildx build \
-            --target export \
-            --output type=local,dest=out/win64-qt6 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-win64:qt6-mingw \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg CMAKE_TOOLCHAIN_FILE=/opt/x86_64-w64-mingw32.cmake \
-            --build-arg QT_VERSION_MAJOR=6 \
-            --build-arg QT6_INSTALL_PREFIX=/opt/Qt/6.8.0/mingw_64 \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-win64-qt6 \
-            --cache-to   type=gha,mode=max,scope=core-win64-qt6 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          (cd out/win64-qt6 && zip -r "../../dist/Core-Releases-${VERSION}-win64-qt6.zip" .)
+        env:
+          PLATFORMS: "win-qt6"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-win64-qt6
+          CACHE_TO:   type=gha,mode=max,scope=core-win64-qt6
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -134,9 +117,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-24.04-arm
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 6
-      QT6_PREFIX: /opt/Qt/6.8.5/gcc_arm64
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -147,26 +127,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt6 arm64)
-        run: |
-          docker buildx build \
-            --platform linux/arm64 \
-            --target export \
-            --output type=local,dest=out/linux-arm64-qt6 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-arm64:qt6-bookworm-aqt \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=6 \
-            --build-arg QT6_INSTALL_PREFIX=${QT6_PREFIX} \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-arm64-qt6 \
-            --cache-to   type=gha,mode=max,scope=core-linux-arm64-qt6 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-arm64-qt6.tar.gz" \
-            -C out/linux-arm64-qt6 .
+        env:
+          PLATFORMS: "arm64-qt6"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-linux-arm64-qt6
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-arm64-qt6
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -189,26 +156,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & run ctest (Qt6)
-        run: |
-          docker buildx build \
-            --target test \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt6-bookworm \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=6 \
-            --build-arg QT6_INSTALL_PREFIX=/opt/Qt/6.8.0/gcc_64 \
-            --cache-from type=gha,scope=core-linux-amd64-qt6 \
-            --cache-from type=gha,scope=core-linux-tests-qt6 \
-            --cache-to   type=gha,mode=max,scope=core-linux-tests-qt6 \
-            -f Dockerfile.core .
+      - name: Run ctest (Qt6)
+        env:
+          PLATFORMS: "linux-qt6"
+          QT6_INSTALL_PREFIX: ${{ env.QT6_PREFIX_X86_64 }}
+          CACHE_FROM: type=gha,scope=core-linux-amd64-qt6
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-tests-qt6
+        run: ./docker.sh test
+
+  # ════════════════════════════════════════════
+  # Qt5 legacy (opt-in)
+  # ════════════════════════════════════════════
 
   build-linux-amd64-qt5:
     if: github.event.inputs.build_linux_amd64_qt5 == 'true'
     needs: verify
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -219,24 +183,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt5)
-        run: |
-          docker buildx build \
-            --target export \
-            --output type=local,dest=out/linux-amd64-qt5 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=5 \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-amd64-qt5 \
-            --cache-to   type=gha,mode=max,scope=core-linux-amd64-qt5 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-amd64-qt5.tar.gz" \
-            -C out/linux-amd64-qt5 .
+        env:
+          PLATFORMS: "linux-qt5"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-linux-amd64-qt5
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-amd64-qt5
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -248,8 +201,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -260,23 +211,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt5 win32)
-        run: |
-          docker buildx build \
-            --target export \
-            --output type=local,dest=out/win32-qt5 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-win:qt5-mingw \
-            --build-arg CMAKE_CMD=i686-w64-mingw32-cmake \
-            --build-arg QT_VERSION_MAJOR=5 \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-win32-qt5 \
-            --cache-to   type=gha,mode=max,scope=core-win32-qt5 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          (cd out/win32-qt5 && zip -r "../../dist/Core-Releases-${VERSION}-win32-qt5.zip" .)
+        env:
+          PLATFORMS: "win-qt5"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-win32-qt5
+          CACHE_TO:   type=gha,mode=max,scope=core-win32-qt5
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -288,8 +229,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-24.04-arm
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -300,25 +239,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt5 arm64)
-        run: |
-          docker buildx build \
-            --platform linux/arm64 \
-            --target export \
-            --output type=local,dest=out/linux-arm64-qt5 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-arm64:qt5-bookworm \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=5 \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-arm64-qt5 \
-            --cache-to   type=gha,mode=max,scope=core-linux-arm64-qt5 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-arm64-qt5.tar.gz" \
-            -C out/linux-arm64-qt5 .
+        env:
+          PLATFORMS: "arm64-qt5"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-linux-arm64-qt5
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-arm64-qt5
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -330,8 +257,6 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: read }
-    env:
-      QT_MAJOR: 5
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -343,25 +268,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & export SDK (Qt5 armv7)
-        run: |
-          docker buildx build \
-            --platform linux/arm/v7 \
-            --target export \
-            --output type=local,dest=out/linux-armv7-qt5 \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-armv7:qt5-bullseye \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=5 \
-            --build-arg BUILD_TESTING=OFF \
-            --cache-from type=gha,scope=core-linux-armv7-qt5 \
-            --cache-to   type=gha,mode=max,scope=core-linux-armv7-qt5 \
-            -f Dockerfile.core .
-
-      - name: Package
-        run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          mkdir -p dist
-          tar -czf "dist/Core-Releases-${VERSION}-linux-armv7-qt5.tar.gz" \
-            -C out/linux-armv7-qt5 .
+        env:
+          PLATFORMS: "armv7-qt5"
+          EXPORT_MODE: ci
+          OUT_DIR: ${{ github.workspace }}/dist
+          CACHE_FROM: type=gha,scope=core-linux-armv7-qt5
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-armv7-qt5
+        run: ./docker.sh export
 
       - uses: actions/upload-artifact@v4
         with:
@@ -382,17 +295,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & run ctest (Qt5)
-        run: |
-          docker buildx build \
-            --target test \
-            --build-arg BASE_DEPS_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm \
-            --build-arg CMAKE_CMD=cmake \
-            --build-arg QT_VERSION_MAJOR=5 \
-            --cache-from type=gha,scope=core-linux-amd64-qt5 \
-            --cache-from type=gha,scope=core-linux-tests-qt5 \
-            --cache-to   type=gha,mode=max,scope=core-linux-tests-qt5 \
-            -f Dockerfile.core .
+      - name: Run ctest (Qt5)
+        env:
+          PLATFORMS: "linux-qt5"
+          CACHE_FROM: type=gha,scope=core-linux-amd64-qt5
+          CACHE_TO:   type=gha,mode=max,scope=core-linux-tests-qt5
+        run: ./docker.sh test
 
   # ════════════════════════════════════════════
   # PUBLISH
