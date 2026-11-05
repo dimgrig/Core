@@ -1,6 +1,9 @@
 # ---------- Базовый образ с зависимостями ----------
 FROM ghcr.io/mdimura/docker-mingw-arch:qt5
 
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
 WORKDIR /tmp
 
 # Сборка qtserialbus (для Windows)
@@ -20,7 +23,7 @@ RUN git clone --branch 5.15.2 --depth 1 https://github.com/qt/qtmqtt.git /tmp/qt
     rm -rf /tmp/qtmqtt
 
 #сборка libxerces из исходников
-RUN pacman -S --noconfirm --needed autoconf automake libtool
+RUN pacman -S --noconfirm --needed autoconf automake libtool curl
 
 # Сборка статической Xerces-C для Windows (i686)
 RUN cd /tmp && \

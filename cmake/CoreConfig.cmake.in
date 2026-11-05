@@ -7,21 +7,22 @@ include(CMakeFindDependencyMacro)
 # (Qt5 → Qt5, Qt6 → Qt6 + Core5Compat).
 @CORE_QT_FIND_DEPS@
 
-# Qt5::Mqtt нужен только для Core::core-io-lib.
+# Qt@QT_VERSION_MAJOR@::Mqtt нужен только для Core::core-io-lib.
 #
-# ВАЖНО: не вызываем здесь find_package(Qt5 ... Mqtt) — если на машине
-# пользователя лежит Qt5MqttConfig.cmake, но нет Qt5Mqtt.dll,
-# внутренний _qt5_Mqtt_check_file_exists() бросает FATAL_ERROR ещё
-# до возврата из find_package. QUIET это не гасит.
+# ВАЖНО: не вызываем здесь find_package(Qt@QT_VERSION_MAJOR@ ... Mqtt) —
+# если на машине пользователя лежит Qt@QT_VERSION_MAJOR@MqttConfig.cmake,
+# но нет Qt@QT_VERSION_MAJOR@Mqtt.dll, внутренний check_file_exists()
+# в Qt@QT_VERSION_MAJOR@MqttConfig.cmake бросает FATAL_ERROR ещё до возврата
+# из find_package. QUIET это не гасит.
 #
 # Если пользователю действительно нужен Core::core-io-lib — он сам
 # должен выполнить (ДО find_package(Core)):
-#   find_package(Qt5 COMPONENTS Mqtt REQUIRED)
+#   find_package(Qt@QT_VERSION_MAJOR@ COMPONENTS Mqtt REQUIRED)
 if(NOT TARGET Qt@QT_VERSION_MAJOR@::Mqtt)
     add_library(Qt@QT_VERSION_MAJOR@::Mqtt INTERFACE IMPORTED)
-    message(STATUS "Core: Qt5::Mqtt stubbed. "
+    message(STATUS "Core: Qt@QT_VERSION_MAJOR@::Mqtt stubbed. "
                    "Core::core-io-lib will not link unless "
-                   "you call find_package(Qt5 COMPONENTS Mqtt) "
+                   "you call find_package(Qt@QT_VERSION_MAJOR@ COMPONENTS Mqtt) "
                    "before find_package(Core).")
 endif()
 

@@ -72,7 +72,7 @@ for plat in "${_plats[@]}"; do
 
     [ "$buildx_plat" != "-" ] && bargs+=( --platform "$buildx_plat" )
 
-    docker buildx build "${bargs[@]}" -f Dockerfile.core ..
+    docker buildx build "${bargs[@]}" -f Dockerfile.core .
 
     case "$pkg_suffix" in
         win-*) fmt="zip"    ;;

@@ -2,6 +2,8 @@
 FROM debian:bookworm-slim AS cqtdeployer-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
 RUN apt update && \
@@ -11,7 +13,7 @@ RUN apt update && \
         qt5-qmake \
         qtbase5-dev \
         qtbase5-private-dev \
-        wget git ca-certificates \
+        wget git ca-certificates curl \
         qtdeclarative5-dev \
         libqt5quick5 \
         libqt5quickwidgets5 \
@@ -45,6 +47,8 @@ RUN cd /tmp/cqtdeployer && \
 FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
 RUN apt update && \
@@ -54,7 +58,7 @@ RUN apt update && \
         qt5-qmake \
         qtbase5-dev \
         qtbase5-private-dev \
-        wget git ca-certificates \
+        wget git ca-certificates curl \
         qtdeclarative5-dev \
         libqt5quick5 \
         libqt5quickwidgets5 \

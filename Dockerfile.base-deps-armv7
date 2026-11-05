@@ -2,12 +2,16 @@
 FROM debian:bullseye-slim AS cqtdeployer-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
 # Добавляем снимок репозитория в sources.list и отключаем проверку срока действия
-RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullseye main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://snapshot.debian.org/archive/debian-security/20260825T000000Z bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
-    echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until && \
+RUN echo "deb http://archive.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    echo 'Acquire::Check-Date "false";' > /etc/apt/apt.conf.d/99no-check-date && \
+    echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/99retries && \
     apt update && \
     apt install -y --no-install-recommends \
         build-essential \
@@ -15,7 +19,7 @@ RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullsey
         qt5-qmake \
         qtbase5-dev \
         qtbase5-private-dev \
-        wget git ca-certificates \
+        wget git ca-certificates curl \
         qtdeclarative5-dev \
         libqt5quick5 \
         libqt5quickwidgets5 \
@@ -49,12 +53,16 @@ RUN cd /tmp/cqtdeployer && \
 FROM debian:bullseye-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Устанавливаем компилятор, Qt5 и все необходимые dev-пакеты
 # Добавляем снимок репозитория в sources.list и отключаем проверку срока действия
-RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullseye main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://snapshot.debian.org/archive/debian-security/20260825T000000Z bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
-    echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until && \
+RUN echo "deb http://archive.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    echo 'Acquire::Check-Date "false";' > /etc/apt/apt.conf.d/99no-check-date && \
+    echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/99retries && \
     apt update && \
     apt install -y --no-install-recommends \
         build-essential \
@@ -62,7 +70,7 @@ RUN echo "deb http://snapshot.debian.org/archive/debian/20260825T000000Z bullsey
         qt5-qmake \
         qtbase5-dev \
         qtbase5-private-dev \
-        wget git ca-certificates \
+        wget git ca-certificates curl \
         qtdeclarative5-dev \
         libqt5quick5 \
         libqt5quickwidgets5 \

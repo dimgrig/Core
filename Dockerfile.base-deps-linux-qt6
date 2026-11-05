@@ -11,6 +11,8 @@
 FROM debian:bookworm-slim AS cqtdeployer-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -23,7 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         qttools5-dev-tools qtquickcontrols2-5-dev \
         qtwebengine5-dev libqt5webenginewidgets5 \
         libqt5serialbus5-dev libqt5serialport5-dev \
-        wget git ca-certificates \
+        wget git ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cqtdeployer && \
@@ -38,6 +40,8 @@ RUN git clone --branch v1.5 https://github.com/QuasarApp/CQtDeployer.git /tmp/cq
 FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 ARG QT6_VERSION=6.8.0
 
@@ -69,7 +73,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
         # ── общее ──
         libxerces-c-dev \
-        wget git ca-certificates p7zip-full \
+        wget git ca-certificates curl p7zip-full \
     && rm -rf /var/lib/apt/lists/*
 
 # ── aqtinstall (зеркало yandex, конфиг как в win64-qt6) ──

@@ -475,6 +475,7 @@ jobs:
             ```cmake
             find_package(Core CONFIG REQUIRED)
             target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
+            ```
           files: |
             release/*.tar.gz
             release/*.zip
