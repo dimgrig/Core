@@ -668,6 +668,193 @@ void TestModbusIntegration::testClientServerCommunication()
     modbusServer->disconnectFromHost();
 }
 
+// ────────────────────────────────────────────────────────────
+//  Аналог testClientServerCommunication, но с адресом сервера 123
+//  (не дефолтным 1). Проверяет весь путь — парсинг конфига под
+//  ключ 123, setRegister/getRegister на сервере, отправка запросов
+//  клиентом с Unit ID = 123, чтение ответов с тем же адресом.
+// ────────────────────────────────────────────────────────────
+void TestModbusIntegration::testClientServerCommunicationAddress123()
+{
+    const QString config = ":/json/json/modbus_10.json";
+
+    ModbusSettings modbusSettings;
+    modbusSettings.MODBUS_ENABLE = true;
+    modbusSettings.MODBUS_TYPE = "TCP";
+    modbusSettings.MODBUS_IP = "127.0.0.1";
+    modbusSettings.MODBUS_PORT = 1503;
+    modbusSettings.MODBUS_ADDRESS = 123;
+    modbusSettings.MODBUS_POLL_TIMER = 100;
+
+    const int ADDR = modbusSettings.MODBUS_ADDRESS;
+
+    // --- Сервер ---
+    auto modbusServer = std::make_shared<ModbusServer>(nullptr, config, modbusSettings);
+    QTest::qWait(500);
+    modbusServer->connectToHost();
+    QTRY_COMPARE_WITH_TIMEOUT(modbusServer->state(), QModbusDevice::ConnectedState, 500);
+
+    // Конфиг должен быть разобран под ключ 123 и только под него
+    QVERIFY2(modbusServer->get_mdum().count(ADDR) == 1,
+             qPrintable(QString("server: _mdum[%1] not found").arg(ADDR)));
+    QVERIFY2(modbusServer->get_mdum().count(1) == 0,
+             "server: _mdum must NOT contain key 1");
+
+    // Начальные значения
+    modbusServer->setRegister(ADDR, "input1", true);
+    modbusServer->setRegister(ADDR, "input2", false);
+    modbusServer->setRegister(ADDR, "Coil1", true);
+    modbusServer->setRegister(ADDR, "Coil2", false);
+    modbusServer->setRegister(ADDR, "ir1", 1);
+    modbusServer->setRegister(ADDR, "ir2", -2);
+    modbusServer->setRegister(ADDR, "ir5", 5.5);
+    modbusServer->setRegister(ADDR, "hr1", 1);
+    modbusServer->setRegister(ADDR, "hr2", -2);
+    modbusServer->setRegister(ADDR, "hr5", 5.5);
+    modbusServer->setRegister(ADDR, "hr7", 7.7);
+    modbusServer->setRegisterString(ADDR, "InputString", "InputString");
+    modbusServer->setRegisterString(ADDR, "HoldingString", "HoldingString");
+
+    // --- Клиент ---
+    auto modbusClient = std::make_shared<ModbusClient>(nullptr, config, modbusSettings);
+    QTest::qWait(500);
+    QSignalSpy readSpy(modbusClient.get(), &ModbusClient::read_ready);
+
+    modbusClient->connectToHost();
+    QTRY_COMPARE_WITH_TIMEOUT(modbusClient->state(), QModbusDevice::ConnectedState, 100);
+    QTest::qWait(100);
+    modbusClient->stopPolling();
+    modbusClient->clearQueue();
+    QTest::qWait(50);
+    readSpy.clear();
+
+    QVERIFY2(modbusClient->get_mdum().count(ADDR) == 1,
+             qPrintable(QString("client: _mdum[%1] not found").arg(ADDR)));
+
+    // helper: чтение + проверка, что в ответе пришёл адрес 123
+    auto readAndCheck = [&](QModbusDataUnit::RegisterType rt, int start, int count,
+                            int* addrOut) -> QModbusDataUnit {
+        modbusClient->on_read(ADDR, QModbusDataUnit(rt, start, count));
+        const bool got = QTest::qWaitFor([&]{ return !readSpy.isEmpty(); }, 2000);
+        if (!got) {
+            if (addrOut) *addrOut = -1;
+            return QModbusDataUnit();
+        }
+        QList<QVariant> args = readSpy.takeFirst();
+        if (addrOut) *addrOut = args.at(0).value<int>();
+        return args.at(1).value<QModbusDataUnit>();
+    };
+
+    // --- 1. Discrete Inputs ---
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::DiscreteInputs, 0, 2, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 1);
+        QCOMPARE(unit.value(1), 0);
+    }
+
+    // --- 2. Coils ---
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::Coils, 0, 2, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 1);
+        QCOMPARE(unit.value(1), 0);
+    }
+
+    // --- 3. Input Registers (ir1, ir2, ir5 float @ 6-7) ---
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::InputRegisters, 0, 8, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 1);
+        QCOMPARE(unit.value(1), (quint16)-2);
+        const auto exp5 = ModbusDataConverter::variantToRegisters(5.5, "ir5", "float", BigEndian);
+        QCOMPARE(unit.value(6), exp5.value(0));
+        QCOMPARE(unit.value(7), exp5.value(1));
+    }
+
+    // --- 4. Holding Registers (hr1, hr2, hr5 float @ 6-7) ---
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::HoldingRegisters, 0, 8, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 1);
+        QCOMPARE(unit.value(1), (quint16)-2);
+        const auto exp5 = ModbusDataConverter::variantToRegisters(5.5, "hr5", "float", BigEndian);
+        QCOMPARE(unit.value(6), exp5.value(0));
+        QCOMPARE(unit.value(7), exp5.value(1));
+    }
+
+    // --- 5. Обновление на сервере → клиент видит новые значения ---
+    modbusServer->setRegister(ADDR, "hr1", 100);
+    modbusServer->setRegister(ADDR, "Coil1", false);
+    modbusServer->setRegister(ADDR, "Coil2", true);
+    modbusServer->setRegister(ADDR, "ir1", 42);
+    modbusServer->setRegisterString(ADDR, "HoldingString", "UpdatedString");
+
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::HoldingRegisters, 0, 1, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 100);
+    }
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::Coils, 0, 2, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 0);
+        QCOMPARE(unit.value(1), 1);
+    }
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::InputRegisters, 0, 1, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 42);
+    }
+
+    // --- 6. Запись клиентом → сервер отражает ---
+    modbusClient->setRegister(ADDR, "hr1", 200);
+    modbusClient->setRegister(ADDR, "Coil1", true);
+    QTest::qWait(500);
+
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::HoldingRegisters, 0, 1, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 200);
+    }
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::Coils, 0, 1, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(unit.value(0), 1);
+    }
+
+    {
+        int gotAddr = -1;
+        QModbusDataUnit unit = readAndCheck(QModbusDataUnit::HoldingRegisters, 26, 13, &gotAddr);
+        QCOMPARE(gotAddr, ADDR);
+        QVERIFY(unit.isValid());
+        QCOMPARE(ModbusDataConverter::toString(unit.values()), QString("UpdatedString"));
+    }
+
+    // --- Очистка ---
+    modbusClient->disconnectFromHost();
+    modbusServer->disconnectFromHost();
+    QTest::qWait(100);
+}
+
 void TestModbusIntegration::testAddBinding() {
     int serverAddress = 1;
     auto modbusClient = std::make_shared<ModbusClient>();

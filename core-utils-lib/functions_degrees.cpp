@@ -151,7 +151,6 @@ void FunctionsDegreesTest() {
                 double cnt = 1;
                 //double radians_ref = 2 * M_PI / (65536*100); //0.000000958737992428;
                 double radians = cnt_to_radians(cnt, interpolation);
-                //ASSERT_EQUAL(radians, radians_ref);
 
                 QString dms_ref = "000°00′00.19775″";
                 QString dms = radians_to_dms(radians, precision);
@@ -161,7 +160,6 @@ void FunctionsDegreesTest() {
                 double cnt = 6553600;
                 //double radians_ref = 2.0 * M_PI * 6553600 / (65536*100);
                 double radians = cnt_to_radians(cnt, interpolation);
-                //ASSERT_EQUAL(radians, radians_ref);
 
                 QString dms_ref = "360°00′00.00000″";
                 QString dms = radians_to_dms(radians, precision);
@@ -174,7 +172,6 @@ void FunctionsDegreesTest() {
                 double cnt = 1;
                 //double radians_ref = 2 * M_PI / (65536*4000); //0.0000000239684498;
                 double radians = cnt_to_radians(cnt, interpolation);
-                //ASSERT_EQUAL(radians, radians_ref);
 
                 QString dms_ref = "000°00′00.00494″";
                 QString dms = radians_to_dms(radians, precision);
@@ -184,7 +181,6 @@ void FunctionsDegreesTest() {
                 double cnt = 262144000;
                 //double radians_ref = 2.0 * M_PI;
                 double radians = cnt_to_radians(cnt, interpolation);
-                //ASSERT_EQUAL(radians, radians_ref);
 
                 QString dms_ref = "360°00′00.00000″";
                 QString dms = radians_to_dms(radians, precision);
@@ -285,31 +281,31 @@ void FunctionsDegreesTest() {
             QString dms = "000°00′00.00000″";
             double radians_ref = 0.0;
             double radians = dms_to_radians(dms);
-            ASSERT_EQUAL(radians, radians_ref);
+            ASSERT(std::abs(radians - radians_ref) < 1e-10);
         }
         {
             QString dms = "180°00′00.00000″";
             double radians_ref = M_PI;
             double radians = dms_to_radians(dms);
-            ASSERT_EQUAL(radians, radians_ref);
+            ASSERT(std::abs(radians - radians_ref) < 1e-10);
         }
         {
             QString dms = "-180°00′00.00000″";
             double radians_ref = -M_PI;
             double radians = dms_to_radians(dms);
-            ASSERT_EQUAL(radians, radians_ref);
+            ASSERT(std::abs(radians - radians_ref) < 1e-10);
         }
         {
             QString dms = "090°00′00.00000″";
             double radians_ref = M_PI / 2.0;
             double radians = dms_to_radians(dms);
-            ASSERT_EQUAL(radians, radians_ref);
+            ASSERT(std::abs(radians - radians_ref) < 1e-10);
         }
         {
             QString dms = "-090°00′00.00000″";
             double radians_ref = -M_PI / 2.0;
             double radians = dms_to_radians(dms);
-            ASSERT_EQUAL(radians, radians_ref);
+            ASSERT(std::abs(radians - radians_ref) < 1e-10);
         }
         {
             QString dms_ref = "057°17′44.80625″";

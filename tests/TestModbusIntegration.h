@@ -39,6 +39,7 @@ private slots:
     void initTestCase();
 
     void testClientServerCommunication();
+    void testClientServerCommunicationAddress123();
     void testAddBinding();
     void testProcessModbusDataUpdatesBindings();
     void testRegisterWidgetsFromContainer();

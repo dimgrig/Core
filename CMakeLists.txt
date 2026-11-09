@@ -172,28 +172,65 @@ install(CODE [[
     if(NOT "${_latest}" STREQUAL "${CMAKE_INSTALL_PREFIX}")
         message(STATUS "Creating ${_latest} -> ${CMAKE_INSTALL_PREFIX}")
         if(WIN32)
-            # mklink не принимает forward slashes: "C:/Users/..." он видит
-            # как switch "/Users" → "Invalid argument: Users". Нужны нативные
-            # пути с \ . file(TO_NATIVE_PATH) даёт именно их.
-            file(TO_NATIVE_PATH "${_latest}"                 _latest_native)
-            file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}"    _prefix_native)
+            file(TO_NATIVE_PATH "${_latest}"              _latest_native)
+            file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}" _prefix_native)
 
-            # rmdir принимает и / и \ — но для единообразия тоже native.
-            execute_process(COMMAND cmd /c rmdir /S /Q "${_latest_native}"
-                            RESULT_VARIABLE _rc_rm
-                            OUTPUT_QUIET ERROR_QUIET)
-            # _rc_rm != 0 если latest ещё нет — нормально.
+            # 1) Убрать существующий "latest" — junction это, копия или что угодно.
+            #    Никакого cmd/rmdir: только CMake, чтобы не зависеть от PATH.
+            if(EXISTS "${_latest}")
+                file(REMOVE "${_latest}")            # снимает symlink/junction
+                if(EXISTS "${_latest}")
+                    file(REMOVE_RECURSE "${_latest}") # fallback: real dir (MSYS ln -s)
+                endif()
+            endif()
 
-            execute_process(COMMAND cmd /c mklink /J "${_latest_native}" "${_prefix_native}"
-                            RESULT_VARIABLE _rc
-                            OUTPUT_VARIABLE _out
-                            ERROR_VARIABLE _err)
-            if(NOT _rc EQUAL 0)
-                message(WARNING "Failed to create ${_latest} (rc=${_rc}): ${_err}")
+            # 2) cmd.exe по абсолютному пути (System32), не из PATH.
+            find_program(_CMD_EXE cmd.exe
+                HINTS "$ENV{SystemRoot}/System32"
+                NO_DEFAULT_PATH)
+            if(NOT _CMD_EXE)
+                find_program(_CMD_EXE cmd.exe)   # last resort: PATH
+            endif()
+
+            set(_created FALSE)
+            if(_CMD_EXE)
+                execute_process(COMMAND "${_CMD_EXE}" /c mklink /J
+                                        "${_latest_native}" "${_prefix_native}"
+                                RESULT_VARIABLE _rc
+                                OUTPUT_VARIABLE _out
+                                ERROR_VARIABLE  _err)
+                if(_rc EQUAL 0)
+                    set(_created TRUE)
+                endif()
+            endif()
+
+            # 3) fallback — PowerShell junction (не требует elevation).
+            if(NOT _created)
+                find_program(_PS_EXE powershell.exe
+                    HINTS "$ENV{SystemRoot}/System32/WindowsPowerShell/v1.0"
+                    NO_DEFAULT_PATH)
+                if(_PS_EXE)
+                    execute_process(
+                        COMMAND "${_PS_EXE}" -NoProfile -NonInteractive -Command
+                            "New-Item -ItemType Junction -Path '${_latest_native}' -Target '${_prefix_native}' | Out-Null"
+                        RESULT_VARIABLE _rc_ps
+                        OUTPUT_VARIABLE _out_ps
+                        ERROR_VARIABLE  _err_ps)
+                    if(_rc_ps EQUAL 0)
+                        set(_created TRUE)
+                    endif()
+                endif()
+            endif()
+
+            if(NOT _created)
+                message(WARNING
+                    "Failed to create ${_latest} as junction\n"
+                    "  tried mklink rc=${_rc}\n"
+                    "  tried powershell rc=${_rc_ps}")
             endif()
         else()
             execute_process(COMMAND ln -sfn "${CMAKE_INSTALL_PREFIX}" "${_latest}"
-                RESULT_VARIABLE _rc)
+                            RESULT_VARIABLE _rc)
             if(NOT _rc EQUAL 0)
                 message(WARNING "Failed to create ${_latest} (rc=${_rc})")
             endif()

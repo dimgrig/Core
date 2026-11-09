@@ -11,7 +11,7 @@ void CORE_UTILS_LIB_EXPORT FunctionsDegreesTest();
 
 // For weird Microsoft compilers, e.g. MSVC9
 #ifndef M_PI
-#define M_PI 3.14159265358
+#define M_PI 3.14159265358979323846
 #endif
 
 qreal CORE_UTILS_LIB_EXPORT radiansFromDegrees(qreal degrees);

@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 
     int status = 0;
     QApplication app(argc, argv);
+    Logger::log_init();
 
     Profiler::_enable = true;
     TestRunner::_enable = true;

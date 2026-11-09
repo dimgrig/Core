@@ -15,6 +15,14 @@ add_executable(core-tests
     resources/resources.qrc
 )
 
+# При кросс-компиляции из Linux под Windows хост-сборка rcc умеет zstd,
+# а целевая сборка Qt для Windows — нет. Чтобы rcc не сжимал ресурсы
+# zstd'ом, явно отключаем это для тестового таргета.
+if(WIN32 AND CMAKE_CROSSCOMPILING)
+    set_target_properties(core-tests PROPERTIES
+        AUTORCC_OPTIONS "--no-zstd")
+endif()
+
 # Qt Creator-friendly: moc/uic/rcc включены через свойства target
 set_target_properties(core-tests PROPERTIES
     CXX_STANDARD 17
