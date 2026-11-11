@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.ci/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.ci/cmake")
+else()
+    message(FATAL_ERROR
+        "CoreCI submodule not initialized. "
+        "Run: git submodule update --init --recursive")
+endif()
+
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" CORE_VERSION LIMIT_COUNT 1)
 string(STRIP "${CORE_VERSION}" CORE_VERSION)
 string(REGEX MATCH "^[0-9]+" CORE_VERSION_MAJOR "${CORE_VERSION}")

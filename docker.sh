@@ -43,23 +43,15 @@ CORE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() { sed -n '3,36p' "$0"; exit "${1:-0}"; }
 die()   { echo "ERROR: $*" >&2; exit 1; }
 
+# ── CoreCI submodule guard ────────────────────────────────────────
+[ -d "$CORE_ROOT/.ci" ] || {
+    die "CoreCI submodule not initialized. Run: git submodule update --init --recursive"
+}
+
 # ---------------------------------------------------------------------------
 # detect_export_mode — выставляет EXPORT_MODE (dev|ci). Побочных эффектов нет.
 # ---------------------------------------------------------------------------
-detect_export_mode() {
-    if [ -n "${EXPORT_MODE:-}" ]; then
-        case "$EXPORT_MODE" in dev|ci) return 0 ;; esac
-        echo "ERROR: EXPORT_MODE='$EXPORT_MODE' (dev|ci)" >&2
-        return 1
-    fi
-    if [ "${CI:-}" = "true" ]; then EXPORT_MODE="ci"; return 0; fi
-    if [ -n "${DEPLOY_ROOT:-}" ]; then EXPORT_MODE="dev"; return 0; fi
-    if [ -n "${HOME:-}" ] && [ -d "$HOME/deploy" ]; then EXPORT_MODE="dev"; return 0; fi
-    if [ -n "${HOME:-}" ] && { [ -d "$HOME/deploy/core" ] || [ -d "$HOME/.local/core" ]; }; then
-        EXPORT_MODE="dev"; return 0
-    fi
-    EXPORT_MODE="ci"
-}
+source "$CORE_ROOT/.ci/scripts/detect-export-mode.sh"
 
 # ---------------------------------------------------------------------------
 # _base_deps_env — выставляет CORE_BASE_DEPS_* (default: latest).
@@ -259,7 +251,7 @@ _main() {
 
     local cmd="${1:-}"; shift || true
     case "$cmd" in
-        base)   bash ./docker-build-base-deps.sh "$@" ;;
+        base)   bash "$CORE_ROOT/.ci/scripts/build-base-deps.sh" "$@" ;;
         verify) bash ./verify-docker-export-core.sh "$@" ;;
         export) _cmd_export "$@" ;;
         test)   _cmd_test   "$@" ;;

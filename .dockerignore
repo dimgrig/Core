@@ -12,6 +12,7 @@
 **/applocal-staging/
 
 # ── VCS / CI ──────────────────────────────────────────────
+**/.git
 **/.git/
 **/.github/
 **/.gitignore

@@ -20,8 +20,10 @@ export LC_ALL=C LANG=C
 CORE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 DEPLOY_ROOT="${DEPLOY_ROOT:-$HOME/deploy/core}"
 CORE_VERSION="${CORE_VERSION:-$(tr -d '[:space:]' < "$CORE_ROOT/VERSION")}"
-PLATFORMS="${PLATFORMS:-linux win win-qt6 arm64 armv7}"
-WIN_IMAGE="${WIN_IMAGE:-core-builder-cmake-win:latest}"
+PLATFORMS="${PLATFORMS:-linux-qt6 linux-qt5 win-qt6 win-qt5 arm64-qt6 arm64-qt5 armv7-qt5}"
+WIN_IMAGE_QT5="${WIN_IMAGE_QT5:-${WIN_IMAGE:-core-builder-cmake-win:latest}}"
+WIN_IMAGE_QT6="${WIN_IMAGE_QT6:-${WIN_IMAGE:-core-builder-cmake-win64-qt6:latest}}"
+QT6_PREFIX_X86_64="${QT6_PREFIX_X86_64:-/opt/Qt/6.8.0/gcc_64}"
 
 SDK_ROOT="$DEPLOY_ROOT/$CORE_VERSION"
 WORK_DIR="$(mktemp -d -t verify-deploy.XXXXXX)"
@@ -59,10 +61,10 @@ is_empty_platform() {
 
 elf_expected_machine() {
     case "$1" in
-        linux)  echo "Advanced Micro Devices X86-64" ;;
-        arm64)  echo "AArch64" ;;
-        armv7)  echo "ARM" ;;
-        *)      echo "" ;;
+        linux|linux-qt5|linux-qt6)  echo "Advanced Micro Devices X86-64" ;;
+        arm64|arm64-qt5|arm64-qt6)  echo "AArch64" ;;
+        armv7|armv7-qt5)            echo "ARM" ;;
+        *)                          echo "" ;;
     esac
 }
 
@@ -103,7 +105,7 @@ echo "================================================="
 CORE_LIBS=(core-lib core-journal-lib core-io-lib core-modbus-lib
            core-mvc-lib core-utils-lib core-plot-lib core-widgets-lib)
 NON_CORE_LIBS=(muParser qcustomplot QtWebApp)
-ELF_PLATFORMS=(linux arm64 armv7)
+ELF_PLATFORMS=(linux linux-qt5 linux-qt6 arm64 arm64-qt5 arm64-qt6 armv7 armv7-qt5)
 
 # ============================================================
 # 1. Структура SDK
@@ -164,7 +166,7 @@ for plat in $PLATFORMS; do
     fi
 
     # ── Windows (win32-qt5 и win64-qt6) ──
-    if [ "$plat" = "win" ] || [ "$plat" = "win-qt6" ]; then
+    if [ "$plat" = "win" ] || [ "$plat" = "win-qt5" ] || [ "$plat" = "win-qt6" ]; then
         check_dir "$SDK_ROOT/$plat/bin"
         for lib in "${CORE_LIBS[@]}"; do
             check_file "$SDK_ROOT/$plat/bin/lib${lib}.dll"
@@ -181,8 +183,13 @@ done
 # ============================================================
 # 2. Linux consumer: find_package + build + run
 # ============================================================
-if [[ " $PLATFORMS " == *" linux "* ]] && ! is_empty_platform linux; then
-    _section "2. Linux consumer (find_package + build + run)"
+LINUX_PLAT=""
+for p in linux-qt6 linux-qt5 linux; do
+    if ! is_empty_platform "$p"; then LINUX_PLAT="$p"; break; fi
+done
+
+if [ -n "$LINUX_PLAT" ]; then
+    _section "2. Linux consumer ($LINUX_PLAT)"
 
     L="$WORK_DIR/linux"
     mkdir -p "$L"
@@ -204,7 +211,7 @@ int main(int argc, char** argv) {
 }
 EOF
 
-    if cmake -S "$L" -B "$L/build" -DCMAKE_PREFIX_PATH="$SDK_ROOT/linux" \
+    if cmake -S "$L" -B "$L/build" -DCMAKE_PREFIX_PATH="$SDK_ROOT/$LINUX_PLAT" \
             >"$L/cmake.log" 2>&1; then
         _pass "cmake configure"
     else
@@ -222,7 +229,7 @@ EOF
     fi
 
     if [ -x "$L/build/t_linux" ]; then
-        out=$(LD_LIBRARY_PATH="$SDK_ROOT/linux/lib" "$L/build/t_linux" 2>&1 || true)
+        out=$(LD_LIBRARY_PATH="$SDK_ROOT/$LINUX_PLAT/lib" "$L/build/t_linux" 2>&1 || true)
         if echo "$out" | grep -q "LINUX CONSUMER OK"; then
             _pass "run: ${out##*: }"
         else
@@ -234,13 +241,34 @@ fi
 # ============================================================
 # 3. Win consumer: find_package + build + objdump (+ wine)
 # ============================================================
-if [[ " $PLATFORMS " == *" win "* ]] && ! is_empty_platform win; then
-    _section "3. Win consumer (find_package + build + linkcheck${SKIP_WINE:+; wine skip})"
+WIN_PLAT=""
+for p in win-qt6 win-qt5 win; do
+    if ! is_empty_platform "$p"; then WIN_PLAT="$p"; break; fi
+done
 
-    if ! docker image inspect "$WIN_IMAGE" >/dev/null 2>&1; then
-        _skip "образ $WIN_IMAGE не найден — пропускаю win-тест"
+if [ -n "$WIN_PLAT" ]; then
+    _section "3. Win consumer ($WIN_PLAT, find_package + build + linkcheck${SKIP_WINE:+; wine skip})"
+
+    # ── Платформенная специфика ─────────────────────────────────
+    case "$WIN_PLAT" in
+        win-qt6)
+            WIN_IMAGE_USE="$WIN_IMAGE_QT6"
+            MINGW_TRIPLET="x86_64-w64-mingw32"
+            MINGW_ARCH="x86_64"
+            USE_BASE_TOOLCHAIN=1
+            ;;
+        win-qt5|win)
+            WIN_IMAGE_USE="$WIN_IMAGE_QT5"
+            MINGW_TRIPLET="i686-w64-mingw32"
+            MINGW_ARCH="i686"
+            USE_BASE_TOOLCHAIN=0
+            ;;
+    esac
+
+    if ! docker image inspect "$WIN_IMAGE_USE" >/dev/null 2>&1; then
+        _skip "образ $WIN_IMAGE_USE не найден — пропускаю $WIN_PLAT consumer"
     else
-        W="$WORK_DIR/win"
+        W="$WORK_DIR/win-$WIN_PLAT"
         mkdir -p "$W"
 
         cat > "$W/CMakeLists.txt" <<'EOF'
@@ -260,29 +288,48 @@ int main(int argc, char** argv) {
     return 0;
 }
 EOF
-        cat > "$W/i686-w64-mingw32.cmake" <<'EOF'
+
+        # Toolchain для нужной архитектуры
+if [ "${USE_BASE_TOOLCHAIN:-0}" = "1" ]; then
+            # win-qt6: в образе core-builder-cmake-win64-qt6 есть свой
+            # /opt/x86_64-w64-mingw32.cmake, где mingw_64 уже в CMAKE_FIND_ROOT_PATH.
+            # Не перезаписываем его — только добавляем /sdk для CoreConfig.cmake.
+            cat > "$W/${MINGW_TRIPLET}.cmake" <<'EOF'
+include(/opt/x86_64-w64-mingw32.cmake)
+list(APPEND CMAKE_FIND_ROOT_PATH /sdk)
+EOF
+        else
+            # win-qt5: своего toolchain в образе нет, генерируем с нуля.
+            # Qt5 mingw живёт в /usr/i686-w64-mingw32/lib/qt — это под /usr/i686-w64-mingw32,
+            # который уже в CMAKE_FIND_ROOT_PATH.
+            cat > "$W/${MINGW_TRIPLET}.cmake" <<EOF
 set(CMAKE_SYSTEM_NAME Windows)
-set(CMAKE_SYSTEM_PROCESSOR i686)
-set(CMAKE_C_COMPILER   i686-w64-mingw32-gcc)
-set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
-set(CMAKE_RC_COMPILER  i686-w64-mingw32-windres)
-set(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32 /sdk)
+set(CMAKE_SYSTEM_PROCESSOR ${MINGW_ARCH})
+set(CMAKE_C_COMPILER   ${MINGW_TRIPLET}-gcc)
+set(CMAKE_CXX_COMPILER ${MINGW_TRIPLET}-g++)
+set(CMAKE_RC_COMPILER  ${MINGW_TRIPLET}-windres)
+set(CMAKE_FIND_ROOT_PATH /usr/${MINGW_TRIPLET} /sdk)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 EOF
+        fi
 
+        # CMake configure + build в контейнере
         if docker run --rm \
                 -v "$W":/work \
-                -v "$SDK_ROOT/win":/sdk:ro \
+                -v "$SDK_ROOT/$WIN_PLAT":/sdk:ro \
                 -w /work \
-                "$WIN_IMAGE" \
-                bash -c 'set -e; cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=/work/i686-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)"' \
+                "$WIN_IMAGE_USE" \
+                bash -c "set -e; cmake -S . -B build \
+                    -DCMAKE_TOOLCHAIN_FILE=/work/${MINGW_TRIPLET}.cmake \
+                    -DCMAKE_BUILD_TYPE=Release && \
+                    cmake --build build -j\"\$(nproc)\"" \
                 >"$W/build.log" 2>&1; then
-            _pass "cmake configure + build (в контейнере)"
+            _pass "cmake configure + build ($WIN_PLAT, ${MINGW_TRIPLET})"
         else
-            _fail "win build — лог:"
+            _fail "win build ($WIN_PLAT) — лог:"
             sed 's/^/      /' "$W/build.log" | tail -30
         fi
 
@@ -290,48 +337,54 @@ EOF
             chown -R "$(id -u):$(id -g)" /work/build >/dev/null 2>&1 || true
 
         if [ -f "$W/build/t_win.exe" ]; then
-            _pass "t_win.exe собран"
-            check_win=$(docker run --rm -v "$W":/work "$WIN_IMAGE" \
-                i686-w64-mingw32-objdump -p /work/build/t_win.exe 2>/dev/null || true)
+            _pass "t_win.exe собран ($WIN_PLAT)"
+
+            # Link check через objdump нужной архитектуры
+            check_win=$(docker run --rm -v "$W":/work "$WIN_IMAGE_USE" \
+                "${MINGW_TRIPLET}-objdump" -p /work/build/t_win.exe 2>/dev/null || true)
             if echo "$check_win" | grep -q "DLL Name: libcore-lib.dll"; then
                 _pass "t_win.exe линкован с libcore-lib.dll"
             else
                 _fail "t_win.exe не линкован с libcore-lib.dll"
             fi
 
-            if [ -z "${SKIP_WINE:-}" ] && command -v wine >/dev/null 2>&1 \
-                    && dpkg -l wine32 >/dev/null 2>&1; then
-                mkdir -p "$W/dlls"
-                docker run --rm -v "$W/dlls":/t "$WIN_IMAGE" bash -c '
-                    set +e
-                    # Все mingw DLL (Qt5, libwinpthread, libssp, libzstd, libiconv, …)
-                    for d in /usr/i686-w64-mingw32/bin \
-                             /usr/i686-w64-mingw32/lib \
-                             /usr/lib/gcc/i686-w64-mingw32; do
-                        [ -d "$d" ] && find "$d" -maxdepth 2 -name "*.dll" \
-                            -exec cp -a {} /t/ \; 2>/dev/null
-                    done
-                    exit 0' >/dev/null 2>&1 || true
+            # Wine run — только для win-qt5 (wine32 на хосте; для x64 нужен wine64,
+            # которого в стандартной ubuntu-установке часто нет).
+            if [ "$WIN_PLAT" = "win-qt5" ] || [ "$WIN_PLAT" = "win" ]; then
+                if [ -z "${SKIP_WINE:-}" ] && command -v wine >/dev/null 2>&1 \
+                        && dpkg -l wine32 >/dev/null 2>&1; then
+                    mkdir -p "$W/dlls"
+                    docker run --rm -v "$W/dlls":/t "$WIN_IMAGE_USE" bash -c '
+                        set +e
+                        for d in /usr/i686-w64-mingw32/bin \
+                                 /usr/i686-w64-mingw32/lib \
+                                 /usr/lib/gcc/i686-w64-mingw32; do
+                            [ -d "$d" ] && find "$d" -maxdepth 2 -name "*.dll" \
+                                -exec cp -a {} /t/ \; 2>/dev/null
+                        done
+                        exit 0' >/dev/null 2>&1 || true
 
-                WINE_PREFIX="$WORK_DIR/wine32"
-                WINEARCH=win32 WINEPREFIX="$WINE_PREFIX" wineboot -i >/dev/null 2>&1 || true
+                    WINE_PREFIX="$WORK_DIR/wine32"
+                    WINEARCH=win32 WINEPREFIX="$WINE_PREFIX" wineboot -i >/dev/null 2>&1 || true
 
-                out=$(WINEARCH=win32 WINEPREFIX="$WINE_PREFIX" \
-                      WINEPATH="$SDK_ROOT/win/bin;$W/dlls" \
-                      wine "$W/build/t_win.exe" 2>&1 || true)
-                if echo "$out" | grep -q "WIN CONSUMER OK"; then
-                    _pass "wine run: WIN CONSUMER OK"
+                    out=$(WINEARCH=win32 WINEPREFIX="$WINE_PREFIX" \
+                          WINEPATH="$SDK_ROOT/$WIN_PLAT/bin;$W/dlls" \
+                          wine "$W/build/t_win.exe" 2>&1 || true)
+                    if echo "$out" | grep -q "WIN CONSUMER OK"; then
+                        _pass "wine run: WIN CONSUMER OK"
+                    else
+                        _fail "wine run — вывод:"
+                        echo "$out" | sed 's/^/      /' | tail -15
+                    fi
                 else
-                    _fail "wine run — вывод:"
-                    echo "$out" | sed 's/^/      /' | tail -15
+                    _skip "wine не запущен (нет wine / wine32 / SKIP_WINE=1)"
                 fi
             else
-                _skip "wine не запущен (нет wine / wine32 / SKIP_WINE=1)"
+                _skip "wine run для $WIN_PLAT — пропущено (x64 не поддерживается на хосте без wine64)"
             fi
         fi
     fi
 fi
-
 # ============================================================
 # Итог
 # ============================================================

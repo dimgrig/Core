@@ -88,7 +88,8 @@ win32|win64 {
     !isEmpty(CORE_APP_LOCAL_DIR) {
         _LATEST = $$clean_path($$CORE_APP_LOCAL_DIR/../latest)
         !equals(_LATEST, $$CORE_APP_LOCAL_DIR) {
-            _CORE_DEPLOY_CMDS += "cmake -DLATEST=$$shell_quote($$clean_path($$_LATEST)) -DTARGET=$$shell_quote($$clean_path($$CORE_APP_LOCAL_DIR)) -P $$clean_path($$CORE_ROOT/cmake/CreateLatestLink.cmake)"
+            #_CORE_DEPLOY_CMDS += "cmake -DLATEST=$$shell_quote($$clean_path($$_LATEST)) -DTARGET=$$shell_quote($$clean_path($$CORE_APP_LOCAL_DIR)) -P $$clean_path($$CORE_ROOT/cmake/CreateLatestLink.cmake)"
+            _CORE_DEPLOY_CMDS += "cmake -DLATEST=$$shell_quote($$clean_path($$_LATEST)) -DTARGET=$$shell_quote($$clean_path($$CORE_APP_LOCAL_DIR)) -P $$clean_path($$CORE_ROOT/.ci/cmake/CreateLatestLink.cmake)"
             message("core-deploy: latest -> [$$_LATEST] (junction via cmake -P)")
         }
     }

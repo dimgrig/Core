@@ -44,6 +44,4 @@ DISTFILES += \
     core-link.pri \
     core-gcc10.pri \
     qmake-version.pri \
-    qmake-destination-path.pri \
-    qmake-core-version.pri \
-    qmake-target-platform.pri
+    qmake-core-version.pri 

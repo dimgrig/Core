@@ -9,11 +9,15 @@
 
 isEmpty(CORE_ROOT): CORE_ROOT = $$PWD
 
-# Платформа/версия/пути
-include($$CORE_ROOT/qmake-version.pri)
-include($$CORE_ROOT/qmake-target-platform.pri)
-include($$CORE_ROOT/qmake-core-version.pri)
-include($$CORE_ROOT/qmake-destination-path.pri)
+# ── CoreCI submodule guard ───────────────────────────────────────
+!exists($$CORE_ROOT/.ci/qmake/qmake-target-platform.pri): \
+    error("CoreCI submodule not initialized at $$CORE_ROOT/.ci — run: git submodule update --init --recursive")
+
+# ── Платформа / версия / пути ────────────────────────────────────
+include($$CORE_ROOT/qmake-version.pri)                          # Core
+include($$CORE_ROOT/.ci/qmake/qmake-target-platform.pri)        # CoreCI
+include($$CORE_ROOT/qmake-core-version.pri)                     # Core
+include($$CORE_ROOT/.ci/qmake/qmake-destination-path.pri)       # CoreCI
 
 # Общие defines
 !contains(CONFIG, core_no_default_defines) {
