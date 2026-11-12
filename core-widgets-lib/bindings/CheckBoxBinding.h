@@ -6,7 +6,7 @@
 
 #include "RegisterBinding.h"
 
-#include "core-widgets-lib-global.h"
+#include <core-widgets-lib/core-widgets-lib-global.h>
 
 class CORE_WIDGETS_LIB_EXPORT CheckBoxBinding : public RegisterBinding {
     Q_OBJECT

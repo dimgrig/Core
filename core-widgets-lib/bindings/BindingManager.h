@@ -9,7 +9,7 @@
 
 #include "RegisterBinding.h"
 
-#include "core-widgets-lib-global.h"
+#include <core-widgets-lib/core-widgets-lib-global.h>
 
 class ModbusClient;
 

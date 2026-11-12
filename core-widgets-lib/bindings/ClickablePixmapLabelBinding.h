@@ -5,7 +5,7 @@
 
 #include "PixmapLabelBinding.h"
 
-#include "core-widgets-lib-global.h"
+#include <core-widgets-lib/core-widgets-lib-global.h>
 
 class CORE_WIDGETS_LIB_EXPORT ClickablePixmapLabelBinding : public PixmapLabelBinding {
     Q_OBJECT

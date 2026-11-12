@@ -8,7 +8,7 @@
 
 #include "RegisterBinding.h"
 
-#include "core-widgets-lib-global.h"
+#include <core-widgets-lib/core-widgets-lib-global.h>
 
 class CORE_WIDGETS_LIB_EXPORT LineEditBinding : public RegisterBinding {
     Q_OBJECT

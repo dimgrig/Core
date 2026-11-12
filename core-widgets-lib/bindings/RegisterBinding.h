@@ -3,7 +3,7 @@
 
 #include <core-modbus-lib/ModbusBase.h>
 
-#include "core-widgets-lib-global.h"
+#include <core-widgets-lib/core-widgets-lib-global.h>
 
 #include <QObject>
 class CORE_WIDGETS_LIB_EXPORT DataConversionUtils {
