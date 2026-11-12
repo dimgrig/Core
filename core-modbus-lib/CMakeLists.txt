@@ -1,7 +1,6 @@
 core_add_library(core-modbus-lib
     QT Core Network SerialPort SerialBus
     DEPENDS core-lib core-journal-lib
-    INCLUDES bindings
 )
 
 target_sources(core-modbus-lib PRIVATE

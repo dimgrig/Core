@@ -2,6 +2,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
     core_add_library(core-widgets-lib
         QT Core Gui Widgets Svg StateMachine SerialPort SerialBus Mqtt
         DEPENDS core-lib core-journal-lib core-modbus-lib core-io-lib
+        INCLUDES bindings
     )
     qt_add_resources(CORE_WIDGETS_RESOURCES_QRC
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
@@ -9,6 +10,7 @@ else()
     core_add_library(core-widgets-lib
         QT Core Gui Widgets Svg SerialPort SerialBus Mqtt #StateMachine
         DEPENDS core-lib core-journal-lib core-modbus-lib core-io-lib
+        INCLUDES bindings
     )
     qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
