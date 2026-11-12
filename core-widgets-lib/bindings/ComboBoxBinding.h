@@ -7,7 +7,9 @@
 
 #include "RegisterBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT ComboBoxBinding : public RegisterBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT ComboBoxBinding : public RegisterBinding {
     Q_OBJECT
 public:
     // Конструктор для прямого соответствия индекса и значения регистра

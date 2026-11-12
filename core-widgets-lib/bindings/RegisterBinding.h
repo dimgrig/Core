@@ -3,8 +3,10 @@
 
 #include <core-modbus-lib/ModbusBase.h>
 
+#include "core-widgets-lib-global.h"
+
 #include <QObject>
-class CORE_MODBUS_LIB_EXPORT DataConversionUtils {
+class CORE_WIDGETS_LIB_EXPORT DataConversionUtils {
 public:
     // Преобразование float в два 16-битных регистра
     static QVector<quint16> floatToRegisters(float value, bool bigEndian = false);
@@ -34,7 +36,7 @@ public:
     static bool validateSize(const QVector<quint16>& data, int expectedSize);
 };
 
-class CORE_MODBUS_LIB_EXPORT RegisterBinding : public QObject {
+class CORE_WIDGETS_LIB_EXPORT RegisterBinding : public QObject {
     Q_OBJECT
 
 public:

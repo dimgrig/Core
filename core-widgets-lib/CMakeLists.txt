@@ -1,14 +1,14 @@
 if(QT_VERSION_MAJOR EQUAL 6)
     core_add_library(core-widgets-lib
-        QT Core Gui Widgets Svg StateMachine
-        DEPENDS core-lib core-journal-lib
+        QT Core Gui Widgets Svg StateMachine SerialPort SerialBus Mqtt
+        DEPENDS core-lib core-journal-lib core-modbus-lib core-io-lib
     )
     qt_add_resources(CORE_WIDGETS_RESOURCES_QRC
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
 else()
     core_add_library(core-widgets-lib
-        QT Core Gui Widgets Svg #StateMachine
-        DEPENDS core-lib core-journal-lib
+        QT Core Gui Widgets Svg SerialPort SerialBus Mqtt #StateMachine
+        DEPENDS core-lib core-journal-lib core-modbus-lib core-io-lib
     )
     qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
@@ -36,13 +36,28 @@ target_sources(core-widgets-lib PRIVATE
     MenuCornerWidget.cpp
     MessageBox.cpp
     MockUserRoleManager.cpp
+    ModbusSettingsUI.cpp
     MultiSelectWidget.cpp
     RotatedLabel.cpp
     RoundedLabel.cpp
+    SCPISettingsUI.cpp
     TabBarHorizontalText.cpp
     User.cpp
     WidgetResizeMixin.cpp
     aqp.cpp
+    bindings/AdvancedClickablePixmapLabelBinding.cpp
+    bindings/BindingFactory.cpp
+    bindings/BindingManager.cpp
+    bindings/BitAwareBindingManager.cpp
+    bindings/CheckBoxBinding.cpp
+    bindings/ClickablePixmapLabelBinding.cpp
+    bindings/ComboBoxBinding.cpp
+    bindings/DoubleSpinBoxBinding.cpp
+    bindings/LabelBinding.cpp
+    bindings/LineEditBinding.cpp
+    bindings/PixmapLabelBinding.cpp
+    bindings/RegisterBinding.cpp
+    bindings/SpinBoxBinding.cpp
 
     AboutPanel.h
     Approximation.h
@@ -64,16 +79,31 @@ target_sources(core-widgets-lib PRIVATE
     MenuCornerWidget.h
     MessageBox.h
     MockUserRoleManager.h
+    ModbusSettingsUI.h
     MultiSelectWidget.h
     RotatedLabel.h
     RoundedLabel.h
+    SCPISettingsUI.h
     SpinBoxEditor.h
     TabBarHorizontalText.h
     User.h
     WidgetResizeMixin.h
     aqp.h
     core-widgets-lib-global.h
-    icons.h
+    icons.h    
+    bindings/AdvancedClickablePixmapLabelBinding.h
+    bindings/BindingFactory.h
+    bindings/BindingManager.h
+    bindings/BitAwareBindingManager.h
+    bindings/CheckBoxBinding.h
+    bindings/ClickablePixmapLabelBinding.h
+    bindings/ComboBoxBinding.h
+    bindings/DoubleSpinBoxBinding.h
+    bindings/LabelBinding.h
+    bindings/LineEditBinding.h
+    bindings/PixmapLabelBinding.h
+    bindings/RegisterBinding.h
+    bindings/SpinBoxBinding.h
 
     uis/Auth.ui
     uis/User.ui
@@ -82,6 +112,11 @@ target_sources(core-widgets-lib PRIVATE
     uis/combobox_dialog.ui
     uis/doublespinbox_dialog.ui
     uis/menu_corner_widget.ui
+    uis/modbus_settings.ui
+    uis/scpi_settings.ui
     uis/settings.ui
 )
 
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(core-widgets-lib PRIVATE Qt6::Core5Compat) #QTextCodec
+endif()

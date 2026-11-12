@@ -5,7 +5,9 @@
 
 #include "PixmapLabelBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT ClickablePixmapLabelBinding : public PixmapLabelBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT ClickablePixmapLabelBinding : public PixmapLabelBinding {
     Q_OBJECT
 public:
     ClickablePixmapLabelBinding(QLabel* label,

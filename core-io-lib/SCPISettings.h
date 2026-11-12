@@ -1,11 +1,9 @@
 #ifndef SCPISETTINGS_H
 #define SCPISETTINGS_H
 
-#include <QWidget>
+#include <QString>
 
 #include "core-io-lib-global.h"
-
-namespace Ui { class fscpi_settings; }
 
 struct SCPISettings {
     bool SCPI_ENABLE = true;
@@ -20,33 +18,6 @@ struct SCPISettings {
     QString SCPI_STATE = "";
 };
 
-class CORE_IO_LIB_EXPORT SCPISettingsUI : public QWidget {
-    Q_OBJECT
-public:
-    SCPISettingsUI(QWidget *parent = nullptr);
-    ~SCPISettingsUI();
-
-    // void set_reconfig(bool reconfig = false);
-    // bool get_reconfig() const {return _reconfig;};
-signals:
-    void settings_changed();
-
-public slots:
-    void type_changed(const QString &type);
-
-    SCPISettings getSettingsFromUi();
-    void setSettingsToUi(const SCPISettings& settings);
-
-    void read_config(SCPISettings settings);
-    SCPISettings write_config();
-private slots:
-
-private:
-    void initializeComboboxes();
-
-    Ui::fscpi_settings *ui;
-
-    //bool _reconfig = false;
-};
+class SCPISettingsUI;
 
 #endif // SCPISETTINGS_H

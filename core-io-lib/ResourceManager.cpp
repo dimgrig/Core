@@ -12,7 +12,7 @@ ResourceManager& ResourceManager::instance() {
     return instance;
 }
 
-std::shared_ptr<ModbusClient> ResourceManager::getModbusClient(const QString &config, const ModbusSettings& settings, QWidget* parent) {
+std::shared_ptr<ModbusClient> ResourceManager::getModbusClient(const QString &config, const ModbusSettings& settings, QObject* parent) {
     QString key = makeModbusClientKey(settings);
     return acquire_client<ModbusClient>(key, parent, config, settings);
 }

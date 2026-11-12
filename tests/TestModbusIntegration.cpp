@@ -17,12 +17,12 @@
 #include <core-modbus-lib/ModbusServer.h>
 #include <core-modbus-lib/ModbusSettings.h>
 
-#include <core-modbus-lib/bindings/BindingManager.h>
-#include <core-modbus-lib/bindings/BitAwareBindingManager.h>
-#include <core-modbus-lib/bindings/CheckBoxBinding.h>
-#include <core-modbus-lib/bindings/DoubleSpinBoxBinding.h>
-#include <core-modbus-lib/bindings/SpinBoxBinding.h>
-#include <core-modbus-lib/bindings/LineEditBinding.h>
+#include <core-widgets-lib/bindings/BindingManager.h>
+#include <core-widgets-lib/bindings/BitAwareBindingManager.h>
+#include <core-widgets-lib/bindings/CheckBoxBinding.h>
+#include <core-widgets-lib/bindings/DoubleSpinBoxBinding.h>
+#include <core-widgets-lib/bindings/SpinBoxBinding.h>
+#include <core-widgets-lib/bindings/LineEditBinding.h>
 
 ////QTEST_MAIN(TestModbusIntegration) //need when no main.cpp with main function
 

@@ -5,7 +5,9 @@
 #include "AdvancedClickablePixmapLabelBinding.h"
 #include "BindingManager.h"
 
-class CORE_MODBUS_LIB_EXPORT BindingFactory {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT BindingFactory {
 public:
     BindingFactory(std::shared_ptr<BindingManager> bindingManager);
 

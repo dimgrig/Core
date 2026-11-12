@@ -1,5 +1,5 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets svg
+greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets svg network serialbus serialport mqtt
 greaterThan(QT_MAJOR_VERSION, 5): QT += statemachine
 
 TEMPLATE = lib
@@ -29,14 +29,29 @@ HEADERS += \
     MenuCornerWidget.h \
     MessageBox.h \
     MockUserRoleManager.h \
+    ModbusSettingsUI.h \
     MultiSelectWidget.h \
     RotatedLabel.h \
     RoundedLabel.h \
+    SCPISettingsUI.h \
     SpinBoxEditor.h \
     TabBarHorizontalText.h \
     User.h \
     WidgetResizeMixin.h \
     aqp.h \
+    bindings/AdvancedClickablePixmapLabelBinding.h \
+    bindings/BindingFactory.h \
+    bindings/BindingManager.h \
+    bindings/BitAwareBindingManager.h \
+    bindings/CheckBoxBinding.h \
+    bindings/ClickablePixmapLabelBinding.h \
+    bindings/ComboBoxBinding.h \
+    bindings/DoubleSpinBoxBinding.h \
+    bindings/LabelBinding.h \
+    bindings/LineEditBinding.h \
+    bindings/PixmapLabelBinding.h \
+    bindings/RegisterBinding.h \
+    bindings/SpinBoxBinding.h \
     core-widgets-lib-global.h \
     icons.h
 
@@ -61,13 +76,28 @@ SOURCES += \
     MenuCornerWidget.cpp \
     MessageBox.cpp \
     MockUserRoleManager.cpp \
+    ModbusSettingsUI.cpp \
     MultiSelectWidget.cpp \
     RotatedLabel.cpp \
     RoundedLabel.cpp \
+    SCPISettingsUI.cpp \
     TabBarHorizontalText.cpp \
     User.cpp \
     WidgetResizeMixin.cpp \
-    aqp.cpp
+    aqp.cpp \
+    bindings/AdvancedClickablePixmapLabelBinding.cpp \
+    bindings/BindingFactory.cpp \
+    bindings/BindingManager.cpp \
+    bindings/BitAwareBindingManager.cpp \
+    bindings/CheckBoxBinding.cpp \
+    bindings/ClickablePixmapLabelBinding.cpp \
+    bindings/ComboBoxBinding.cpp \
+    bindings/DoubleSpinBoxBinding.cpp \
+    bindings/LabelBinding.cpp \
+    bindings/LineEditBinding.cpp \
+    bindings/PixmapLabelBinding.cpp \
+    bindings/RegisterBinding.cpp \
+    bindings/SpinBoxBinding.cpp
 
 FORMS += \
     uis/Auth.ui \
@@ -77,12 +107,14 @@ FORMS += \
     uis/combobox_dialog.ui \
     uis/doublespinbox_dialog.ui \
     uis/menu_corner_widget.ui \
+    uis/modbus_settings.ui \
+    uis/scpi_settings.ui \
     uis/settings.ui
 
 RESOURCES += \
     resources/core_widgets_resources.qrc
 
-CORE_LINK_LIBS = core-lib core-journal-lib
+CORE_LINK_LIBS = core-lib core-journal-lib core-modbus-lib core-io-lib
 include(../core-build.pri)
 VERSION = $$CORE_VERSION
 

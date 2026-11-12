@@ -3,7 +3,7 @@
 
 #include <QSerialPort>
 #include <QTimer>
-#include <QWidget>
+#include <QObject>
 
 #include "core-io-lib-global.h"
 

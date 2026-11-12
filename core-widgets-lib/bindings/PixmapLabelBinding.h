@@ -7,7 +7,9 @@
 
 #include "RegisterBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT PixmapLabelBinding : public RegisterBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT PixmapLabelBinding : public RegisterBinding {
     Q_OBJECT
 public:
     // Конструктор для двух состояний (вкл/выкл)

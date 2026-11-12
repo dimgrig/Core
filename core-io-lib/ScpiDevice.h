@@ -2,11 +2,10 @@
 #define SCPIDEVICE_H
 
 #include <QObject>
-#include <QMessageBox>
 #include <QString>
-#include <QTcpSocket>
-#include <QHostAddress>
-#include <QEventLoop>
+//#include <QTcpSocket>
+//#include <QHostAddress>
+//#include <QEventLoop>
 #include <QTimer>
 
 #include <memory>
@@ -101,19 +100,5 @@ private:
     // std::unique_ptr<QTimer,decltype(_qobj_deleter)> _timeout_timer = nullptr;
     // std::unique_ptr<QEventLoop,decltype(_qobj_deleter)> _local_event_loop = nullptr;
 };
-
-template<typename F>
-void safe_device_call(QWidget *parent, F &&f) {
-    try {
-        f();
-    } catch (const ScpiDevice::ScpiDeviceError &err) {
-        QMessageBox::warning(parent, "Ошибка связи с устройством", err.what());
-    } catch (const std::exception &err) {
-        QMessageBox::warning(parent, "Неизвестная ошибка", err.what());
-    }
-}
-
-#define SAFE_CALL_DEVICE(parent, expr) \
-safe_device_call(parent, [&]{ expr; })
 
 #endif // SCPIDEVICE_H

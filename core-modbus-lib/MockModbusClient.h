@@ -11,7 +11,7 @@
 class CORE_MODBUS_LIB_EXPORT MockModbusClient : public ModbusClient {
     Q_OBJECT
 public:
-    explicit MockModbusClient(QWidget *parent = nullptr);
+    explicit MockModbusClient(QObject *parent = nullptr);
 
     // Переопределяем ключевые методы, используемые в тестируемом коде
     void sendSingleRequest(int serverAddress, QModbusDataUnit mdu);

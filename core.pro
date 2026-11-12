@@ -18,7 +18,7 @@ core-mvc-lib.depends = core-lib core-journal-lib core-utils-lib core-widgets-lib
 core-modbus-lib.depends = core-lib core-journal-lib
 core-plot-lib.depends = core-lib core-journal-lib qcustomplot
 core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser
-core-widgets-lib.depends = core-lib core-journal-lib
+core-widgets-lib.depends = core-lib core-journal-lib core-modbus-lib core-io-lib
 
 CONFIG(debug, debug|release) {
     SUBDIRS += tests

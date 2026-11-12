@@ -3,9 +3,11 @@
 
 #include "ClickablePixmapLabelBinding.h"
 
+#include "core-widgets-lib-global.h"
+
 class BindingManager;
 
-class CORE_MODBUS_LIB_EXPORT AdvancedClickablePixmapLabelBinding : public ClickablePixmapLabelBinding {
+class CORE_WIDGETS_LIB_EXPORT AdvancedClickablePixmapLabelBinding : public ClickablePixmapLabelBinding {
     Q_OBJECT
 public:
     AdvancedClickablePixmapLabelBinding(QLabel* label,

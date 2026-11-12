@@ -9,9 +9,11 @@
 
 #include "RegisterBinding.h"
 
+#include "core-widgets-lib-global.h"
+
 class ModbusClient;
 
-class CORE_MODBUS_LIB_EXPORT BindingManager : public QObject {
+class CORE_WIDGETS_LIB_EXPORT BindingManager : public QObject {
     Q_OBJECT
 public:
     explicit BindingManager(int serverAddress,

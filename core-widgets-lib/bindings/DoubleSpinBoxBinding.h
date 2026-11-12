@@ -5,10 +5,11 @@
 #include <QModbusDataUnit>
 #include <QObject>
 
-#include <core-modbus-lib/ModbusBase.h>
 #include "RegisterBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT DoubleSpinBoxBinding : public RegisterBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT DoubleSpinBoxBinding : public RegisterBinding {
     Q_OBJECT
 public:
     DoubleSpinBoxBinding(QDoubleSpinBox* spinBox,

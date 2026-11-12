@@ -3,7 +3,9 @@
 
 #include <QWidget>
 
-class WidgetResizeMixin : public QWidget {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT WidgetResizeMixin : public QWidget {
     Q_OBJECT
 public:
     explicit WidgetResizeMixin(QWidget *parent = nullptr);

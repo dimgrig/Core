@@ -6,7 +6,9 @@
 
 #include "RegisterBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT CheckBoxBinding : public RegisterBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT CheckBoxBinding : public RegisterBinding {
     Q_OBJECT
 public:
     CheckBoxBinding(QCheckBox* checkBox,

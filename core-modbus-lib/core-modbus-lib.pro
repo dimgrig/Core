@@ -1,6 +1,5 @@
 QT       += core
-QT       -= gui
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport network serialport serialbus
+greaterThan(QT_MAJOR_VERSION, 4): QT += network serialport serialbus
 
 TEMPLATE = lib
 DEFINES += CORE_MODBUS_LIB_LIBRARY
@@ -22,19 +21,6 @@ HEADERS += \
     ModbusScale.h \
     ModbusServer.h \
     ModbusSettings.h \
-    bindings/AdvancedClickablePixmapLabelBinding.h \
-    bindings/BindingFactory.h \
-    bindings/BindingManager.h \
-    bindings/BitAwareBindingManager.h \
-    bindings/CheckBoxBinding.h \
-    bindings/ClickablePixmapLabelBinding.h \
-    bindings/ComboBoxBinding.h \
-    bindings/DoubleSpinBoxBinding.h \
-    bindings/LabelBinding.h \
-    bindings/LineEditBinding.h \
-    bindings/PixmapLabelBinding.h \
-    bindings/RegisterBinding.h \
-    bindings/SpinBoxBinding.h \
     core-modbus-lib-global.h \
     modbus_functions.h
 
@@ -52,23 +38,10 @@ SOURCES += \
     ModbusScale.cpp \
     ModbusServer.cpp \
     ModbusSettings.cpp \
-    bindings/AdvancedClickablePixmapLabelBinding.cpp \
-    bindings/BindingFactory.cpp \
-    bindings/BindingManager.cpp \
-    bindings/BitAwareBindingManager.cpp \
-    bindings/CheckBoxBinding.cpp \
-    bindings/ClickablePixmapLabelBinding.cpp \
-    bindings/ComboBoxBinding.cpp \
-    bindings/DoubleSpinBoxBinding.cpp \
-    bindings/LabelBinding.cpp \
-    bindings/LineEditBinding.cpp \
-    bindings/PixmapLabelBinding.cpp \
-    bindings/RegisterBinding.cpp \
-    bindings/SpinBoxBinding.cpp \
     modbus_functions.cpp
 
 FORMS += \
-    uis/modbus_settings.ui
+
 
 CORE_LINK_LIBS = core-lib core-journal-lib
 include(../core-build.pri)

@@ -30,7 +30,7 @@ public:
 
     std::shared_ptr<ModbusClient> getModbusClient(const QString &config,
                                                   const ModbusSettings& settings,
-                                                  QWidget* parent = nullptr);
+                                                  QObject* parent = nullptr);
 
     // Основной шаблонный метод для получения любого клиента
     template<typename ClientType, typename... Args>

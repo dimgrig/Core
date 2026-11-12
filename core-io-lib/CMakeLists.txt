@@ -1,5 +1,5 @@
 core_add_library(core-io-lib
-    QT Core Widgets Network SerialPort SerialBus Mqtt
+    QT Core Network SerialPort SerialBus Mqtt
     DEPENDS core-lib core-journal-lib core-modbus-lib
 )
 
@@ -33,7 +33,5 @@ target_sources(core-io-lib PRIVATE
     UDPServer.h
     core-io-lib-global.h
     scpi_functions.h
-
-    uis/scpi_settings.ui
 )
 

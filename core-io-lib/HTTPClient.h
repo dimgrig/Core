@@ -1,7 +1,6 @@
 #ifndef HTTPCLIENT_H
 #define HTTPCLIENT_H
 
-#include <QMainWindow>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>

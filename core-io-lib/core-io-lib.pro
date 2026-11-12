@@ -1,5 +1,4 @@
 QT       += core
-QT       -= gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network serialport serialbus mqtt
 
 TEMPLATE = lib
@@ -41,7 +40,7 @@ SOURCES += \
     scpi_functions.cpp
 
 FORMS += \
-    uis/scpi_settings.ui
+
 
 CORE_LINK_LIBS = core-lib core-journal-lib core-modbus-lib
 include(../core-build.pri)

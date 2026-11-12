@@ -13,7 +13,6 @@
 #include <QRegularExpressionValidator>
 #include <QSerialPort>
 #include <QSerialPortInfo>
-#include <QStatusBar>
 #include <QUrl>
 
 //#include "Config.h"

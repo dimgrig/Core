@@ -6,7 +6,9 @@
 
 #include "CheckBoxBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT BitAwareBindingManager : public BindingManager {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT BitAwareBindingManager : public BindingManager {
     Q_OBJECT
 public:
     explicit BitAwareBindingManager(int serverAddress,

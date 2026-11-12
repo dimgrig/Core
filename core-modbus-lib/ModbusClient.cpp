@@ -12,7 +12,6 @@
 #include <QStandardItemModel>
 #include <QSerialPort>
 #include <QSerialPortInfo>
-#include <QStatusBar>
 #include <QUrl>
 
 #include "Logger.h"
@@ -595,8 +594,6 @@ void ModbusClient::setRegister(int serverAddress, QModbusDataUnit::RegisterType 
 
                 break;
             }
-    //        if (!ok)
-    //            statusBar()->showMessage(tr("Could not set register: ") + modbusDevice->errorString());
         }
     }
 

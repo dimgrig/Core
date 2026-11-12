@@ -1,26 +1,17 @@
 #ifndef MODBUSCLIENT_H
 #define MODBUSCLIENT_H
 
+#include <QModbusClient>
 #include <QModbusDevice>
 #include <QQueue>
 #include <QElapsedTimer>
-#include "qmodbusclient.h"
-//#include <qt5/QtCore/qchar.h>
-
-//#include "Config.h"
 
 #include "ModbusBase.h"
 
 #include "core-modbus-lib-global.h"
 
-QT_BEGIN_NAMESPACE
-
 class QModbusClient;
 class QModbusReply;
-
-//namespace Ui { class fmodbus_client; }
-
-QT_END_NAMESPACE
 
 class CORE_MODBUS_LIB_EXPORT ModbusClient : public ModbusBase {
     Q_OBJECT

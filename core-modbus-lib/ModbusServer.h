@@ -1,25 +1,12 @@
 #ifndef MODBUSSERVER_H
 #define MODBUSSERVER_H
 
-#include <QButtonGroup>
-#include <QLineEdit>
-#include <QModbusServer>
-
-#include <QMainWindow>
 #include <QModbusDataUnit>
 #include <QModbusDevice>
-
-//#include "Config.h"
+#include <QModbusServer>
 
 #include "ModbusBase.h"
 #include "ModbusSettings.h"
-//#include "rv-lib-global.h"
-
-QT_BEGIN_NAMESPACE
-
-//namespace Ui { class fmodbus_server; }
-
-QT_END_NAMESPACE
 
 class CORE_MODBUS_LIB_EXPORT ModbusServer : public ModbusBase {
 Q_OBJECT

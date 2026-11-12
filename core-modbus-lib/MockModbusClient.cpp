@@ -1,6 +1,6 @@
 #include "MockModbusClient.h"
 
-MockModbusClient::MockModbusClient(QWidget *parent)
+MockModbusClient::MockModbusClient(QObject *parent)
     : ModbusClient(parent, QString(), ModbusSettings())  // пустая конфигурация
 {
     // Отключаем все таймеры и очереди реального клиента

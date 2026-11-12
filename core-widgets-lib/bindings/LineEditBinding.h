@@ -8,7 +8,9 @@
 
 #include "RegisterBinding.h"
 
-class CORE_MODBUS_LIB_EXPORT LineEditBinding : public RegisterBinding {
+#include "core-widgets-lib-global.h"
+
+class CORE_WIDGETS_LIB_EXPORT LineEditBinding : public RegisterBinding {
     Q_OBJECT
 public:
     enum StringFormat {
