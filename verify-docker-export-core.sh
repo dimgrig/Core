@@ -25,7 +25,23 @@ WIN_IMAGE_QT5="${WIN_IMAGE_QT5:-${WIN_IMAGE:-core-builder-cmake-win:latest}}"
 WIN_IMAGE_QT6="${WIN_IMAGE_QT6:-${WIN_IMAGE:-core-builder-cmake-win64-qt6:latest}}"
 QT6_PREFIX_X86_64="${QT6_PREFIX_X86_64:-/opt/Qt/6.8.0/gcc_64}"
 
-SDK_ROOT="$DEPLOY_ROOT/$CORE_VERSION"
+#SDK_ROOT="$DEPLOY_ROOT/$CORE_VERSION"
+_detect_sdk_root() {
+    local dep="$1" ver="$2" cand
+    for cand in "$dep/$ver" "$dep"; do
+        if compgen -G "$cand/*/lib/cmake/Core/CoreConfig.cmake" >/dev/null 2>&1; then
+            echo "$cand"; return 0
+        fi
+    done
+    return 1
+}
+SDK_ROOT="$(_detect_sdk_root "$DEPLOY_ROOT" "$CORE_VERSION")" || {
+    echo "ERROR: no SDK found under $DEPLOY_ROOT" >&2
+    echo "       tried: $DEPLOY_ROOT/$CORE_VERSION and $DEPLOY_ROOT" >&2
+    echo "       run: ./docker.sh export PLATFORMS_LIST=\"linux-qt6\" EXPORT_MODE=dev" >&2
+    exit 1
+}
+
 WORK_DIR="$(mktemp -d -t verify-deploy.XXXXXX)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
@@ -100,7 +116,7 @@ echo "  SDK root  : $SDK_ROOT"
 echo "  platforms : $PLATFORMS"
 echo "================================================="
 
-[ -d "$SDK_ROOT" ] || { echo "ERROR: $SDK_ROOT не существует — сначала ./docker-export-core.sh" >&2; exit 1; }
+[ -d "$SDK_ROOT" ] || { echo "ERROR: $SDK_ROOT не существует — сначала ./docker.sh export" >&2; exit 1; }
 
 CORE_LIBS=(core-lib core-journal-lib core-io-lib core-modbus-lib
            core-mvc-lib core-utils-lib core-plot-lib core-widgets-lib)
@@ -117,7 +133,7 @@ for plat in $PLATFORMS; do
 
     if is_empty_platform "$plat"; then
         if [ -d "$SDK_ROOT/$plat" ]; then
-            _skip "platform $plat пуст — не собран (BUILD_ARM=1 ./docker-export-core.sh для arm)"
+            _skip "platform $plat пуст — не собран (PLATFORMS="armv7-qt5" ./docker.sh export)"
         else
             _skip "platform $plat отсутствует в $SDK_ROOT"
         fi
