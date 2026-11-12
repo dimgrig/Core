@@ -14,7 +14,7 @@ SUBDIRS = core-lib \
 
 core-journal-lib.depends = core-lib
 core-io-lib.depends = core-lib core-journal-lib core-modbus-lib
-core-mvc-lib.depends = core-lib core-journal-lib core-utils-lib core-widgets-lib
+core-mvc-lib.depends = core-lib core-journal-lib core-widgets-lib
 core-modbus-lib.depends = core-lib core-journal-lib
 core-plot-lib.depends = core-lib core-journal-lib qcustomplot
 core-utils-lib.depends = core-lib core-journal-lib core-widgets-lib muParser

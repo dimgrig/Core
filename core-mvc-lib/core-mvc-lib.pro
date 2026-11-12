@@ -1,5 +1,10 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets sql printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT += gui widgets sql
+
+!contains(CONFIG, no_printsupport) {
+    QT += printsupport
+    DEFINES += CORE_HAS_PRINTSUPPORT
+}
 
 TEMPLATE = lib
 DEFINES += CORE_MVC_LIB_LIBRARY
@@ -68,7 +73,7 @@ SOURCES += \
     UniversalFormWidget.cpp \
     ValueListDelegate.cpp
 
-CORE_LINK_LIBS = core-lib core-journal-lib core-utils-lib core-widgets-lib
+CORE_LINK_LIBS = core-lib core-journal-lib core-widgets-lib
 include(../core-build.pri)
 VERSION = $$CORE_VERSION
 

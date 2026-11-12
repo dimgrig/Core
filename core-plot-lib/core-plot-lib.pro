@@ -1,5 +1,5 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport opengl
+greaterThan(QT_MAJOR_VERSION, 4): QT += opengl
 
 TEMPLATE = lib
 DEFINES += CORE_PLOT_LIB_LIBRARY

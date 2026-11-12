@@ -13,14 +13,14 @@
 
 #include "core-io-lib-global.h"
 
-class ModbusClient;
+//class ModbusClient;
 class HTTPClient;
 class TCPClient;
 class UDPClient;
 class SerialClient;
 class MQTTClient;
 
-struct ModbusSettings;
+//struct ModbusSettings;
 
 #define rm ResourceManager::instance()
 
@@ -28,9 +28,9 @@ class CORE_IO_LIB_EXPORT ResourceManager {
 public:
     static ResourceManager& instance();
 
-    std::shared_ptr<ModbusClient> getModbusClient(const QString &config,
-                                                  const ModbusSettings& settings,
-                                                  QObject* parent = nullptr);
+    // std::shared_ptr<ModbusClient> getModbusClient(const QString &config,
+    //                                               const ModbusSettings& settings,
+    //                                               QObject* parent = nullptr);
 
     // Основной шаблонный метод для получения любого клиента
     template<typename ClientType, typename... Args>

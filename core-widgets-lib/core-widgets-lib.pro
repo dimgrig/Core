@@ -12,12 +12,14 @@ HEADERS += \
     AboutPanel.h \
     Approximation.h \
     AspectRatioPixmapLabel.h \
+    AsyncWaiter.h \
     Auth.h \
     CalendarWidget.h \
     ComboBoxDialog.h \
     ConnectionButton.h \
     DateTimeRangeWidget.h \
     DetailListWidget.h \
+    DocxExporter.h \
     DoubleSpinBoxDialog.h \
     DynamicListPanel.h \
     DynamicListWidget.h \
@@ -52,19 +54,22 @@ HEADERS += \
     bindings/PixmapLabelBinding.h \
     bindings/RegisterBinding.h \
     bindings/SpinBoxBinding.h \
-    core-widgets-lib-global.h \
+    core-widgets-lib-global.h \ \
+    functions_widgets.h \
     icons.h
 
 SOURCES += \
     AboutPanel.cpp \
     Approximation.cpp \
     AspectRatioPixmapLabel.cpp \
+    AsyncWaiter.cpp \
     Auth.cpp \
     CalendarWidget.cpp \
     ComboBoxDialog.cpp \
     ConnectionButton.cpp \
     DateTimeRangeWidget.cpp \
     DetailListWidget.cpp \
+    DocxExporter.cpp \
     DoubleSpinBoxDialog.cpp \
     DynamicListPanel.cpp \
     DynamicListWidget.cpp \
@@ -97,7 +102,8 @@ SOURCES += \
     bindings/LineEditBinding.cpp \
     bindings/PixmapLabelBinding.cpp \
     bindings/RegisterBinding.cpp \
-    bindings/SpinBoxBinding.cpp
+    bindings/SpinBoxBinding.cpp \
+    functions_widgets.cpp
 
 FORMS += \
     uis/Auth.ui \

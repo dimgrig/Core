@@ -10,9 +10,9 @@
 #include <QTextBlockFormat>
 #include <QTextTableFormat>
 
-#include "core-utils-lib-global.h"
+#include "core-widgets-lib-global.h"
 
-class CORE_UTILS_LIB_EXPORT DocxExporter {
+class CORE_WIDGETS_LIB_EXPORT DocxExporter {
 public:
     DocxExporter();
 

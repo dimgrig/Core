@@ -6,9 +6,9 @@
 #include <QElapsedTimer>
 #include <QPushButton>
 
-#include "core-utils-lib-global.h"
+#include "core-widgets-lib-global.h"
 
-class CORE_UTILS_LIB_EXPORT AsyncWaiter : public QObject {
+class CORE_WIDGETS_LIB_EXPORT AsyncWaiter : public QObject {
     Q_OBJECT
 public:
     AsyncWaiter(QProgressBar* progress_bar, QObject* parent = nullptr);

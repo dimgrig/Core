@@ -1,5 +1,5 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network serialport serialbus mqtt
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network serialport mqtt
 
 TEMPLATE = lib
 DEFINES += CORE_IO_LIB_LIBRARY
@@ -42,7 +42,7 @@ SOURCES += \
 FORMS += \
 
 
-CORE_LINK_LIBS = core-lib core-journal-lib core-modbus-lib
+CORE_LINK_LIBS = core-lib core-journal-lib
 include(../core-build.pri)
 VERSION = $$CORE_VERSION
 

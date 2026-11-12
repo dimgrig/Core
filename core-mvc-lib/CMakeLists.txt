@@ -1,6 +1,13 @@
+option(CORE_ENABLE_PRINTSUPPORT "Enable printer support (QPrintDialog/QPrinter)" OFF)
+
+set(_mvc_qt Core Gui Widgets Sql)
+if(CORE_ENABLE_PRINTSUPPORT)
+    list(APPEND _mvc_qt PrintSupport)
+endif()
+
 core_add_library(core-mvc-lib
-    QT Core Gui Widgets Sql PrintSupport
-    DEPENDS core-lib core-journal-lib core-utils-lib core-widgets-lib
+    QT ${_mvc_qt}
+    DEPENDS core-lib core-journal-lib core-widgets-lib
 )
 
 target_sources(core-mvc-lib PRIVATE

@@ -802,6 +802,23 @@ void CustomPlotBase::export_png() {
     }
 }
 
+void CustomPlotBase::export_pdf() {
+    QString dir = "График " + QDateTime::currentDateTime().toString(DATE_TIME_FORMAT_WITHOUT_MS) + ".pdf";
+    QString filename = QFileDialog::getSaveFileName(
+        this,
+        tr("%1 - Сохранить").arg(QApplication::applicationDisplayName()),
+        dir,
+        tr("(*.pdf)"),
+        nullptr,
+        QFileDialog::DontUseNativeDialog);
+
+    if (!filename.isEmpty()) {
+        this->savePdf(filename);                   // QCustomPlot::savePdf — QPdfWriter, Gui-only
+        QMessageBox::information(this, "Экспорт",
+                                 QString("График успешно экспортирован в файл:\n%1").arg(filename));
+    }
+}
+
 void CustomPlotBase::contextMenuRequested(QPoint pos) {
     QMenu *menu = new QMenu(this);
     menu->setAttribute(Qt::WA_DeleteOnClose);
@@ -875,6 +892,7 @@ void CustomPlotBase::contextMenuRequested(QPoint pos) {
         QMenu *exportMenu = menu->addMenu(tr("Экспорт"));
         exportMenu->addAction(tr("Экспортировать график в csv"), this, &CustomPlotBase::export_csv);
         exportMenu->addAction(tr("Экспортировать график в png"), this, &CustomPlotBase::export_png);
+        exportMenu->addAction(tr("Экспортировать график в pdf"), this, &CustomPlotBase::export_pdf);
     }
     menu->popup(mapToGlobal(pos));
 }

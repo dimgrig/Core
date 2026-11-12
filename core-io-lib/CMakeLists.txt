@@ -1,6 +1,6 @@
 core_add_library(core-io-lib
-    QT Core Network SerialPort SerialBus Mqtt
-    DEPENDS core-lib core-journal-lib core-modbus-lib
+    QT Core Network SerialPort Mqtt
+    DEPENDS core-lib core-journal-lib
 )
 
 target_sources(core-io-lib PRIVATE

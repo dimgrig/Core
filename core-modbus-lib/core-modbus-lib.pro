@@ -1,4 +1,5 @@
 QT       += core
+QT       -= gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += network serialport serialbus
 
 TEMPLATE = lib

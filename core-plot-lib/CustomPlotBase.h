@@ -139,6 +139,7 @@ protected slots:
 
     void export_csv();
     void export_png();
+    void export_pdf();
 
     virtual void mouse_press();
     virtual void mouse_wheel();

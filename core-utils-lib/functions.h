@@ -6,11 +6,7 @@
 #include <iostream>
 #include <vector>
 
-#include <QApplication>
 #include <QDateTime>
-#include <QDialog>
-#include <QPainter>
-#include <QStyleOptionViewItem>
 #include <QRegularExpression>
 #include <QVector>
 
@@ -57,19 +53,11 @@ CORE_UTILS_LIB_EXPORT std::string TRANSLATION_RU_EN(std::string RU);
 CORE_UTILS_LIB_EXPORT QString getPlatformSpecificIP();
 #endif
 
-CORE_UTILS_LIB_EXPORT void delegate_selection_paint(QPainter *painter,
-                              const QStyleOptionViewItem &option,
-                              QStyleOptionViewItem &opt,
-                              const QModelIndex &index);
-
 CORE_UTILS_LIB_EXPORT std::string polynom_to_string(const std::vector<double>& polynom_v, int precision = 3);
 CORE_UTILS_LIB_EXPORT int determine_polynom_order(const std::string& polynom_str);
 CORE_UTILS_LIB_EXPORT std::string format_polynom_for_export(const std::string& input);
 
 CORE_UTILS_LIB_EXPORT void calculate(double &value, const QString &polynom_str);
-
-CORE_UTILS_LIB_EXPORT void center_dialog_mainwindow(QDialog* dialog);
-CORE_UTILS_LIB_EXPORT void center_dialog(QDialog *dialog);
 
 static std::map<std::string, std::string> translations_RU_EN {
     {"кА", "kA"},

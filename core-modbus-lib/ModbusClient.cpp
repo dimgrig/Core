@@ -9,7 +9,6 @@
     #include <QModbusRtuSerialMaster>
 #endif
 
-#include <QStandardItemModel>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QUrl>

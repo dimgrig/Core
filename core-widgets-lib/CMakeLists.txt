@@ -19,12 +19,14 @@ target_sources(core-widgets-lib PRIVATE
     AboutPanel.cpp
     Approximation.cpp
     AspectRatioPixmapLabel.cpp
+    AsyncWaiter.cpp
     Auth.cpp
     CalendarWidget.cpp
     ComboBoxDialog.cpp
     ConnectionButton.cpp
     DateTimeRangeWidget.cpp
     DetailListWidget.cpp
+    DocxExporter.cpp
     DoubleSpinBoxDialog.cpp
     DynamicListPanel.cpp
     DynamicListWidget.cpp
@@ -58,9 +60,11 @@ target_sources(core-widgets-lib PRIVATE
     bindings/PixmapLabelBinding.cpp
     bindings/RegisterBinding.cpp
     bindings/SpinBoxBinding.cpp
+    functions_widgets.cpp
 
     AboutPanel.h
     Approximation.h
+    AsyncWaiter.h
     AspectRatioPixmapLabel.h
     Auth.h
     CalendarWidget.h
@@ -68,6 +72,7 @@ target_sources(core-widgets-lib PRIVATE
     ConnectionButton.h
     DateTimeRangeWidget.h
     DetailListWidget.h
+    DocxExporter.h
     DoubleSpinBoxDialog.h
     DynamicListPanel.h
     DynamicListWidget.h
@@ -104,6 +109,7 @@ target_sources(core-widgets-lib PRIVATE
     bindings/PixmapLabelBinding.h
     bindings/RegisterBinding.h
     bindings/SpinBoxBinding.h
+    functions_widgets.h
 
     uis/Auth.ui
     uis/User.ui

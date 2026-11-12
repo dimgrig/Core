@@ -1,5 +1,6 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += gui
+QT       -= gui
+greaterThan(QT_MAJOR_VERSION, 4): QT +=
 
 TEMPLATE = lib
 DEFINES += CORELIB_LIBRARY

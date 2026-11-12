@@ -10,7 +10,7 @@
 #include <QSqlQuery>
 
 #include "aqp.h"
-#include "functions.h"
+#include "functions_widgets.h"
 
 #include "BaseEditTableView.h"
 #include "EditBar.h"

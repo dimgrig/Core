@@ -10,7 +10,7 @@
 #endif
 
 #include <QRegularExpression>
-#include <QRegularExpressionValidator>
+//#include <QRegularExpressionValidator>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QUrl>

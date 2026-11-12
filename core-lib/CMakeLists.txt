@@ -1,5 +1,5 @@
 core_add_library(core-lib
-    QT Core Gui
+    QT Core
     DEFINES CORELIB_LIBRARY
 )
 

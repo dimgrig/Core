@@ -4,10 +4,13 @@
 //#include <QWebEnginePage>
 //#include <QWebEngineView>
 
+#ifdef CORE_HAS_PRINTSUPPORT
+#  include <QPrintDialog>
+#  include <QPrinter>
+#  include <QPrinterInfo>
+#endif
 #include <QFileDialog>
-#include <QPrintDialog>
-#include <QPrinterInfo>
-#include <QPrinter>
+#include <QPdfWriter>
 #include <QSettings>
 #include <QTextDocument>
 
@@ -573,35 +576,40 @@ void BaseTableView::get_csv_stream(QTextStream &stream) {
 }
 
 void BaseTableView::slot_print() {
-    bool empty = this->check_empty();
-    if (!empty) {
-        QScopedPointer<QPrinter> printer(new QPrinter());
-        printer->setOutputFormat(QPrinter::PdfFormat);
-        printer->setPageOrientation(QPageLayout::Landscape);
-    //    qreal topMargin = 15;
-    //    qreal bottomMargin = 15;
-    //    qreal leftMargin = 20;
-    //    qreal rightMargin = 15;
-    //    QPrinter::Unit units = QPrinter::Millimeter;
-    //    printer->setPageMargins(leftMargin, topMargin, rightMargin, bottomMargin, units);
-        if (!QPrinterInfo::availablePrinters().empty()) {
-            QPrintDialog dialog = QPrintDialog(printer.get(), NULL);
-            if (dialog.exec() == QDialog::Accepted) {
-                QString print_string;
-                QTextStream stream(&print_string);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-                 stream.setCodec("UTF-8");
-#endif
-                this->get_html_stream(stream); //this->get_html(stream);
+    if (this->check_empty()) return;
 
-                QScopedPointer<QTextDocument> document(new QTextDocument());
-                document->setHtml(print_string);
-                document->print(printer.get());
-            }
-        } else {
-            AQP::warning(this, tr("Внимание"), tr("Ошибка"), tr("Нет настроенных принтеров"), 0, 10000);
-        }
+#ifndef CORE_HAS_PRINTSUPPORT
+    // Fallback: в этой сборке печати нет; предлагаем PDF-экспорт
+    AQP::warning(this, tr("Печать недоступна"),
+                 tr("Печать на принтер не поддерживается в этой сборке."),
+                 tr("Используйте «Экспорт в PDF»."), 0, 5000);
+    return;
+#else
+    QScopedPointer<QPrinter> printer(new QPrinter());
+    // NOTE: setOutputFormat(QPrinter::PdfFormat) для реальной печати не нужен —
+    //       это, вероятно, артефакт прошлой версии метода. Можно убрать.
+    printer->setPageOrientation(QPageLayout::Landscape);
+
+    if (QPrinterInfo::availablePrinters().isEmpty()) {
+        AQP::warning(this, tr("Внимание"), tr("Ошибка"),
+                     tr("Нет настроенных принтеров"), 0, 10000);
+        return;
     }
+
+    QPrintDialog dialog(printer.get(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    QString html;
+    QTextStream stream(&html);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    stream.setCodec("UTF-8");
+#endif
+    this->get_html_stream(stream);
+
+    QTextDocument document;
+    document.setHtml(html);
+    document.print(printer.get());
+#endif
 }
 
 void BaseTableView::slot_export_html() {
@@ -626,22 +634,21 @@ void BaseTableView::slot_export_pdf() {
     bool empty = this->check_empty();
     if (!empty) {
         QString filename = this->file_dialog("pdf");
-        if (filename != "") {
-            QScopedPointer<QPrinter> printer(new QPrinter());
-            printer->setOutputFormat(QPrinter::PdfFormat);
-            printer->setPageOrientation(QPageLayout::Landscape);
-            printer->setOutputFileName(filename);
+        if (!filename.isEmpty()) {
+            QPdfWriter writer(filename);            // QtGui, не PrintSupport
+            writer.setPageOrientation(QPageLayout::Landscape);
+            // writer.setPageSize(QPageSize(QPageSize::A4));  // при необходимости
 
             QString print_string;
             QTextStream stream(&print_string);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             stream.setCodec("UTF-8");
 #endif
-            this->get_html_stream(stream); //this->get_html(stream);
+            this->get_html_stream(stream);
 
-            QScopedPointer<QTextDocument> document(new QTextDocument());
-            document->setHtml(print_string);
-            document->print(printer.get());
+            QTextDocument document;
+            document.setHtml(print_string);
+            document.print(&writer);                // QPagedPaintDevice* — принимается
         }
     }
 }
@@ -690,9 +697,11 @@ void BaseTableView::add_print_export_actions(QMenu *menu) {
     switch (this->get_table_type()) {
         case TableType_MainTable:
             if (!this->selectedIndexes().empty()) {
-                QAction * print_action = new QAction("Распечатать", this);
+#ifdef CORE_HAS_PRINTSUPPORT
+                QAction *print_action = new QAction("Распечатать", this);
                 connect(print_action, &QAction::triggered, this, &BaseTableView::slot_print);
                 menu->addAction(print_action);
+#endif
                 QAction * export_html_action = new QAction("Экспортировать в html", this);
                 connect(export_html_action, &QAction::triggered, this, &BaseTableView::slot_export_html);
                 menu->addAction(export_html_action);
@@ -707,9 +716,11 @@ void BaseTableView::add_print_export_actions(QMenu *menu) {
         case TableType_Measurements:
         case TableType_Calibration:
         {
-            QAction * print_action = new QAction("Распечатать", this);
+#ifdef CORE_HAS_PRINTSUPPORT
+            QAction *print_action = new QAction("Распечатать", this);
             connect(print_action, &QAction::triggered, this, &BaseTableView::slot_print);
             menu->addAction(print_action);
+#endif
             QAction * export_html_action = new QAction("Экспортировать в html", this);
             connect(export_html_action, &QAction::triggered, this, &BaseTableView::slot_export_html);
             menu->addAction(export_html_action);

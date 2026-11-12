@@ -1,5 +1,5 @@
 core_add_library(core-plot-lib
-    QT Core PrintSupport
+    QT Core
     DEPENDS core-lib core-journal-lib qcustomplot
     DEFINES QCUSTOMPLOT_COMPILE_LIBRARY QCUSTOMPLOT_USE_OPENGL
 )

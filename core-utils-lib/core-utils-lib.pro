@@ -1,6 +1,6 @@
 QT       += core
 QT       -= gui
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport network
+greaterThan(QT_MAJOR_VERSION, 4): QT += network
 
 TEMPLATE = lib
 DEFINES += CORE_UTILS_LIB_LIBRARY
@@ -9,11 +9,9 @@ CONFIG += c++17
 INCLUDEPATH += "$$_PRO_FILE_PWD_/"
 
 HEADERS += \
-    AsyncWaiter.h \
     CQueue.h \
     Calibration.h \
     DelayUtils.h \
-    DocxExporter.h \
     FilterMixin.h \
     MathParser.h \
     SessionCache.h \
@@ -24,11 +22,9 @@ HEADERS += \
     functions_http.h
 
 SOURCES += \
-    AsyncWaiter.cpp \
     CQueue.cpp \
     Calibration.cpp \
     DelayUtils.cpp \
-    DocxExporter.cpp \
     FilterMixin.cpp \
     MathParser.cpp \
     SessionCache.cpp \
