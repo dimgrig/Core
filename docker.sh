@@ -36,5 +36,14 @@ declare -A PLATFORMS=(
 
 source "$APP_ROOT/.ci/scripts/docker-lib.sh"
 
+package_name() {
+    local pkg_suffix="$1" sdk_platform="$2" qt_major="$3" fmt="$4"
+    if [ "${EXPORT_MODE:-}" = "ci" ]; then
+        echo "Core-Releases-${APP_VERSION}-${sdk_platform}-qt${qt_major}.${fmt}"
+    else
+        echo "core-${APP_VERSION}-${pkg_suffix}.${fmt}"
+    fi
+}
+
 # PLATFORMS_LIST — какой env ожидает lib; клиент не заморачивается
 core_docker_main "$@"
