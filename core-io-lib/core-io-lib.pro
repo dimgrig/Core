@@ -1,5 +1,5 @@
 QT       += core
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network serialport mqtt
+greaterThan(QT_MAJOR_VERSION, 4): QT += network serialport mqtt
 
 TEMPLATE = lib
 DEFINES += CORE_IO_LIB_LIBRARY
