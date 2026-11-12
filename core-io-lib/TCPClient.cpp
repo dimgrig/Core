@@ -22,8 +22,8 @@ static std::chrono::steady_clock::time_point rx_st;
 static std::chrono::steady_clock::time_point prev_rx_st;
 static std::chrono::steady_clock::time_point tx_end;
 
-TCPClient::TCPClient(QWidget *parent) :
-        QWidget(parent)
+TCPClient::TCPClient(QObject *parent) :
+        QObject(parent)
 {
     _socket->setSocketOption(QAbstractSocket::KeepAliveOption,1);
     _socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);

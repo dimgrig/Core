@@ -1,5 +1,5 @@
 core_add_library(core-journal-lib
-    QT Core PrintSupport
+    QT Core
     DEPENDS core-lib
 )
 

@@ -41,6 +41,7 @@ target_sources(core-widgets-lib PRIVATE
     RoundedLabel.cpp
     TabBarHorizontalText.cpp
     User.cpp
+    WidgetResizeMixin.cpp
     aqp.cpp
 
     AboutPanel.h
@@ -69,6 +70,7 @@ target_sources(core-widgets-lib PRIVATE
     SpinBoxEditor.h
     TabBarHorizontalText.h
     User.h
+    WidgetResizeMixin.h
     aqp.h
     core-widgets-lib-global.h
     icons.h

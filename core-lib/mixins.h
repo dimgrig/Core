@@ -3,9 +3,6 @@
 
 #include <QtDebug>
 #include <QObject>
-#ifdef QT_WIDGETS_LIB
-#include <QWidget>
-#endif
 
 //#include <QDateTime>
 //#include <QDateTimeEdit>
@@ -19,20 +16,6 @@
 //    void set_last_half_day(QDateTimeEdit* edit);
 //    void set_last_hour(QDateTimeEdit* edit);
 //};
-
-#ifdef QT_WIDGETS_LIB
-class WidgetResizeMixin : public QWidget {
-Q_OBJECT
-public:
-    explicit WidgetResizeMixin(QWidget *parent = nullptr);
-    ~WidgetResizeMixin();
-signals:
-    void resize_event(int w, int h);
-private:
-    void resizeEvent(QResizeEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-};
-#endif
 
 template <typename C>
 struct not_equal {

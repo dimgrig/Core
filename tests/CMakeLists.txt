@@ -57,12 +57,27 @@ target_include_directories(core-tests PRIVATE
 # (в Docker/CI удобно, локально тоже — сразу видно падения)
 # ──────────────────────────────────────────────────────────────────────
 if(NOT WIN32)
+    set(_core_test_lib_dirs
+        "$<TARGET_FILE_DIR:core-lib>"
+        "$<TARGET_FILE_DIR:core-journal-lib>"
+        "$<TARGET_FILE_DIR:core-modbus-lib>"
+        "$<TARGET_FILE_DIR:core-io-lib>"
+        "$<TARGET_FILE_DIR:core-mvc-lib>"
+        "$<TARGET_FILE_DIR:core-utils-lib>"
+        "$<TARGET_FILE_DIR:core-widgets-lib>"
+        "$<TARGET_FILE_DIR:core-plot-lib>"
+        "$<TARGET_FILE_DIR:qcustomplot>"
+        "$<TARGET_FILE_DIR:QtWebApp>"
+    )
+    list(JOIN _core_test_lib_dirs ":" _core_test_ld_path)
+
     add_custom_command(TARGET core-tests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E env
-            QT_QPA_PLATFORM=offscreen
-            LD_LIBRARY_PATH=${CORE_DEPLOY_LIBDIR}:$ENV{LD_LIBRARY_PATH}
+            "QT_QPA_PLATFORM=offscreen"
+            "LD_LIBRARY_PATH=${_core_test_ld_path}:$ENV{LD_LIBRARY_PATH}"
+            --
             $<TARGET_FILE:core-tests>
-        COMMENT "Running core-tests (offscreen)")
+        COMMENT "Running core-tests (offscreen, build tree)")
 endif()
 
 # ──────────────────────────────────────────────────────────────────────

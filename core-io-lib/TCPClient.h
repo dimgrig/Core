@@ -5,14 +5,14 @@
 #include <QtNetwork>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QWidget>
+#include <QObject>
 
 #include "core-io-lib-global.h"
 
-class CORE_IO_LIB_EXPORT TCPClient : public QWidget {
+class CORE_IO_LIB_EXPORT TCPClient : public QObject {
 Q_OBJECT
 public:
-    TCPClient(QWidget *parent = nullptr);
+    TCPClient(QObject *parent = nullptr);
     virtual ~TCPClient();
 
     bool isConnected() {return this->_socket->isOpen();};

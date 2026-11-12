@@ -36,8 +36,8 @@ void mdum_v_to_reg_v(const std::vector<std::pair<QString, QModbusDataUnit>> &mdu
     }
 }
 
-ModbusBase::ModbusBase(QWidget *parent, QString config, ModbusSettings modbus_settings) :
-    QWidget(parent) ,
+ModbusBase::ModbusBase(QObject *parent, QString config, ModbusSettings modbus_settings) :
+    QObject(parent) ,
     _modbus_settings(modbus_settings)
 {
     this->set_modbus_config(config);

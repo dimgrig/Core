@@ -3,14 +3,14 @@
 
 #include <QUdpSocket>
 #include <QTimer>
-#include <QWidget>
+#include <QObject>
 
 #include "core-io-lib-global.h"
 
-class CORE_IO_LIB_EXPORT UDPClient : public QWidget {
+class CORE_IO_LIB_EXPORT UDPClient : public QObject {
 Q_OBJECT
 public:
-    UDPClient(QWidget *parent = nullptr);
+    UDPClient(QObject *parent = nullptr);
     virtual ~UDPClient();
 
     bool isConnected() {return this->_socket->isOpen();};

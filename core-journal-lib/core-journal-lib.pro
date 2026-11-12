@@ -1,6 +1,6 @@
 QT       += core
 QT       -= gui
-greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport
+greaterThan(QT_MAJOR_VERSION, 4): QT +=
 
 TEMPLATE = lib
 DEFINES += CORE_JOURNAL_LIB_LIBRARY

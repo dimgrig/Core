@@ -27,7 +27,7 @@
 
 //sudo setcap 'cap_net_bind_service=+ep' HIMIK-SERVER-TEST
 
-ModbusServer::ModbusServer(QWidget *parent, QString config, ModbusSettings modbus_settings)
+ModbusServer::ModbusServer(QObject *parent, QString config, ModbusSettings modbus_settings)
     : ModbusBase(parent, config, modbus_settings)
 //    , ui(new Ui::fmodbus_server)
 {

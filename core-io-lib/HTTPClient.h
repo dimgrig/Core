@@ -8,10 +8,10 @@
 
 #include "core-io-lib-global.h"
 
-class CORE_IO_LIB_EXPORT HTTPClient : public QWidget {
+class CORE_IO_LIB_EXPORT HTTPClient : public QObject {
     Q_OBJECT
 public:
-    HTTPClient(QWidget *parent = nullptr);
+    HTTPClient(QObject *parent = nullptr);
     ~HTTPClient();
 
     bool isConnected() {return true;}; //{return this->_session.isOpen();};

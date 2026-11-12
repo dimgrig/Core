@@ -35,6 +35,7 @@ HEADERS += \
     SpinBoxEditor.h \
     TabBarHorizontalText.h \
     User.h \
+    WidgetResizeMixin.h \
     aqp.h \
     core-widgets-lib-global.h \
     icons.h
@@ -65,6 +66,7 @@ SOURCES += \
     RoundedLabel.cpp \
     TabBarHorizontalText.cpp \
     User.cpp \
+    WidgetResizeMixin.cpp \
     aqp.cpp
 
 FORMS += \

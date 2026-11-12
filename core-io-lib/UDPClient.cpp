@@ -6,8 +6,8 @@
 #include "Categories.h"
 #include "JournalAccess.h"
 
-UDPClient::UDPClient(QWidget *parent) :
-        QWidget(parent)
+UDPClient::UDPClient(QObject *parent) :
+        QObject(parent)
 {
 #if QT_VERSION > QT_VERSION_CHECK(5, 13, 0)
     connect(_socket, &QAbstractSocket::errorOccurred, this, &UDPClient::handleError);

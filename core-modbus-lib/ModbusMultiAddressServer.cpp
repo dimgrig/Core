@@ -36,7 +36,7 @@ static int computeInterFrameDelayMs(int baudrate) {
 //  Конструктор / деструктор
 // ============================================================================
 
-ModbusMultiAddressServer::ModbusMultiAddressServer(QWidget *parent,
+ModbusMultiAddressServer::ModbusMultiAddressServer(QObject *parent,
                                                    QString config,
                                                    ModbusSettings s)
     : ModbusBase(parent, config, s)

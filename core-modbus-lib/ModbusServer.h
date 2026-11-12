@@ -24,7 +24,7 @@ QT_END_NAMESPACE
 class CORE_MODBUS_LIB_EXPORT ModbusServer : public ModbusBase {
 Q_OBJECT
 public:
-    explicit ModbusServer(QWidget *parent = nullptr, QString config = "", ModbusSettings = ModbusSettings());
+    explicit ModbusServer(QObject *parent = nullptr, QString config = "", ModbusSettings = ModbusSettings());
     ~ModbusServer();
 
     void updateDeviceMap() override;

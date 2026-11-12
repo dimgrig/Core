@@ -11,8 +11,8 @@
 
 #include "Logger.h"
 
-HTTPClient::HTTPClient(QWidget *parent)
-    : QWidget(parent)
+HTTPClient::HTTPClient(QObject *parent)
+    : QObject(parent)
 {
     // QNetworkConfiguration configuration = _qnam.configuration();
     // _session = QNetworkSession(configuration, this);

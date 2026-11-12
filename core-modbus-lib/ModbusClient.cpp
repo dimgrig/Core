@@ -45,7 +45,7 @@ QModbusDataUnit normalizeBitReadReply(const QModbusDataUnit &request,
 
 } // namespace
 
-ModbusClient::ModbusClient(QWidget *parent, QString config, ModbusSettings modbus_settings)
+ModbusClient::ModbusClient(QObject *parent, QString config, ModbusSettings modbus_settings)
     : ModbusBase(parent, config, modbus_settings)
 //    , ui(new Ui::fmodbus_client)
 {

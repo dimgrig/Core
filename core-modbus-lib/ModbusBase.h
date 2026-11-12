@@ -59,10 +59,10 @@ ENUM_MACRO2(ModbusRegisterAccess, ModbusRegisterAccess_ReadOnly, ModbusRegisterA
 static QStringList ModbusRegisterAccessTypes = {ModbusRegisterAccess_to_text(ModbusRegisterAccess_ReadOnly),
                                           ModbusRegisterAccess_to_text(ModbusRegisterAccess_ReadWrite)};
 
-class CORE_MODBUS_LIB_EXPORT ModbusBase : public QWidget {
+class CORE_MODBUS_LIB_EXPORT ModbusBase : public QObject {
 Q_OBJECT
 public:
-    ModbusBase(QWidget *parent = nullptr, QString config = "", ModbusSettings modbus_settings = ModbusSettings());
+    ModbusBase(QObject *parent = nullptr, QString config = "", ModbusSettings modbus_settings = ModbusSettings());
 
     virtual void updateDeviceMap() = 0;
     virtual void updatePollingGroups() = 0;

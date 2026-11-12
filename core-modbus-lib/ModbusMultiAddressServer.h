@@ -18,7 +18,7 @@ Q_DECLARE_METATYPE(ModbusSettings)
 class CORE_MODBUS_LIB_EXPORT ModbusMultiAddressServer : public ModbusBase {
     Q_OBJECT
 public:
-    explicit ModbusMultiAddressServer(QWidget *parent = nullptr,
+    explicit ModbusMultiAddressServer(QObject *parent = nullptr,
                                       QString config = "",
                                       ModbusSettings modbus_settings = ModbusSettings());
     ~ModbusMultiAddressServer() override;
