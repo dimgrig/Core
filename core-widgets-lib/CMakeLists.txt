@@ -45,6 +45,7 @@ target_sources(core-widgets-lib PRIVATE
     RotatedLabel.cpp
     RoundedLabel.cpp
     SCPISettingsUI.cpp
+    StandSerialProvider.cpp
     TabBarHorizontalText.cpp
     User.cpp
     WidgetResizeMixin.cpp
@@ -92,6 +93,7 @@ target_sources(core-widgets-lib PRIVATE
     RoundedLabel.h
     SCPISettingsUI.h
     SpinBoxEditor.h
+    StandSerialProvider.h
     TabBarHorizontalText.h
     User.h
     WidgetResizeMixin.h
