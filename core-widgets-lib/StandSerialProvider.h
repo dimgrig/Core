@@ -23,10 +23,8 @@ public:
     // Принудительное обновление номера (например, если оператор ошибся при первом вводе)
     void resetSerial();
 
-#ifdef QT_TESTLIB_LIB
     // Метод доступен только при подключении модуля Qt Test
     static void setMockSerial(const QString& mockSerial);
-#endif
 private:
     explicit StandSerialProvider(QObject *parent = nullptr);
     ~StandSerialProvider() override = default;

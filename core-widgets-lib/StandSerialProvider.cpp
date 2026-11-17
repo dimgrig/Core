@@ -27,12 +27,10 @@ QString StandSerialProvider::serial() const
 void StandSerialProvider::initSerial()
 {
     // 0. Мок для тестов
-#ifdef QT_TESTLIB_LIB
     if (!s_mockSerial.isEmpty()) {
         m_serial = s_mockSerial;
         return;
     }
-#endif
 
     // 1. Ищем в переменных окружения ОС
     QString envSerial = qEnvironmentVariable(ENV_VAR_NAME).trimmed();
@@ -97,9 +95,7 @@ void StandSerialProvider::resetSerial()
     }
 }
 
-#ifdef QT_TESTLIB_LIB
 void StandSerialProvider::setMockSerial(const QString& mockSerial)
 {
     s_mockSerial = mockSerial;
 }
-#endif
