@@ -8,408 +8,58 @@ on:
       tag:
         description: 'Tag (e.g., v1.1.0)'
         required: true
-      build_linux_amd64_qt5:
-        description: 'Also build Qt5 legacy (linux-amd64-qt5)'
+      build_qt5:
+        description: 'Also build Qt5 legacy (linux-qt5 win-qt5 arm64-qt5 armv7-qt5)'
         type: boolean
         default: false
-      build_win32_qt5:
-        description: 'Also build Qt5 legacy (win32-qt5)'
+      build_arm64_qt6:
+        description: 'Also build arm64 Qt6'
         type: boolean
-        default: false
-      build_linux_arm64_qt5:
-        description: 'Also build Qt5 legacy (linux-arm64-qt5)'
-        type: boolean
-        default: false
-      build_linux_armv7_qt5:
-        description: 'Also build Qt5 armv7 (linux-armv7-qt5)'
-        type: boolean
-        default: false
-
-env:
-  REGISTRY: ghcr.io
-  # base-deps image names — must match .github/workflows/base-deps.yml tags
-  CORE_BASE_DEPS_LINUX_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-linux:qt6-bookworm
-  CORE_BASE_DEPS_WIN64_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-win64:qt6-mingw
-  CORE_BASE_DEPS_ARM64_QT6:  ghcr.io/${{ github.repository_owner }}/core-base-deps-arm64:qt6-bookworm-aqt
-  CORE_BASE_DEPS_LINUX_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-linux:qt5-bookworm
-  CORE_BASE_DEPS_WIN_QT5:    ghcr.io/${{ github.repository_owner }}/core-base-deps-win:qt5-mingw
-  CORE_BASE_DEPS_ARM64_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-arm64:qt5-bookworm
-  CORE_BASE_DEPS_ARMV7_QT5:  ghcr.io/${{ github.repository_owner }}/core-base-deps-armv7:qt5-bullseye
-  # Qt6 prefixes (used by ./docker.sh test; export resolves internally)
-  QT6_PREFIX_X86_64:         /opt/Qt/6.8.0/gcc_64
-  QT6_PREFIX_ARM64:          /opt/Qt/6.8.5/gcc_arm64
-  QT6_PREFIX_MINGW:          /opt/Qt/6.8.0/mingw_64
+        default: true
 
 jobs:
-  verify:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      platforms_qt6: ${{ steps.p.outputs.qt6 }}
+      platforms_qt5: ${{ steps.p.outputs.qt5 }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Verify VERSION == tag
+      - id: p
+        shell: bash
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          FILE_VER="$(tr -d '[:space:]' < VERSION)"
-          echo "tag=$TAG, VERSION=$FILE_VER"
-          if [ "v${FILE_VER}" != "${TAG}" ]; then
-            echo "ERROR: tag '${TAG}' does not match VERSION '${FILE_VER}'" >&2
-            exit 1
+          qt6="linux-qt6 win-qt6"
+          qt5=""
+
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # На пуш тега v* — полный Qt6 набор (как было в старом workflow).
+            qt6="$qt6 arm64-qt6"
+          else
+            # workflow_dispatch: arm64 Qt6 — по чекбоксу (default true).
+            [ "${{ inputs.build_arm64_qt6 }}" == "true" ] && qt6="$qt6 arm64-qt6"
+            # Qt5 — только если явно включили.
+            if [ "${{ inputs.build_qt5 }}" == "true" ]; then
+              qt5="linux-qt5 win-qt5 arm64-qt5 armv7-qt5"
+            fi
           fi
 
-  # ════════════════════════════════════════════
-  # PRIMARY: Qt6 (always)
-  # ════════════════════════════════════════════
+          echo "qt6=$(echo "$qt6" | xargs)" >> "$GITHUB_OUTPUT"
+          echo "qt5=$(echo "$qt5" | xargs)" >> "$GITHUB_OUTPUT"
 
-  build-linux-amd64-qt6:
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt6)
-        env:
-          PLATFORMS: "linux-qt6"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-linux-amd64-qt6
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-amd64-qt6
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-linux-amd64-qt6
-          path: dist/*.tar.gz
-
-  build-win64-qt6:
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt6 win64)
-        env:
-          PLATFORMS: "win-qt6"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-win64-qt6
-          CACHE_TO:   type=gha,mode=max,scope=core-win64-qt6
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-win64-qt6
-          path: dist/*.zip
-
-  build-linux-arm64-qt6:
-    needs: verify
-    runs-on: ubuntu-24.04-arm
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt6 arm64)
-        env:
-          PLATFORMS: "arm64-qt6"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-linux-arm64-qt6
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-arm64-qt6
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-linux-arm64-qt6
-          path: dist/*.tar.gz
-
-  # ════════════════════════════════════════════
-  # TESTS (Qt6, always)
-  # ════════════════════════════════════════════
-  test-linux-qt6:
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run ctest (Qt6)
-        env:
-          PLATFORMS: "linux-qt6"
-          QT6_INSTALL_PREFIX: ${{ env.QT6_PREFIX_X86_64 }}
-          CACHE_FROM: type=gha,scope=core-linux-amd64-qt6
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-tests-qt6
-        run: ./docker.sh test
-
-  # ════════════════════════════════════════════
-  # Qt5 legacy (opt-in)
-  # ════════════════════════════════════════════
-
-  build-linux-amd64-qt5:
-    if: github.event.inputs.build_linux_amd64_qt5 == 'true'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt5)
-        env:
-          PLATFORMS: "linux-qt5"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-linux-amd64-qt5
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-amd64-qt5
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-linux-amd64-qt5
-          path: dist/*.tar.gz
-
-  build-win32-qt5:
-    if: github.event.inputs.build_win32_qt5 == 'true'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt5 win32)
-        env:
-          PLATFORMS: "win-qt5"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-win32-qt5
-          CACHE_TO:   type=gha,mode=max,scope=core-win32-qt5
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-win32-qt5
-          path: dist/*.zip
-
-  build-linux-arm64-qt5:
-    if: github.event.inputs.build_linux_arm64_qt5 == 'true'
-    needs: verify
-    runs-on: ubuntu-24.04-arm
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt5 arm64)
-        env:
-          PLATFORMS: "arm64-qt5"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-linux-arm64-qt5
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-arm64-qt5
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-linux-arm64-qt5
-          path: dist/*.tar.gz
-
-  build-linux-armv7-qt5:
-    if: github.event.inputs.build_linux_armv7_qt5 == 'true'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & export SDK (Qt5 armv7)
-        env:
-          PLATFORMS: "armv7-qt5"
-          EXPORT_MODE: ci
-          OUT_DIR: ${{ github.workspace }}/dist
-          CACHE_FROM: type=gha,scope=core-linux-armv7-qt5
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-armv7-qt5
-        run: ./docker.sh export
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdk-linux-armv7-qt5
-          path: dist/*.tar.gz
-
-  test-linux-qt5:
-    if: github.event.inputs.build_linux_amd64_qt5 == 'true'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: read }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run ctest (Qt5)
-        env:
-          PLATFORMS: "linux-qt5"
-          CACHE_FROM: type=gha,scope=core-linux-amd64-qt5
-          CACHE_TO:   type=gha,mode=max,scope=core-linux-tests-qt5
-        run: ./docker.sh test
-
-  # ════════════════════════════════════════════
-  # PUBLISH
-  # ════════════════════════════════════════════
-  publish:
-    needs:
-      - build-linux-amd64-qt6
-      - build-win64-qt6
-      - build-linux-arm64-qt6
-      - test-linux-qt6
-      - build-linux-amd64-qt5
-      - build-win32-qt5
-      - build-linux-arm64-qt5
-      - build-linux-armv7-qt5
-      - test-linux-qt5
-    if: |
-      !cancelled() &&
-      needs.build-linux-amd64-qt6.result == 'success' &&
-      needs.build-win64-qt6.result      == 'success' &&
-      needs.build-linux-arm64-qt6.result == 'success' &&
-      needs.test-linux-qt6.result       == 'success' &&
-      (needs.build-linux-amd64-qt5.result == 'success' || needs.build-linux-amd64-qt5.result == 'skipped') &&
-      (needs.build-win32-qt5.result       == 'success' || needs.build-win32-qt5.result       == 'skipped') &&
-      (needs.build-linux-arm64-qt5.result == 'success' || needs.build-linux-arm64-qt5.result == 'skipped') &&
-      (needs.build-linux-armv7-qt5.result == 'success' || needs.build-linux-armv7-qt5.result == 'skipped') &&
-      (needs.test-linux-qt5.result        == 'success' || needs.test-linux-qt5.result        == 'skipped')
-    runs-on: ubuntu-latest
+  release:
+    needs: prepare
+    uses: dimgrig/CoreCI/.github/workflows/release-template.yml@master
+    with:
+      app_name: core
+      release_title: Core SDK
+      # Для Core самого core_sdk_version не нужен (он сам SDK).
+      # Оставляем default из шаблона (1.1.0) — попадает в --build-arg CORE_SDK_VERSION,
+      # который Dockerfile.core игнорирует. Безвредно.
+      platforms_qt6: ${{ needs.prepare.outputs.platforms_qt6 }}
+      platforms_qt5: ${{ needs.prepare.outputs.platforms_qt5 }}
+      upload_artifacts: true
+      publish_release: true
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Flatten artifacts
-        run: |
-          mkdir -p release
-          find dist -type f \( -name '*.tar.gz' -o -name '*.zip' \) -exec cp {} release/ \;
-          ls -la release/
-
-      - name: SHA256SUMS
-        run: |
-          cd release
-          sha256sum * > SHA256SUMS
-          cat SHA256SUMS
-
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: Core ${{ steps.tag.outputs.tag }}
-          body: |
-            ## Core SDK — ${{ steps.tag.outputs.tag }}
-
-            **Primary: Qt6.8** (Core SDK `${{ github.ref_name }}`).
-            Qt5.15 — legacy, собирается только с `build_*=true`.
-
-            ### Artifacts (Qt6)
-            - `Core-Releases-*-linux-amd64-qt6.tar.gz`  — Linux x86_64, Qt6.8
-            - `Core-Releases-*-win64-qt6.zip`           — Windows x64 (MinGW), Qt6.8
-            - `Core-Releases-*-linux-arm64-qt6.tar.gz`  — Linux arm64, Qt6.8
-
-            ### Artifacts (Qt5)
-            - `Core-Releases-*-linux-amd64-qt5.tar.gz`  — Linux x86_64, Qt5
-            - `Core-Releases-*-win32-qt5.zip`           — Windows x32 (MinGW), Qt5
-            - `Core-Releases-*-linux-arm64-qt5.tar.gz`  — Linux arm64, Qt5
-            - `Core-Releases-*-linux-armv7-qt5.tar.gz`  — Linux armv7, Qt5
-
-            ### Usage (CMake)
-            ```cmake
-            find_package(Core CONFIG REQUIRED)
-            target_link_libraries(app PRIVATE Core::core-lib Core::core-modbus-lib)
-            ```
-          files: |
-            release/*.tar.gz
-            release/*.zip
-            release/SHA256SUMS
-          fail_on_unmatched_files: true
-          draft: false
-          prerelease: false
+      packages: read
