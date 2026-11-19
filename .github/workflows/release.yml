@@ -8,14 +8,22 @@ on:
       tag:
         description: 'Tag (e.g., v1.1.0)'
         required: true
-      build_qt5:
-        description: 'Also build Qt5 legacy (linux-qt5 win-qt5 arm64-qt5 armv7-qt5)'
+      build_linux_amd64_qt5:
+        description: 'Also build Qt5 legacy (linux-amd64-qt5)'
         type: boolean
         default: false
-      build_arm64_qt6:
-        description: 'Also build arm64 Qt6'
+      build_win32_qt5:
+        description: 'Also build Qt5 legacy (win32-qt5)'
         type: boolean
-        default: true
+        default: false
+      build_linux_arm64_qt5:
+        description: 'Also build Qt5 legacy (linux-arm64-qt5)'
+        type: boolean
+        default: false
+      build_linux_armv7_qt5:
+        description: 'Also build Qt5 armv7 (linux-armv7-qt5)'
+        type: boolean
+        default: false
 
 jobs:
   prepare:
@@ -27,19 +35,16 @@ jobs:
       - id: p
         shell: bash
         run: |
-          qt6="linux-qt6 win-qt6"
+          # Qt6 — всегда полный набор (как раньше).
+          qt6="linux-qt6 win-qt6 arm64-qt6"
           qt5=""
 
-          if [ "${{ github.event_name }}" == "push" ]; then
-            # На пуш тега v* — полный Qt6 набор (как было в старом workflow).
-            qt6="$qt6 arm64-qt6"
-          else
-            # workflow_dispatch: arm64 Qt6 — по чекбоксу (default true).
-            [ "${{ inputs.build_arm64_qt6 }}" == "true" ] && qt6="$qt6 arm64-qt6"
-            # Qt5 — только если явно включили.
-            if [ "${{ inputs.build_qt5 }}" == "true" ]; then
-              qt5="linux-qt5 win-qt5 arm64-qt5 armv7-qt5"
-            fi
+          # Qt5 — по чекбоксам (только workflow_dispatch).
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            [ "${{ inputs.build_linux_amd64_qt5 }}" = "true" ] && qt5="$qt5 linux-qt5"
+            [ "${{ inputs.build_win32_qt5 }}"       = "true" ] && qt5="$qt5 win-qt5"
+            [ "${{ inputs.build_linux_arm64_qt5 }}" = "true" ] && qt5="$qt5 arm64-qt5"
+            [ "${{ inputs.build_linux_armv7_qt5 }}" = "true" ] && qt5="$qt5 armv7-qt5"
           fi
 
           echo "qt6=$(echo "$qt6" | xargs)" >> "$GITHUB_OUTPUT"
@@ -51,9 +56,7 @@ jobs:
     with:
       app_name: core
       release_title: Core SDK
-      # Для Core самого core_sdk_version не нужен (он сам SDK).
-      # Оставляем default из шаблона (1.1.0) — попадает в --build-arg CORE_SDK_VERSION,
-      # который Dockerfile.core игнорирует. Безвредно.
+      core_sdk_version: ${{ github.event.inputs.tag && '' || '' }}  # не используется для самого Core
       platforms_qt6: ${{ needs.prepare.outputs.platforms_qt6 }}
       platforms_qt5: ${{ needs.prepare.outputs.platforms_qt5 }}
       upload_artifacts: true
