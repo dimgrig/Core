@@ -1,13 +1,18 @@
 #include "ModbusBase.h"
 
-#include <QModbusDevice>
-#include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QScopedValueRollback>
 
 #include "Logger.h"
 #include "ModbusRegisterSerializer.h"
 #include "ModbusCsvImporter.h"
+
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusDevice>
+    #include <QSerialPort>
+    #include <QSerialPortInfo>
+#else
+    #include "WasmModbusStubs.h"
+#endif
 
 void mdum_v_to_reg_v(const std::vector<std::pair<QString, QModbusDataUnit>> &mdum_v, std::vector<QModbusDataUnitMap> &reg_v) {
     for (const auto &_mdu : mdum_v) {
@@ -41,6 +46,9 @@ ModbusBase::ModbusBase(QObject *parent, QString config, ModbusSettings modbus_se
     _modbus_settings(modbus_settings)
 {
     this->set_modbus_config(config);
+#if defined(CORE_ENABLE_SERIAL)
+    _portCheckTimer = new QTimer(this);
+#endif
 }
 
 bool ModbusBase::isConnected() const {
@@ -435,6 +443,7 @@ void ModbusBase::add_modbus_params(int serverAddress, QString reg_name, QModbusD
     this->updatePollingGroups();
 }
 
+#if defined(CORE_ENABLE_SERIAL)
 bool ModbusBase::isSerialPortAvailable(const QString &portName) {
     if (portName.isEmpty()) {
         return false;
@@ -469,9 +478,10 @@ bool ModbusBase::isSerialPortAvailable(const QString &portName) {
     return QFile::exists(path);
 #endif
 }
-
+#endif
 
 void ModbusBase::checkSerialPorts() {
+#if defined(CORE_ENABLE_SERIAL)
     if (_connection_type != ConnectionTypeSerial) {
         _portCheckTimer->stop();
         return;
@@ -496,5 +506,11 @@ void ModbusBase::checkSerialPorts() {
         this->device()->disconnectDevice();
         emit host_error(tr("Serial port %1 disconnected").arg(portName));
     }
+#else
+        // Для Wasm: проверка портов не нужна
+        if (_portCheckTimer) {
+            _portCheckTimer->stop();
+        }
+#endif
 }
 

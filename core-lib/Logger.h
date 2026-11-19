@@ -14,17 +14,19 @@
 
 #include "CoreConfig.h"
 
-//Q_DECLARE_LOGGING_CATEGORY(logDebug)
-//Q_DECLARE_LOGGING_CATEGORY(logInfo)
-//Q_DECLARE_LOGGING_CATEGORY(logWarning)
-//Q_DECLARE_LOGGING_CATEGORY(logCritical)
-//Q_DECLARE_LOGGING_CATEGORY(logFatal)
-
+#if defined(__EMSCRIPTEN__)
+Q_DECLARE_LOGGING_CATEGORY(logDebug)
+Q_DECLARE_LOGGING_CATEGORY(logInfo)
+Q_DECLARE_LOGGING_CATEGORY(logWarning)
+Q_DECLARE_LOGGING_CATEGORY(logCritical)
+Q_DECLARE_LOGGING_CATEGORY(logFatal)
+#else
 extern QLoggingCategory &logDebug;
 extern QLoggingCategory &logInfo;
 extern QLoggingCategory &logWarning;
 extern QLoggingCategory &logCritical;
 extern QLoggingCategory &logFatal;
+#endif
 
 // Тип для идентификатора категории (используется в журнале)
 using CategoryId = quint16;

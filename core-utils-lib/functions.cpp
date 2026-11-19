@@ -111,8 +111,8 @@ std::string TRANSLATION_RU_EN(std::string RU) {
     return res;
 }
 
-#ifndef Q_OS_WASM
 QString getPlatformSpecificIP() {
+#ifndef Q_OS_WASM
     QString ip;
     // используем стандартный Qt подход
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
@@ -125,8 +125,10 @@ QString getPlatformSpecificIP() {
     }
 
     return ip;
-}
+#else
+    return QStringLiteral("127.0.0.1");
 #endif
+}
 
 bool startsWith(std::string mainStr, std::string toMatch) {
     // std::string::find returns 0 if toMatch is found at starting

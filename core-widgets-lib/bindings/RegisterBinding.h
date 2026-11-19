@@ -3,6 +3,12 @@
 
 #include <core-modbus-lib/ModbusBase.h>
 
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+#include <QModbusDataUnit>
+#else
+#include <core-modbus-lib/WasmModbusStubs.h>
+#endif
+
 #include <core-widgets-lib/core-widgets-lib-global.h>
 
 #include <QObject>

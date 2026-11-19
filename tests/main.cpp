@@ -71,8 +71,12 @@ int main(int argc, char *argv[])
     TestAuth ta;
     status |= QTest::qExec(&ta, argc, argv);
 
-    TestModbusIntegration tmi;
-    status |= QTest::qExec(&tmi, argc, argv);
+#if !defined(CORE_IS_WASM) && !defined(__EMSCRIPTEN__)
+    {
+        TestModbusIntegration tmi;
+        status |= QTest::qExec(&tmi, argc, argv);
+    }
+#endif
 
     qCDebug(logDebug) << "=============================================";
     qCDebug(logDebug) << "=================Core tests done=============";

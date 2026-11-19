@@ -54,17 +54,18 @@ std::string getExecutableDirectory() {
     return ""; // на случай ошибки
 }
 
-//Q_LOGGING_CATEGORY(logDebug,    "Debug")
-//Q_LOGGING_CATEGORY(logInfo,     "Info")
-//Q_LOGGING_CATEGORY(logWarning,  "Warning")
-//Q_LOGGING_CATEGORY(logCritical, "Critical")
-//Q_LOGGING_CATEGORY(logFatal,    "Fatal")
-
+#if defined(__EMSCRIPTEN__)
+Q_LOGGING_CATEGORY(logDebug,    "Debug")
+Q_LOGGING_CATEGORY(logInfo,     "Info")
+Q_LOGGING_CATEGORY(logWarning,  "Warning")
+Q_LOGGING_CATEGORY(logCritical, "Critical")
+Q_LOGGING_CATEGORY(logFatal,    "Fatal")
+#else
 namespace {
-    QLoggingCategory& createCategory(const char* name) {
-        static QLoggingCategory* cat = new QLoggingCategory(name);
-        return *cat;
-    }
+QLoggingCategory& createCategory(const char* name) {
+    static QLoggingCategory* cat = new QLoggingCategory(name);
+    return *cat;
+}
 }
 
 QLoggingCategory &logDebug   = createCategory("Debug");
@@ -72,6 +73,7 @@ QLoggingCategory &logInfo    = createCategory("Info");
 QLoggingCategory &logWarning = createCategory("Warning");
 QLoggingCategory &logCritical= createCategory("Critical");
 QLoggingCategory &logFatal   = createCategory("Fatal");
+#endif
 
 QScopedPointer<QFile> logFile;
 

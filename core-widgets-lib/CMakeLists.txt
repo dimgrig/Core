@@ -1,15 +1,15 @@
 if(QT_VERSION_MAJOR EQUAL 6)
     core_add_library(core-widgets-lib
-        QT Core Gui Widgets Svg StateMachine SerialPort SerialBus Mqtt
-        DEPENDS core-lib core-journal-lib core-io-lib core-modbus-lib
+        QT Core Gui Widgets Svg StateMachine
+        DEPENDS core-lib core-journal-lib core-modbus-lib
         INCLUDES bindings
     )
     qt_add_resources(CORE_WIDGETS_RESOURCES_QRC
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/core_widgets_resources.qrc)
 else()
     core_add_library(core-widgets-lib
-        QT Core Gui Widgets Svg SerialPort SerialBus Mqtt #StateMachine
-        DEPENDS core-lib core-journal-lib core-io-lib core-modbus-lib
+        QT Core Gui Widgets Svg #StateMachine
+        DEPENDS core-lib core-journal-lib core-modbus-lib
         INCLUDES bindings
     )
     qt5_add_resources(CORE_WIDGETS_RESOURCES_QRC
@@ -44,7 +44,6 @@ target_sources(core-widgets-lib PRIVATE
     MultiSelectWidget.cpp
     RotatedLabel.cpp
     RoundedLabel.cpp
-    SCPISettingsUI.cpp
     StandSerialProvider.cpp
     TabBarHorizontalText.cpp
     User.cpp
@@ -91,7 +90,6 @@ target_sources(core-widgets-lib PRIVATE
     MultiSelectWidget.h
     RotatedLabel.h
     RoundedLabel.h
-    SCPISettingsUI.h
     SpinBoxEditor.h
     StandSerialProvider.h
     TabBarHorizontalText.h
@@ -99,7 +97,7 @@ target_sources(core-widgets-lib PRIVATE
     WidgetResizeMixin.h
     aqp.h
     core-widgets-lib-global.h
-    icons.h    
+    icons.h
     bindings/AdvancedClickablePixmapLabelBinding.h
     bindings/BindingFactory.h
     bindings/BindingManager.h
@@ -123,9 +121,17 @@ target_sources(core-widgets-lib PRIVATE
     uis/doublespinbox_dialog.ui
     uis/menu_corner_widget.ui
     uis/modbus_settings.ui
-    uis/scpi_settings.ui
     uis/settings.ui
 )
+
+# ── SCPISettingsUI - только если CORE_ENABLE_SERIAL ──────────
+if(CORE_ENABLE_SERIAL)
+    target_sources(core-widgets-lib PRIVATE
+        SCPISettingsUI.cpp
+        SCPISettingsUI.h
+        uis/scpi_settings.ui
+    )
+endif()
 
 target_include_directories(core-widgets-lib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings>
@@ -133,5 +139,5 @@ target_include_directories(core-widgets-lib PUBLIC
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    target_link_libraries(core-widgets-lib PRIVATE Qt6::Core5Compat) #QTextCodec
+    target_link_libraries(core-widgets-lib PRIVATE Qt6::Core5Compat)
 endif()

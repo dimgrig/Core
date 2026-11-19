@@ -4,16 +4,25 @@
 # ──────────────────────────────────────────────────────────────────────
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test Sql)
 
-add_executable(core-tests
+set(_core_test_sources
     main.cpp
     TestAuth.cpp
     TestJournal.cpp
-    TestModbusIntegration.cpp
     TestAuth.h
     TestJournal.h
-    TestModbusIntegration.h
     resources/resources.qrc
 )
+
+# Интеграционные тесты Modbus требуют реального QtSerialBus/QtNetwork TCP стека,
+# который в Wasm отсутствует (замокан). Собираем их только для десктопа.
+if(NOT CORE_IS_WASM)
+    list(APPEND _core_test_sources
+        TestModbusIntegration.cpp
+        TestModbusIntegration.h
+    )
+endif()
+
+add_executable(core-tests ${_core_test_sources})
 
 # При кросс-компиляции из Linux под Windows хост-сборка rcc умеет zstd,
 # а целевая сборка Qt для Windows — нет. Чтобы rcc не сжимал ресурсы
@@ -79,14 +88,3 @@ if(NOT WIN32)
             $<TARGET_FILE:core-tests>
         COMMENT "Running core-tests (offscreen, build tree)")
 endif()
-
-# ──────────────────────────────────────────────────────────────────────
-# Регистрация в CTest (порядок ВАЖЕН: сначала add_test, потом properties)
-# ──────────────────────────────────────────────────────────────────────
-add_test(NAME core-tests COMMAND core-tests)
-
-set_tests_properties(core-tests PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;LD_LIBRARY_PATH=${CORE_DEPLOY_LIBDIR}"
-    TIMEOUT 300
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-)

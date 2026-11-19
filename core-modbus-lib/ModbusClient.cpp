@@ -1,16 +1,20 @@
 #include "ModbusClient.h"
-//#include "ui_modbus_client.h"
 
-#include <QModbusTcpClient>
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusTcpClient>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    #include <QModbusRtuSerialClient>
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        #include <QModbusRtuSerialClient>
+    #else
+        #include <QModbusRtuSerialMaster>
+    #endif
+
+    #include <QSerialPort>
+    #include <QSerialPortInfo>
 #else
-    #include <QModbusRtuSerialMaster>
+#include "WasmModbusStubs.h"
 #endif
 
-#include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QUrl>
 
 #include "Logger.h"
@@ -74,8 +78,10 @@ ModbusClient::ModbusClient(QObject *parent, QString config, ModbusSettings modbu
     _reconnectTimer->setSingleShot(true);
     connect(_reconnectTimer, &QTimer::timeout, this, &ModbusClient::on_connect);
 
+#if defined(CORE_ENABLE_SERIAL)
     _portCheckTimer = new QTimer(this);
     connect(_portCheckTimer, &QTimer::timeout, this, &ModbusClient::checkSerialPorts);
+#endif
 
     // if (_connection_type == ConnectionTypeSerial) {
     //     _portCheckTimer->start(1000); // Проверка каждую секунду
@@ -203,10 +209,19 @@ void ModbusClient::on_connect_type(int index) {
     }
 
     if (_connection_type == ConnectionTypeSerial) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+#if defined(CORE_ENABLE_SERIAL)
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         modbusDevice = std::make_shared<QModbusRtuSerialClient>();
-#else
+    #else
         modbusDevice = std::make_shared<QModbusRtuSerialMaster>();
+    #endif
+#else
+        // Для Wasm: Serial недоступен, fallback на TCP с предупреждением
+        if (auto* j = JournalAccess::journal()) {
+            j->warning(Category::Modbus, "Serial connection requested, but CORE_ENABLE_SERIAL is disabled (Wasm build). Falling back to TCP.");
+        }
+        _connection_type = ConnectionTypeTCP;
+        modbusDevice = std::make_shared<QModbusTcpClient>();
 #endif
     } else if (_connection_type == ConnectionTypeTCP) {
         modbusDevice = std::make_shared<QModbusTcpClient>();
@@ -241,6 +256,7 @@ void ModbusClient::on_connect() {
     _pollingCycleActive = false;
 
     if (_connection_type == ConnectionTypeSerial) {
+#if defined(CORE_ENABLE_SERIAL)
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
 
         // Проверяем наличие порта в системе
@@ -257,15 +273,25 @@ void ModbusClient::on_connect() {
         }
 
         _portCheckTimer->start(1000); // Проверка каждую секунду
+#else
+        // Для Wasm: Serial недоступен
+        if (auto* j = JournalAccess::journal()) {
+            j->warning(Category::Modbus, "Serial connection attempted, but CORE_ENABLE_SERIAL is disabled");
+        }
+        emit host_error("Serial port not supported in Wasm build");
+        return;
+#endif
     }
 
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
         if (_connection_type == ConnectionTypeSerial) {
+#if defined(CORE_ENABLE_SERIAL)
             modbusDevice->setConnectionParameter(QModbusDevice::SerialPortNameParameter, _modbus_settings.MODBUS_SERIAL_PORT);
             modbusDevice->setConnectionParameter(QModbusDevice::SerialBaudRateParameter, _modbus_settings.MODBUS_BAUDRATE); //QSerialPort::Baud19200
             modbusDevice->setConnectionParameter(QModbusDevice::SerialDataBitsParameter, _modbus_settings.MODBUS_DATA_BITS); //QSerialPort::Data8
             modbusDevice->setConnectionParameter(QModbusDevice::SerialStopBitsParameter, _modbus_settings.MODBUS_STOP_BITS); //QSerialPort::OneStop
             modbusDevice->setConnectionParameter(QModbusDevice::SerialParityParameter, _modbus_settings.MODBUS_PARITY); //QSerialPort::EvenParity
+#endif
         } else if (_connection_type == ConnectionTypeTCP) {
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, _modbus_settings.MODBUS_IP);
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, _modbus_settings.MODBUS_PORT);
@@ -640,6 +666,7 @@ void ModbusClient::setRegisterString(int serverAddress, QModbusDataUnit::Registe
 
 void ModbusClient::scheduleReconnect() {
     if (_connection_type == ConnectionTypeSerial) {
+#if defined(CORE_ENABLE_SERIAL)
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
 
         if (!isSerialPortAvailable(portName)) {
@@ -650,6 +677,7 @@ void ModbusClient::scheduleReconnect() {
             _reconnectTimer->start(delay);
             return;
         }
+#endif
     }
 
     if (_failedAttempts >= MAX_FAILED_ATTEMPTS) {

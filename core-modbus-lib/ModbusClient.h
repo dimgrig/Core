@@ -1,17 +1,19 @@
 #ifndef MODBUSCLIENT_H
 #define MODBUSCLIENT_H
 
-#include <QModbusClient>
-#include <QModbusDevice>
 #include <QQueue>
 #include <QElapsedTimer>
 
 #include "ModbusBase.h"
 
-#include "core-modbus-lib-global.h"
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusClient>
+    #include <QModbusDevice>
+#else
+    #include "WasmModbusStubs.h"
+#endif
 
-class QModbusClient;
-class QModbusReply;
+#include "core-modbus-lib-global.h"
 
 class CORE_MODBUS_LIB_EXPORT ModbusClient : public ModbusBase {
     Q_OBJECT

@@ -2,7 +2,6 @@
 #define LABELBINDING_H
 
 #include <QLabel>
-#include <QModbusDataUnit>
 #include <QObject>
 
 #include "RegisterBinding.h"

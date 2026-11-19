@@ -32,6 +32,12 @@ RUN CORE_VERSION="$(tr -d '[:space:]' < VERSION)" && \
     CMAKE_TOOLCHAIN_ARG="" && \
     if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -n "${QT6_INSTALL_PREFIX}" ]; then \
         CMAKE_QT_ARG="-DCMAKE_PREFIX_PATH=${QT6_INSTALL_PREFIX}"; \
+        if echo "${QT6_INSTALL_PREFIX}" | grep -q "wasm"; then \
+            QT_HOST_DIR="$(dirname "${QT6_INSTALL_PREFIX}")/gcc_64"; \
+            CMAKE_QT_ARG="${CMAKE_QT_ARG} -DQT_HOST_PATH=${QT_HOST_DIR}"; \
+            if [ -f /opt/emsdk/emsdk_env.sh ]; then . /opt/emsdk/emsdk_env.sh; \
+            elif [ -f /emsdk/emsdk_env.sh ]; then . /emsdk/emsdk_env.sh; fi; \
+        fi; \
     fi && \
     if [ "${QT_VERSION_MAJOR}" = "6" ] && [ -f "/usr/lib/aarch64-linux-gnu/libcups.so" ]; then \
         CMAKE_QT_ARG="${CMAKE_QT_ARG} -DCUPS_INCLUDE_DIR=/usr/include -DCUPS_LIBRARIES=/usr/lib/aarch64-linux-gnu/libcups.so"; \

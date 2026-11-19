@@ -3,13 +3,18 @@
 
 #include <QString>
 #include <QMap>
-#include <QModbusDataUnit>
 #include <QJsonObject>
 #include <QJsonArray>
 
-#include "core-modbus-lib-global.h"
-
 #include "ModbusBase.h"
+
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusDataUnit>
+#else
+    #include "WasmModbusStubs.h"
+#endif
+
+#include "core-modbus-lib-global.h"
 
 CORE_MODBUS_LIB_EXPORT void ModbusRegisterSerializerTest();
 

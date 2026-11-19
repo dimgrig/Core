@@ -23,8 +23,8 @@ HEADERS += \
     ModbusServer.h \
     ModbusSettings.h \
     core-modbus-lib-global.h \
-    modbus_functions.h
-
+    modbus_functions.h \
+    WasmModbusStubs.h
 
 SOURCES += \
     IModbusService.cpp \

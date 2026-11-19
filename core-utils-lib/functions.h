@@ -49,9 +49,7 @@ CORE_UTILS_LIB_EXPORT int bit3(int x);
 CORE_UTILS_LIB_EXPORT std::string TRANSLATION_EN_RU(std::string EN);
 CORE_UTILS_LIB_EXPORT std::string TRANSLATION_RU_EN(std::string RU);
 
-#ifndef Q_OS_WASM
 CORE_UTILS_LIB_EXPORT QString getPlatformSpecificIP();
-#endif
 
 CORE_UTILS_LIB_EXPORT std::string polynom_to_string(const std::vector<double>& polynom_v, int precision = 3);
 CORE_UTILS_LIB_EXPORT int determine_polynom_order(const std::string& polynom_str);

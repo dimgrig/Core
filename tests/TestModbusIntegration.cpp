@@ -6,7 +6,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QMetaType>
-#include <QModbusDataUnit>
 
 #include <QCheckBox>
 #include <QSpinBox>

@@ -17,6 +17,17 @@ endif()
 
 project(Core VERSION ${CORE_VERSION} LANGUAGES CXX)
 
+# ── Детекция WebAssembly (Emscripten) ────────────────────────
+if(EMSCRIPTEN)
+    set(CORE_IS_WASM TRUE)
+    set(CORE_ENABLE_SERIAL OFF CACHE BOOL "Enable SerialPort support" FORCE)
+    message(STATUS "Core: Building for WebAssembly (Wasm)")
+    message(STATUS "Core: SerialPort/SerialBus disabled for Wasm")
+else()
+    set(CORE_IS_WASM FALSE)
+    option(CORE_ENABLE_SERIAL "Enable SerialPort and SerialBus support" ON)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -80,7 +91,9 @@ add_subdirectory(core-mvc-lib)
 # ---- Тесты (по умолчанию ВКЛ, отключается -DBUILD_TESTING=OFF) ----
 include(CTest)
 if(BUILD_TESTING)
-    add_subdirectory(tests)
+    if(NOT EMSCRIPTEN)
+        add_subdirectory(tests)
+    endif()
 endif()
 
 # ============================================================
@@ -131,11 +144,19 @@ install(EXPORT CoreTargets
     DESTINATION "${CORE_INSTALL_CMAKEDIR}")
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    set(CORE_QT_FIND_DEPS
+    if(CORE_IS_WASM)
+        set(CORE_QT_FIND_DEPS
+"find_dependency(Qt6 REQUIRED COMPONENTS
+    Core Gui Widgets PrintSupport Network Sql
+    Svg OpenGL StateMachine
+    Core5Compat)")
+    else()
+        set(CORE_QT_FIND_DEPS
 "find_dependency(Qt6 REQUIRED COMPONENTS
     Core Gui Widgets PrintSupport Network Sql
     SerialPort SerialBus Svg OpenGL StateMachine
     Core5Compat)")
+    endif()
 else()
     set(CORE_QT_FIND_DEPS
 "find_dependency(Qt5 REQUIRED COMPONENTS

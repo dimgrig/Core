@@ -21,6 +21,7 @@ CORE_BASE_DEPS_WIN_QT5="${CORE_BASE_DEPS_WIN_QT5:-base-deps-win:latest}"
 CORE_BASE_DEPS_ARM64_QT6="${CORE_BASE_DEPS_ARM64_QT6:-base-deps-arm64-qt6:latest}"
 CORE_BASE_DEPS_ARM64_QT5="${CORE_BASE_DEPS_ARM64_QT5:-base-deps-arm64:latest}"
 CORE_BASE_DEPS_ARMV7_QT5="${CORE_BASE_DEPS_ARMV7_QT5:-base-deps-armv7:latest}"
+CORE_BASE_DEPS_WASM_QT6="${CORE_BASE_DEPS_WASM_QT6:-base-deps-wasm-qt6:latest}"
 
 PLATFORMS_LIST="${PLATFORMS:-${PLATFORMS_LIST:-linux-qt6}}"
 
@@ -32,8 +33,8 @@ declare -A PLATFORMS=(
     [arm64-qt6]="arm64-qt6|arm64-qt6|Dockerfile.core|${CORE_BASE_DEPS_ARM64_QT6}|linux/arm64|cmake|6|/opt/Qt/6.8.5/gcc_arm64||linux-arm64||||"
     [arm64-qt5]="arm64-qt5|arm64-qt5|Dockerfile.core|${CORE_BASE_DEPS_ARM64_QT5}|linux/arm64|cmake|5|||linux-arm64||||"
     [armv7-qt5]="armv7-qt5|armv7-qt5|Dockerfile.core|${CORE_BASE_DEPS_ARMV7_QT5}|linux/arm/v7|cmake|5|||linux-armv7||||"
+    [wasm-qt6]="wasm-qt6|wasm-qt6|Dockerfile.core|${CORE_BASE_DEPS_WASM_QT6}|linux/amd64|/opt/Qt/6.8.1/wasm_singlethread/bin/qt-cmake|6|/opt/Qt/6.8.1/wasm_singlethread||linux-wasm|||"
 )
-
 source "$APP_ROOT/.ci/scripts/docker-lib.sh"
 
 package_name() {

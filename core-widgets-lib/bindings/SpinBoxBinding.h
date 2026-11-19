@@ -1,7 +1,6 @@
 #ifndef SPINBOXBINDING_H
 #define SPINBOXBINDING_H
 
-#include <QModbusDataUnit>
 #include <QObject>
 #include <QSpinBox>
 

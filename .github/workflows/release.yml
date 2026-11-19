@@ -24,6 +24,10 @@ on:
         description: 'Also build Qt5 armv7 (linux-armv7-qt5)'
         type: boolean
         default: false
+      build_wasm_qt6:
+        description: 'Also build WebAssembly (wasm-qt6)'
+        type: boolean
+        default: false
 
 jobs:
   prepare:
@@ -45,6 +49,7 @@ jobs:
             [ "${{ inputs.build_win32_qt5 }}"       = "true" ] && qt5="$qt5 win-qt5"
             [ "${{ inputs.build_linux_arm64_qt5 }}" = "true" ] && qt5="$qt5 arm64-qt5"
             [ "${{ inputs.build_linux_armv7_qt5 }}" = "true" ] && qt5="$qt5 armv7-qt5"
+            [ "${{ inputs.build_wasm_qt6 }}"        = "true" ] && qt6="$qt6 wasm-qt6"
           fi
 
           echo "qt6=$(echo "$qt6" | xargs)" >> "$GITHUB_OUTPUT"

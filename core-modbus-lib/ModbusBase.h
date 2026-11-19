@@ -5,17 +5,21 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QModbusDevice>
 #include <QObject>
 #include <QTimer>
 #include <QVariant>
-
-#include <QModbusDataUnit>
 
 #include <core-lib/CoreConfig.h>
 
 #include "ModbusScale.h"
 #include "ModbusSettings.h"
+
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusDataUnit>
+    #include <QModbusDevice>
+#else
+    #include "WasmModbusStubs.h"
+#endif
 
 #include "core-modbus-lib-global.h"
 
@@ -137,7 +141,11 @@ protected:
     void on_read_json(QString config);
     void on_read_csv(QString config);
 
+#if defined(CORE_ENABLE_SERIAL)
     bool isSerialPortAvailable(const QString &portName);
+#else
+    bool isSerialPortAvailable(const QString &portName) { Q_UNUSED(portName); return false; }
+#endif
 
     QString _config = "";
 
@@ -152,8 +160,13 @@ protected:
     ModbusSettings _modbus_settings;
     ConnectionType _connection_type = ConnectionTypeTCP;
 
+#if defined(CORE_ENABLE_SERIAL)
     QTimer *_portCheckTimer;  // Таймер для проверки портов
-    QString _lastKnownPortState;  // Для отслеживания изменений состояния порта
+QString _lastKnownPortState;  // Для отслеживания изменений состояния порта
+#else
+    QTimer *_portCheckTimer = nullptr;
+    QString _lastKnownPortState;
+#endif
 
     QModbusDevice::State _localState = QModbusDevice::UnconnectedState;
 };

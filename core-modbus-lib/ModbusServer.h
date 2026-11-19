@@ -1,12 +1,16 @@
 #ifndef MODBUSSERVER_H
 #define MODBUSSERVER_H
 
-#include <QModbusDataUnit>
-#include <QModbusDevice>
-#include <QModbusServer>
-
 #include "ModbusBase.h"
 #include "ModbusSettings.h"
+
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusDataUnit>
+    #include <QModbusDevice>
+    #include <QModbusServer>
+#else
+    #include "WasmModbusStubs.h"
+#endif
 
 class CORE_MODBUS_LIB_EXPORT ModbusServer : public ModbusBase {
 Q_OBJECT

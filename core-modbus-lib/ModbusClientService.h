@@ -7,8 +7,13 @@
 #include <QMap>
 #include <QMutex>
 
-#include "ModbusClient.h" // существующий класс в ModbusCore
-#include <QModbusDataUnit>
+#include "ModbusClient.h"
+
+#if defined(CORE_ENABLE_SERIAL) || !defined(__EMSCRIPTEN__)
+    #include <QModbusDataUnit>
+#else
+    #include "WasmModbusStubs.h"
+#endif
 
 /*
  * ModbusClientService — обёртка над ModbusClient, предоставляющая чистый API.

@@ -19,64 +19,74 @@ function(core_add_library name)
     cmake_parse_arguments(ARG "" "VERSION"
         "SOURCES;HEADERS;FORMS;RESOURCES;QT;DEPENDS;DEFINES;INCLUDES" ${ARGN})
 
-    # ── Создаём target без sources (нужно для target_sources-паттерна) ──
-    # add_library без sources поддерживается в CMake ≥ 3.11.
-    add_library(${name} SHARED)
+    # ── 1. Выбор типа библиотеки: STATIC для Wasm, SHARED для десктопа ──
+    if(CORE_IS_WASM)
+        add_library(${name} STATIC)
+    else()
+        add_library(${name} SHARED)
+    endif()
+
     add_library(Core::${name} ALIAS ${name})
 
     # ── Если sources переданы напрямую — добавляем ──
-    # (QtWebApp и др. могут передавать через GLOB, это допустимо)
     if(ARG_SOURCES OR ARG_HEADERS OR ARG_FORMS OR ARG_RESOURCES)
         target_sources(${name} PRIVATE
             ${ARG_SOURCES} ${ARG_HEADERS} ${ARG_FORMS} ${ARG_RESOURCES})
     endif()
 
-    # ── Экспортный макрос: CORE_LIB_LIBRARY, CORE_IO_LIB_LIBRARY, ... ──
+    # ── Экспортный макрос ──
     string(TOUPPER "${name}" _upper)
     string(REPLACE "-" "_" _upper "${_upper}")
     target_compile_definitions(${name} PRIVATE ${_upper}_LIBRARY)
 
-    # ── Дефолты из core-build.pri ──
+    # ── Дефолты ──
     target_compile_definitions(${name} PRIVATE NOCRYPT NOUSER)
     target_compile_options(${name} PRIVATE -Wno-deprecated)
 
-    # ── Версия / SONAME ──
+    # ── Версия / SONAME (только для SHARED библиотек) ──
     if(NOT ARG_VERSION)
         if(PROJECT_VERSION)
             set(ARG_VERSION "${PROJECT_VERSION}")
         else()
-            message(FATAL_ERROR
-                "core_add_library(${name}): VERSION не передан и PROJECT_VERSION пуст. "
-                "Убедитесь, что в корневом CMakeLists.txt есть "
-                "project(Core VERSION x.y.z ...)")
+            message(FATAL_ERROR "core_add_library(${name}): VERSION не передан и PROJECT_VERSION пуст.")
         endif()
     endif()
-    if(ARG_VERSION MATCHES "^([0-9]+)")
+
+    if(NOT CORE_IS_WASM AND ARG_VERSION MATCHES "^([0-9]+)")
         set(_soversion "${CMAKE_MATCH_1}")
     else()
         set(_soversion "1")
     endif()
 
-    # ── Свойства target (включая AUTOMOC/AUTOUIC/AUTORCC) ──
-    set_target_properties(${name} PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-        POSITION_INDEPENDENT_CODE ON
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF
-        VERSION   ${ARG_VERSION}
-        SOVERSION ${_soversion}
-
-        # Qt-кодогенерация:
-        AUTOMOC ON
-        AUTOUIC ON
-        AUTORCC ON
-        # .ui-файлы обычно лежат в подпапке uis/, а cpp — в корне.
-        # uic ищет `<путь>/ui_<basename>.h` → `<путь>/<basename>.ui`,
-        # поэтому добавляем и корень, и uis/.
-        AUTOUIC_SEARCH_PATHS
-            "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/uis"
-    )
+    # ── 2. Свойства target: для Wasm скрываем видимость и убираем SOVERSION ──
+    if(CORE_IS_WASM)
+        set_target_properties(${name} PROPERTIES
+            CXX_STANDARD 17
+            CXX_STANDARD_REQUIRED ON
+            POSITION_INDEPENDENT_CODE ON
+            # ВАЖНО для Wasm: скрываем все символы по умолчанию, экспортируем только Q_DECL_EXPORT
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+            AUTOMOC ON
+            AUTOUIC ON
+            AUTORCC ON
+            AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/uis"
+        )
+    else()
+        set_target_properties(${name} PROPERTIES
+            CXX_STANDARD 17
+            CXX_STANDARD_REQUIRED ON
+            POSITION_INDEPENDENT_CODE ON
+            CXX_VISIBILITY_PRESET default
+            VISIBILITY_INLINES_HIDDEN OFF
+            VERSION   ${ARG_VERSION}
+            SOVERSION ${_soversion}
+            AUTOMOC ON
+            AUTOUIC ON
+            AUTORCC ON
+            AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/uis"
+        )
+    endif()
 
     # ── Include-пути ──
     target_include_directories(${name} PUBLIC
@@ -104,15 +114,17 @@ function(core_add_library name)
         target_compile_definitions(${name} PRIVATE ${ARG_DEFINES})
     endif()
 
-    # ── RPATH ──
-    # Паритет с qmake: PRO-RPATH пуст, .so грузятся через ldconfig/LD_LIBRARY_PATH.
-    set_target_properties(${name} PROPERTIES
-        INSTALL_RPATH       ""
-        BUILD_RPATH         ""
-        BUILD_WITH_INSTALL_RPATH FALSE
-        SKIP_BUILD_RPATH    TRUE)
+    # ── RPATH (только для SHARED) ──
+    if(NOT CORE_IS_WASM)
+        set_target_properties(${name} PROPERTIES
+            INSTALL_RPATH       ""
+            BUILD_RPATH         ""
+            BUILD_WITH_INSTALL_RPATH FALSE
+            SKIP_BUILD_RPATH    TRUE)
+    endif()
 
     # ── Install: files to CORE_INSTALL_* ──
+    # ARCHIVE DESTINATION корректно обработает .a файлы для Wasm
     install(TARGETS ${name}
         EXPORT CoreTargets
         RUNTIME DESTINATION "${CORE_INSTALL_BINDIR}"
@@ -125,5 +137,4 @@ function(core_add_library name)
             PATTERN "*.h"
             PATTERN "*.hpp"
             PATTERN "*.inl")
-
 endfunction()

@@ -2,7 +2,6 @@
 #define DOUBLESPINBOXBINDING_H
 
 #include <QDoubleSpinBox>
-#include <QModbusDataUnit>
 #include <QObject>
 
 #include "RegisterBinding.h"

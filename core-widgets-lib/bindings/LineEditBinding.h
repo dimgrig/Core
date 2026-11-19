@@ -2,7 +2,6 @@
 #define LINEEDITBINDING_H
 
 #include <QLineEdit>
-#include <QModbusDataUnit>
 #include <QObject>
 #include <QVector>
 

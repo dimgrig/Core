@@ -1,18 +1,21 @@
 #include "ModbusServer.h"
-//#include "ui_modbus_server.h"
 
-#include <QModbusTcpServer>
+#if defined(CORE_ENABLE_SERIAL)
+    #include <QModbusTcpServer>
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+        #include <QModbusRtuSerialServer>
+    #else
+        #include <QModbusRtuSerialSlave>
+    #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    #include <QModbusRtuSerialServer>
+    #include <QSerialPort>
+    #include <QSerialPortInfo>
 #else
-    #include <QModbusRtuSerialSlave>
+    #include "WasmModbusStubs.h"
 #endif
 
 #include <QRegularExpression>
 //#include <QRegularExpressionValidator>
-#include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QUrl>
 
 //#include "Config.h"
@@ -91,10 +94,18 @@ void ModbusServer::on_connect_type(int index) {
     }
 
     if (_connection_type == ConnectionTypeSerial) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+#if defined(CORE_ENABLE_SERIAL)
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         modbusDevice = std::make_shared<QModbusRtuSerialServer>();
-#else
+    #else
         modbusDevice = std::make_shared<QModbusRtuSerialSlave>();
+    #endif
+#else
+        // Для Wasm: Serial недоступен
+        if (auto* j = JournalAccess::journal()) {
+            j->warning(Category::Modbus, "Serial server requested, but CORE_ENABLE_SERIAL is disabled (Wasm build)");
+        }
+        return;
 #endif
     } else if (_connection_type == ConnectionTypeTCP) {
         modbusDevice = std::make_shared<QModbusTcpServer>();
@@ -130,6 +141,7 @@ void ModbusServer::on_connect() {
         return;
 
     if (_connection_type == ConnectionTypeSerial) {
+#if defined(CORE_ENABLE_SERIAL)
         QString portName = _modbus_settings.MODBUS_SERIAL_PORT;
 
         // Проверяем наличие порта в системе
@@ -144,15 +156,21 @@ void ModbusServer::on_connect() {
             // scheduleReconnect();
             return;
         }
+#else
+        emit host_error("Serial port not supported in Wasm build");
+        return;
+#endif
     }
 
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
         if (_connection_type == ConnectionTypeSerial) {
+#if defined(CORE_ENABLE_SERIAL)
             modbusDevice->setConnectionParameter(QModbusDevice::SerialPortNameParameter, _modbus_settings.MODBUS_SERIAL_PORT);
             modbusDevice->setConnectionParameter(QModbusDevice::SerialBaudRateParameter, _modbus_settings.MODBUS_BAUDRATE); //QSerialPort::Baud19200
             modbusDevice->setConnectionParameter(QModbusDevice::SerialDataBitsParameter, _modbus_settings.MODBUS_DATA_BITS); //QSerialPort::Data8
             modbusDevice->setConnectionParameter(QModbusDevice::SerialStopBitsParameter, _modbus_settings.MODBUS_STOP_BITS); //QSerialPort::OneStop
             modbusDevice->setConnectionParameter(QModbusDevice::SerialParityParameter, _modbus_settings.MODBUS_PARITY); //QSerialPort::EvenParity
+#endif
         } else if (_connection_type == ConnectionTypeTCP) {
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, _modbus_settings.MODBUS_IP);
             modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, _modbus_settings.MODBUS_PORT);
