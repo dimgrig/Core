@@ -19,6 +19,7 @@ core_add_library(core-io-lib
 target_sources(core-io-lib PRIVATE
     HTTPClient.cpp
     ResourceManager.cpp
+    SmtpClient.cpp
     TCPClient.cpp
     TCPServer.cpp
     UDPClient.cpp
@@ -28,6 +29,7 @@ target_sources(core-io-lib PRIVATE
     ClientHelpers.h
     HTTPClient.h
     ResourceManager.h
+    SmtpClient.h
     TCPClient.h
     TCPServer.h
     UDPClient.h

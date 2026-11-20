@@ -8,8 +8,12 @@ set(_core_test_sources
     main.cpp
     TestAuth.cpp
     TestJournal.cpp
+    TestSmtpClient.cpp
+
     TestAuth.h
     TestJournal.h
+    TestSmtpClient.h
+
     resources/resources.qrc
 )
 

@@ -21,6 +21,7 @@
 #include "TestAuth.h"
 #include "TestJournal.h"
 #include "TestModbusIntegration.h"
+#include "TestSmtpClient.h"
 
 int main(int argc, char *argv[])
 {
@@ -77,6 +78,9 @@ int main(int argc, char *argv[])
         status |= QTest::qExec(&tmi, argc, argv);
     }
 #endif
+
+    TestSmtpClient tsc;
+    status |= QTest::qExec(&tsc, argc, argv);
 
     qCDebug(logDebug) << "=============================================";
     qCDebug(logDebug) << "=================Core tests done=============";
