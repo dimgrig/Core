@@ -63,12 +63,14 @@ include(../core-build.pri)
 HEADERS += \
     TestAuth.h \
     TestJournal.h \
-    TestModbusIntegration.h
+    TestModbusIntegration.h \
+    TestSmtpClient.h
 
 SOURCES += \
     TestAuth.cpp \
     TestJournal.cpp \
     TestModbusIntegration.cpp \
+    TestSmtpClient.cpp \
     main.cpp \
 
 RESOURCES += \

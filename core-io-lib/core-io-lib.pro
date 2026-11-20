@@ -17,6 +17,7 @@ HEADERS += \
     ScpiDevice.h \
     ScpiTransport.h \
     SerialClient.h \
+    SmtpClient.h \
     TCPClient.h \
     TCPServer.h \
     UDPClient.h \
@@ -33,6 +34,7 @@ SOURCES += \
     ScpiDevice.cpp \
     ScpiTransport.cpp \
     SerialClient.cpp \
+    SmtpClient.cpp \
     TCPClient.cpp \
     TCPServer.cpp \
     UDPClient.cpp \
