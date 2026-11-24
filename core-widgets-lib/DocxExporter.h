@@ -17,6 +17,7 @@ public:
     DocxExporter();
 
     bool write(const QString &fileName, QTextDocument &document);
+    QByteArray toByteArray(QTextDocument &document);
     void style(QTextDocument &document);
     void exportTextToDocx(QTextDocument &document, const QString &text);
     void exportHtmlToDocx(QTextDocument &document, const QString &text);

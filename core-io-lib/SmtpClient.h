@@ -24,6 +24,7 @@ struct CORE_IO_LIB_EXPORT SmtpMessage {
     QString to;
     QString subject;
     QString body;
+    bool isHtml = false;        // true если body содержит HTML
     QStringList attachments;    // Абсолютные пути к файлам
 };
 

@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QRandomGenerator>
+#include <QUrl>
 
 SmtpClient::SmtpClient(QObject *parent)
     : QObject(parent)
@@ -125,7 +126,13 @@ void SmtpClient::onSocketDisconnected() {
 }
 
 void SmtpClient::onSocketError(QAbstractSocket::SocketError error) {
-    Q_UNUSED(error);
+    // Сервер закрыл соединение в ответ на команду QUIT — это штатное завершение
+    if ((_state == State::WaitingForQuitResponse || _state == State::SendingQuit)
+        && error == QAbstractSocket::RemoteHostClosedError) {
+        qCDebug(logDebug) << "SmtpClient: сервер закрыл соединение после QUIT";
+        return;
+    }
+
     QString errorMsg = _socket->errorString();
     qCDebug(logDebug) << "SmtpClient: ошибка сокета:" << errorMsg;
 
@@ -133,11 +140,13 @@ void SmtpClient::onSocketError(QAbstractSocket::SocketError error) {
         failCurrentMail("Ошибка сокета: " + errorMsg);
     }
 
+    bool wasUnconnected = (_socket->state() == QAbstractSocket::UnconnectedState);
     resetSession();
-    if (_socket->state() == QAbstractSocket::UnconnectedState) {
+    if (wasUnconnected) {
         processQueue();
     }
 }
+
 
 void SmtpClient::onSslErrors(const QList<QSslError> &errors) {
     QStringList errorStrings;
@@ -362,21 +371,32 @@ QByteArray SmtpClient::buildMessage() const {
     QByteArray message;
     QString boundary = "----=_Part_" + QString::number(QRandomGenerator::global()->generate());
 
+    QByteArray subjectBase64 = _currentMessage.subject.toUtf8().toBase64();
+
     message += "From: " + _config.from.toUtf8() + "\r\n";
     message += "To: " + _currentMessage.to.toUtf8() + "\r\n";
-    message += "Subject: " + _currentMessage.subject.toUtf8() + "\r\n";
+    //message += "Subject: " + _currentMessage.subject.toUtf8() + "\r\n";
+    message += "Subject: =?UTF-8?B?" + subjectBase64 + "?=\r\n";
     message += "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n";
     message += "MIME-Version: 1.0\r\n";
 
     if (_currentMessage.attachments.isEmpty()) {
-        message += "Content-Type: text/plain; charset=\"utf-8\"\r\n";
+        if (_currentMessage.isHtml) {
+            message += "Content-Type: text/html; charset=\"utf-8\"\r";
+        } else {
+            message += "Content-Type: text/plain; charset=\"utf-8\"\r";
+        }
         message += "Content-Transfer-Encoding: 8bit\r\n\r\n";
         message += _currentMessage.body.toUtf8() + "\r\n";
     } else {
         message += "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n\r\n";
 
         message += "--" + boundary.toUtf8() + "\r\n";
-        message += "Content-Type: text/plain; charset=\"utf-8\"\r\n";
+        if (_currentMessage.isHtml) {
+            message += "Content-Type: text/html; charset=\"utf-8\"\r";
+        } else {
+            message += "Content-Type: text/plain; charset=\"utf-8\"\r";
+        }
         message += "Content-Transfer-Encoding: 8bit\r\n\r\n";
         message += _currentMessage.body.toUtf8() + "\r\n";
 
@@ -391,11 +411,13 @@ QByteArray SmtpClient::buildMessage() const {
             file.close();
 
             QString fileName = extractFileName(filePath);
+            QByteArray encodedFileName = "=?UTF-8?B?" + fileName.toUtf8().toBase64() + "?=";
+            QByteArray urlEncodedFileName = QUrl::toPercentEncoding(fileName);
 
             message += "--" + boundary.toUtf8() + "\r\n";
-            message += "Content-Type: application/octet-stream; name=\"" + fileName.toUtf8() + "\"\r\n";
+            message += "Content-Type: application/octet-stream; name=\"" + encodedFileName + "\"\r\n";
             message += "Content-Transfer-Encoding: base64\r\n";
-            message += "Content-Disposition: attachment; filename=\"" + fileName.toUtf8() + "\"\r\n\r\n";
+            message += "Content-Disposition: attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + urlEncodedFileName + "\r\n\r\n";
 
             QByteArray encoded = fileData.toBase64();
             for (int i = 0; i < encoded.size(); i += 76) {

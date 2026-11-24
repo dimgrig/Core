@@ -43,6 +43,7 @@ enum TableType {
     TableType_MITable,
     TableType_TestsTable,
     TableType_UsersTable,
+    TableType_ExportsTable,
 
     //himik
     TableType_Controllers,

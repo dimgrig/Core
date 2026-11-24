@@ -1,5 +1,6 @@
 #include "DocxExporter.h"
 
+#include <QBuffer>
 #include <QTextList>
 
 #include "Logger.h"
@@ -17,6 +18,22 @@ bool DocxExporter::write(const QString &fileName, QTextDocument &document) {
         qCDebug(logDebug) << writer.device()->errorString();
     }
     return res;
+}
+
+QByteArray DocxExporter::toByteArray(QTextDocument &document) {
+    QBuffer buffer;
+    buffer.open(QIODevice::WriteOnly);
+
+    QTextDocumentWriter writer(&buffer, "ODF");
+    writer.setFormat("ODF");
+    const bool res = writer.write(&document);
+    buffer.close();
+
+    if (!res) {
+        qCDebug(logDebug) << "toByteArray failed";
+        return QByteArray();
+    }
+    return buffer.data();
 }
 
 void DocxExporter::style(QTextDocument &document) {
