@@ -36,3 +36,11 @@ void MenuCornerWidget::set_pb_connection_visible(bool visible) {
 ConnectionButton *MenuCornerWidget::get_pb_connection() {
     return this->ui->pb_connection;
 }
+
+QSize MenuCornerWidget::sizeHint() const {
+    QSize s = QWidget::sizeHint();
+    // Гарантируем, что QMenuBar выделит минимум 100 px (или больше, если текст длиннее)
+    s.setWidth(qMax(s.width(), 100));
+    return s;
+}
+

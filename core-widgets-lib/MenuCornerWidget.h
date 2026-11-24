@@ -22,6 +22,7 @@ public:
     void set_pb_connection_visible(bool visible);
     ConnectionButton *get_pb_connection();
 
+    QSize sizeHint() const override;
 signals:
     void logout();
 public slots:
