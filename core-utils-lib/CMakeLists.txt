@@ -10,6 +10,7 @@ target_sources(core-utils-lib PRIVATE
     DelayUtils.cpp
     FilterMixin.cpp
     MathParser.cpp
+    NetworkUtils.cpp
     SessionCache.cpp
     functions.cpp
     functions_degrees.cpp
@@ -20,6 +21,7 @@ target_sources(core-utils-lib PRIVATE
     DelayUtils.h
     FilterMixin.h
     MathParser.h
+    NetworkUtils.h
     SessionCache.h
     dimensions.h
     functions.h
