@@ -122,7 +122,9 @@ void SmtpClient::onSocketDisconnected() {
     }
 
     resetSession();
-    processQueue();
+    // ИСПРАВЛЕНИЕ: Даем 500 мс на полное освобождение сокета ОС,
+    // чтобы избежать зависания при мгновенном переподключении (TCP TIME_WAIT)
+    QTimer::singleShot(500, this, &SmtpClient::processQueue);
 }
 
 void SmtpClient::onSocketError(QAbstractSocket::SocketError error) {
@@ -143,7 +145,9 @@ void SmtpClient::onSocketError(QAbstractSocket::SocketError error) {
     bool wasUnconnected = (_socket->state() == QAbstractSocket::UnconnectedState);
     resetSession();
     if (wasUnconnected) {
-        processQueue();
+        // ИСПРАВЛЕНИЕ: Даем 500 мс на полное освобождение сокета ОС,
+        // чтобы избежать зависания при мгновенном переподключении (TCP TIME_WAIT)
+        QTimer::singleShot(500, this, &SmtpClient::processQueue);
     }
 }
 
@@ -301,7 +305,9 @@ void SmtpClient::onTimeout() {
 
     resetSession();
     if (_socket->state() == QAbstractSocket::UnconnectedState) {
-        processQueue();
+        // ИСПРАВЛЕНИЕ: Даем 500 мс на полное освобождение сокета ОС,
+        // чтобы избежать зависания при мгновенном переподключении (TCP TIME_WAIT)
+        QTimer::singleShot(500, this, &SmtpClient::processQueue);
     }
 }
 
